@@ -1,0 +1,50 @@
+/* Seeksy Email Tracker - Gmail Injected Styles */
+
+#seeksy-status-indicator {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 999999;
+  pointer-events: none;
+}
+
+.seeksy-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #0a1929, #1a365d);
+  padding: 8px 14px;
+  border-radius: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 12px;
+  color: #fff;
+  opacity: 0.9;
+  transition: opacity 0.3s;
+}
+
+.seeksy-badge:hover {
+  opacity: 1;
+}
+
+.seeksy-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ef4444;
+  animation: pulse 2s infinite;
+}
+
+.seeksy-text {
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}

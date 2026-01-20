@@ -1,0 +1,141 @@
+/* Midnight Blue Sidebar Global Theme */
+
+/* Override default sidebar styles with Midnight Blue theme */
+[data-sidebar] {
+  background-color: hsl(var(--sidebar-bg)) !important;
+}
+
+/* Section headers and labels */
+[data-sidebar] [data-sidebar-group-label] {
+  color: hsl(var(--sidebar-text)) !important;
+  opacity: 0.9;
+}
+
+/* All navigation links - base state */
+[data-sidebar] a {
+  color: hsl(var(--sidebar-text)) !important;
+  transition: all 0.15s ease;
+  border-left: 3px solid transparent;
+  padding: 10px 12px !important;
+  margin: 2px 8px;
+  border-radius: 6px;
+}
+
+/* Hover state for all sidebar menu buttons */
+[data-sidebar] [data-sidebar-menu-button]:hover,
+[data-sidebar] a:hover {
+  background-color: hsl(var(--sidebar-hover)) !important;
+  color: hsl(var(--sidebar-text)) !important;
+  cursor: pointer;
+}
+
+/* Active state with left accent border - high contrast */
+[data-sidebar] [data-sidebar-menu-button][data-active="true"],
+[data-sidebar] a.active,
+[data-sidebar] [data-sidebar-menu-button].nav-active,
+[data-sidebar] a[aria-current="page"] {
+  background-color: hsl(207 100% 50% / 0.15) !important;
+  color: hsl(var(--sidebar-text)) !important;
+  font-weight: 600 !important;
+  border-left: 3px solid hsl(var(--sidebar-accent)) !important;
+  box-shadow: inset 0 0 0 1px hsl(207 100% 50% / 0.1);
+}
+
+/* Active state icon brightening */
+[data-sidebar] a.active svg,
+[data-sidebar] a[aria-current="page"] svg,
+[data-sidebar] [data-sidebar-menu-button][data-active="true"] svg {
+  color: hsl(var(--sidebar-accent)) !important;
+  opacity: 1 !important;
+}
+
+/* Icons - base state */
+[data-sidebar] svg {
+  color: hsl(var(--sidebar-text)) !important;
+  opacity: 0.7;
+  transition: all 0.15s ease;
+}
+
+[data-sidebar] [data-sidebar-menu-button]:hover svg,
+[data-sidebar] a:hover svg {
+  color: hsl(var(--sidebar-accent)) !important;
+  opacity: 1;
+}
+
+/* Pinned star indicator - dim when inactive */
+[data-sidebar] .pinned-star {
+  opacity: 0.4;
+  transition: opacity 0.15s ease;
+}
+
+/* Pinned star - bright when item is active */
+[data-sidebar] a.active .pinned-star,
+[data-sidebar] a[aria-current="page"] .pinned-star {
+  opacity: 1;
+}
+
+/* Collapsible trigger chevrons */
+[data-sidebar] [data-sidebar-group-label] svg {
+  opacity: 0.7;
+}
+
+/* Borders and separators */
+[data-sidebar] .border-t,
+[data-sidebar] .border-b,
+[data-sidebar] .border-r {
+  border-color: hsl(var(--sidebar-hover)) !important;
+}
+
+/* Tooltips remain with default theme for readability */
+[data-sidebar-tooltip] {
+  background-color: hsl(var(--popover)) !important;
+  color: hsl(var(--popover-foreground)) !important;
+}
+
+/* Collapsed sidebar - active indicator dot */
+[data-state="collapsed"] [data-sidebar] a.active,
+[data-state="collapsed"] [data-sidebar] a[aria-current="page"] {
+  position: relative;
+  background-color: hsl(207 100% 50% / 0.2) !important;
+  border-radius: 8px !important;
+  border-left: none !important;
+}
+
+/* Active indicator dot for collapsed mode */
+[data-state="collapsed"] [data-sidebar] a.active::before,
+[data-state="collapsed"] [data-sidebar] a[aria-current="page"]::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 4px;
+  background-color: hsl(var(--sidebar-accent));
+  border-radius: 50%;
+  box-shadow: 0 0 6px hsl(var(--sidebar-accent));
+}
+
+/* Sub-items should not inherit parent highlight */
+[data-sidebar] [data-sidebar-menu-sub-button] {
+  border-left: none !important;
+  margin-left: 24px;
+  padding: 8px 12px !important;
+}
+
+[data-sidebar] [data-sidebar-menu-sub-button].active,
+[data-sidebar] [data-sidebar-menu-sub-button][aria-current="page"] {
+  background-color: hsl(var(--sidebar-hover)) !important;
+  border-left: 2px solid hsl(var(--sidebar-accent)) !important;
+  margin-left: 22px;
+}
+
+/* Menu item spacing */
+[data-sidebar] [data-sidebar-menu-item] {
+  margin-bottom: 2px;
+}
+
+/* Group spacing */
+[data-sidebar] [data-sidebar-group] {
+  margin-bottom: 8px;
+}

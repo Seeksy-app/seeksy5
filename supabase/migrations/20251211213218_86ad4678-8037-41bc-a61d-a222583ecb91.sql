@@ -1,0 +1,42 @@
+-- Add missing columns to trucking_loads table based on detailed schema
+ALTER TABLE public.trucking_loads
+ADD COLUMN IF NOT EXISTS equipment_notes TEXT,
+ADD COLUMN IF NOT EXISTS hazmat BOOLEAN DEFAULT false,
+ADD COLUMN IF NOT EXISTS temp_required BOOLEAN DEFAULT false,
+ADD COLUMN IF NOT EXISTS temp_min_f NUMERIC,
+ADD COLUMN IF NOT EXISTS temp_max_f NUMERIC,
+ADD COLUMN IF NOT EXISTS length_ft INTEGER,
+ADD COLUMN IF NOT EXISTS height_ft INTEGER,
+ADD COLUMN IF NOT EXISTS pieces INTEGER,
+ADD COLUMN IF NOT EXISTS pickup_city TEXT,
+ADD COLUMN IF NOT EXISTS pickup_state TEXT,
+ADD COLUMN IF NOT EXISTS pickup_zip TEXT,
+ADD COLUMN IF NOT EXISTS pickup_address TEXT,
+ADD COLUMN IF NOT EXISTS pickup_appointment_required BOOLEAN DEFAULT false,
+ADD COLUMN IF NOT EXISTS pickup_fcfs BOOLEAN DEFAULT true,
+ADD COLUMN IF NOT EXISTS pickup_contact_name TEXT,
+ADD COLUMN IF NOT EXISTS pickup_contact_phone TEXT,
+ADD COLUMN IF NOT EXISTS delivery_address TEXT,
+ADD COLUMN IF NOT EXISTS delivery_appointment_required BOOLEAN DEFAULT false,
+ADD COLUMN IF NOT EXISTS delivery_fcfs BOOLEAN DEFAULT true,
+ADD COLUMN IF NOT EXISTS delivery_contact_name TEXT,
+ADD COLUMN IF NOT EXISTS delivery_contact_phone TEXT,
+ADD COLUMN IF NOT EXISTS target_rate_per_mile NUMERIC,
+ADD COLUMN IF NOT EXISTS floor_rate_per_mile NUMERIC,
+ADD COLUMN IF NOT EXISTS escalate_threshold_per_mile NUMERIC,
+ADD COLUMN IF NOT EXISTS detention_rate_per_hour NUMERIC,
+ADD COLUMN IF NOT EXISTS layover_rate NUMERIC,
+ADD COLUMN IF NOT EXISTS tonu_rate NUMERIC,
+ADD COLUMN IF NOT EXISTS lumpers_covered BOOLEAN DEFAULT true,
+ADD COLUMN IF NOT EXISTS special_instructions TEXT,
+ADD COLUMN IF NOT EXISTS internal_notes TEXT,
+ADD COLUMN IF NOT EXISTS origin_radius_miles INTEGER DEFAULT 40,
+ADD COLUMN IF NOT EXISTS destination_radius_miles INTEGER DEFAULT 40;
+
+-- Add truck_type column to trucking_carrier_leads if not exists
+ALTER TABLE public.trucking_carrier_leads
+ADD COLUMN IF NOT EXISTS truck_type TEXT,
+ADD COLUMN IF NOT EXISTS eta_to_pickup TIMESTAMPTZ,
+ADD COLUMN IF NOT EXISTS rate_requested NUMERIC,
+ADD COLUMN IF NOT EXISTS dot_number TEXT,
+ADD COLUMN IF NOT EXISTS email TEXT;
