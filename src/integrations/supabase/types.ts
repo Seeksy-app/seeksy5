@@ -14,16 +14,180 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          account_type: Database["public"]["Enums"]["account_type"] | null
+          account_types_enabled: string[] | null
+          active_account_type:
+            | Database["public"]["Enums"]["account_type"]
+            | null
+          avatar_url: string | null
+          created_at: string | null
+          full_name: string | null
+          id: string
+          is_advertiser: boolean | null
+          is_creator: boolean | null
+          onboarding_completed: boolean | null
+          onboarding_data: Json | null
+          preferred_role: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          account_type?: Database["public"]["Enums"]["account_type"] | null
+          account_types_enabled?: string[] | null
+          active_account_type?:
+            | Database["public"]["Enums"]["account_type"]
+            | null
+          avatar_url?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id: string
+          is_advertiser?: boolean | null
+          is_creator?: boolean | null
+          onboarding_completed?: boolean | null
+          onboarding_data?: Json | null
+          preferred_role?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          account_type?: Database["public"]["Enums"]["account_type"] | null
+          account_types_enabled?: string[] | null
+          active_account_type?:
+            | Database["public"]["Enums"]["account_type"]
+            | null
+          avatar_url?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id?: string
+          is_advertiser?: boolean | null
+          is_creator?: boolean | null
+          onboarding_completed?: boolean | null
+          onboarding_data?: Json | null
+          preferred_role?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      user_preferences: {
+        Row: {
+          created_at: string | null
+          email_notifications: boolean | null
+          id: string
+          notifications_enabled: boolean | null
+          preferences: Json | null
+          theme: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          email_notifications?: boolean | null
+          id?: string
+          notifications_enabled?: boolean | null
+          preferences?: Json | null
+          theme?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          email_notifications?: boolean | null
+          id?: string
+          notifications_enabled?: boolean | null
+          preferences?: Json | null
+          theme?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      workspaces: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          owner_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          owner_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          owner_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      account_type:
+        | "creator"
+        | "advertiser"
+        | "agency"
+        | "podcaster"
+        | "event_planner"
+        | "brand"
+        | "studio_team"
+        | "admin"
+        | "influencer"
+      app_role:
+        | "super_admin"
+        | "admin"
+        | "support_admin"
+        | "support_agent"
+        | "creator"
+        | "advertiser"
+        | "influencer"
+        | "agency"
+        | "subscriber"
+        | "board_member"
+        | "board_admin"
+        | "read_only_analyst"
+        | "team_manager"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +314,33 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      account_type: [
+        "creator",
+        "advertiser",
+        "agency",
+        "podcaster",
+        "event_planner",
+        "brand",
+        "studio_team",
+        "admin",
+        "influencer",
+      ],
+      app_role: [
+        "super_admin",
+        "admin",
+        "support_admin",
+        "support_agent",
+        "creator",
+        "advertiser",
+        "influencer",
+        "agency",
+        "subscriber",
+        "board_member",
+        "board_admin",
+        "read_only_analyst",
+        "team_manager",
+      ],
+    },
   },
 } as const
