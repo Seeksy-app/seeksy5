@@ -39,7 +39,7 @@ export function SourceSelector({ onMediaSelect, onBack }: SourceSelectorProps) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("media_files")
         .select("id, file_url, file_type, file_name, duration_seconds, created_at, cloudflare_uid, edit_transcript, source")
         .eq("user_id", user.id)
@@ -50,7 +50,7 @@ export function SourceSelector({ onMediaSelect, onBack }: SourceSelectorProps) {
       if (error) throw error;
       
       // Map to SourceMedia type
-      const mapped: SourceMedia[] = (data || []).map(item => ({
+      const mapped: SourceMedia[] = ((data as any[]) || []).map((item: any) => ({
         id: item.id,
         file_url: item.file_url,
         file_name: item.file_name,

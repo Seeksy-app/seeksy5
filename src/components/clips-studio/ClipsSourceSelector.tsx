@@ -46,7 +46,7 @@ export function ClipsSourceSelector({ onMediaSelect, onBack }: ClipsSourceSelect
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("media_files")
         .select("id, file_url, file_type, file_name, duration_seconds, created_at, cloudflare_uid, cloudflare_download_url, edit_transcript, source, thumbnail_url")
         .eq("user_id", user.id)
@@ -57,7 +57,7 @@ export function ClipsSourceSelector({ onMediaSelect, onBack }: ClipsSourceSelect
 
       if (error) throw error;
       
-      const mapped: SourceMedia[] = (data || []).map(item => ({
+      const mapped: SourceMedia[] = ((data as any[]) || []).map((item: any) => ({
         id: item.id,
         file_url: item.cloudflare_download_url || item.file_url,
         file_name: item.file_name,

@@ -17,7 +17,7 @@ export function ContactListsTab({ contactId }: ContactListsTabProps) {
   const { data: memberships, isLoading } = useQuery({
     queryKey: ["contact-list-memberships", contactId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("contact_list_members")
         .select(`
           *,
@@ -26,8 +26,8 @@ export function ContactListsTab({ contactId }: ContactListsTabProps) {
         .eq("contact_id", contactId)
         .order("joined_at", { ascending: false });
 
-      if (error) throw error;
-      return data || [];
+      if (result.error) throw result.error;
+      return (result.data as any[]) || [];
     },
   });
 

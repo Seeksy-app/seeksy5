@@ -17,12 +17,12 @@ export function ScenariosTab() {
   const { data: scenarios, isLoading: loadingScenarios } = useQuery({
     queryKey: ["ad-financial-scenarios"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("ad_financial_scenarios")
         .select("*")
         .order("created_at", { ascending: true });
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any[];
     },
   });
 
@@ -30,13 +30,13 @@ export function ScenariosTab() {
     queryKey: ["ad-financial-projections", selectedScenario],
     queryFn: async () => {
       if (!selectedScenario) return [];
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("ad_financial_projections")
         .select("*")
         .eq("scenario_id", selectedScenario)
         .order("month_index", { ascending: true });
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any[];
     },
     enabled: !!selectedScenario,
   });
@@ -44,11 +44,11 @@ export function ScenariosTab() {
   const { data: summaries } = useQuery({
     queryKey: ["ad-financial-model-summaries"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("ad_financial_model_summaries")
         .select("*");
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any[];
     },
   });
 

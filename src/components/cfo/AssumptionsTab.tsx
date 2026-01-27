@@ -17,12 +17,12 @@ export function AssumptionsTab() {
   const { data: scenarios } = useQuery({
     queryKey: ["ad-financial-scenarios"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("ad_financial_scenarios")
         .select("*")
         .order("created_at", { ascending: true });
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any[];
     },
   });
 
@@ -32,13 +32,13 @@ export function AssumptionsTab() {
     queryKey: ["ad-financial-assumptions", defaultScenario?.id],
     queryFn: async () => {
       if (!defaultScenario?.id) return null;
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("ad_financial_assumptions")
         .select("*")
         .eq("scenario_id", defaultScenario.id)
         .single();
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any;
     },
     enabled: !!defaultScenario?.id,
   });
@@ -49,13 +49,13 @@ export function AssumptionsTab() {
     queryFn: async () => {
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("admin_revenue_reports")
         .select("*")
         .gte("period_start", thirtyDaysAgo.toISOString().split("T")[0])
         .order("period_start", { ascending: false });
-      if (error) throw error;
-      return data || [];
+      if (result.error) throw result.error;
+      return (result.data as any[]) || [];
     },
   });
 
@@ -64,11 +64,11 @@ export function AssumptionsTab() {
   const updateMutation = useMutation({
     mutationFn: async (data: any) => {
       if (!assumptions?.id) throw new Error("No assumptions to update");
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("ad_financial_assumptions")
         .update(data)
         .eq("id", assumptions.id);
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["ad-financial-assumptions"] });

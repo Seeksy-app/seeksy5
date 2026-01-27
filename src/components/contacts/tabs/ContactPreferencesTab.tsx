@@ -16,14 +16,14 @@ export function ContactPreferencesTab({ contactId }: ContactPreferencesTabProps)
   const { data: preferences, isLoading } = useQuery({
     queryKey: ["contact-preferences", contactId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("contact_preferences")
         .select("*")
         .eq("contact_id", contactId)
         .single();
 
-      if (error && error.code !== "PGRST116") throw error;
-      return data || {
+      if (result.error && result.error.code !== "PGRST116") throw result.error;
+      return (result.data as any) || {
         newsletter: true,
         promotions: true,
         updates: true,
@@ -34,14 +34,14 @@ export function ContactPreferencesTab({ contactId }: ContactPreferencesTabProps)
 
   const updatePreferences = useMutation({
     mutationFn: async (newPreferences: any) => {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("contact_preferences")
         .upsert({
           contact_id: contactId,
           ...newPreferences,
         });
 
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["contact-preferences", contactId] });

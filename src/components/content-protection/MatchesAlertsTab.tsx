@@ -14,25 +14,25 @@ export const MatchesAlertsTab = () => {
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user?.id) return [];
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("content_matches")
         .select("*")
         .eq("user_id", user.id)
         .order("detected_at", { ascending: false });
 
-      if (error) throw error;
-      return data || [];
+      if (result.error) throw result.error;
+      return (result.data as any[]) || [];
     },
   });
 
   const updateStatusMutation = useMutation({
     mutationFn: async ({ matchId, status }: { matchId: string; status: string }) => {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("content_matches")
         .update({ status, reviewed_at: new Date().toISOString() })
         .eq("id", matchId);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["content-matches"] });

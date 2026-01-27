@@ -46,10 +46,10 @@ export const ShareProformaDialog = ({ open, onOpenChange, proformaType }: ShareP
       }
 
       // Generate unique access code
-      const { data: codeData, error: codeError } = await supabase.rpc('generate_investor_code');
+      const { data: codeData, error: codeError } = await (supabase as any).rpc('generate_investor_code');
       if (codeError) throw codeError;
 
-      const accessCode = codeData as string;
+      const accessCode = codeData as unknown as string;
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + expiryDays);
 
