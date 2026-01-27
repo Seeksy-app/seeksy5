@@ -655,6 +655,7 @@ export interface Database {
           my_page_video_type: string | null
           my_page_video_id: string | null
           my_page_video_loop: boolean | null
+          my_page_ad_id: string | null
           account_full_name: string | null
           account_avatar_url: string | null
           advertiser_onboarding_completed: boolean | null
@@ -678,6 +679,7 @@ export interface Database {
           my_page_video_type?: string | null
           my_page_video_id?: string | null
           my_page_video_loop?: boolean | null
+          my_page_ad_id?: string | null
           account_full_name?: string | null
           account_avatar_url?: string | null
           advertiser_onboarding_completed?: boolean | null
@@ -701,6 +703,7 @@ export interface Database {
           my_page_video_type?: string | null
           my_page_video_id?: string | null
           my_page_video_loop?: boolean | null
+          my_page_ad_id?: string | null
           account_full_name?: string | null
           account_avatar_url?: string | null
           advertiser_onboarding_completed?: boolean | null
