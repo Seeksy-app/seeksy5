@@ -33,28 +33,28 @@ export function SponsorshipPackageManager({ programId }: SponsorshipPackageManag
   const { data: packages, refetch } = useQuery({
     queryKey: ["sponsorship-packages", programId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("award_sponsorship_packages")
         .select("*")
         .eq("program_id", programId)
         .order("display_order");
       
-      if (error) throw error;
+      if (result.error) throw result.error;
 
       // Fetch sponsor counts for each package
       const packagesWithCounts = await Promise.all(
-        (data || []).map(async (pkg) => {
-          const { count } = await supabase
+        (result.data || []).map(async (pkg: any) => {
+          const countResult = await (supabase as any)
             .from("award_sponsorships")
             .select("*", { count: "exact", head: true })
             .eq("package_id", pkg.id)
             .eq("status", "paid");
 
-          return { ...pkg, currentSponsors: count || 0 };
+          return { ...pkg, currentSponsors: countResult.count || 0 };
         })
       );
       
-      return packagesWithCounts;
+      return packagesWithCounts as any[];
     },
   });
 
@@ -97,7 +97,7 @@ export function SponsorshipPackageManager({ programId }: SponsorshipPackageManag
             who_pays_processing: "sponsor",
           };
 
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("award_sponsorship_packages")
         .insert({
           program_id: programId,
@@ -111,7 +111,7 @@ export function SponsorshipPackageManager({ programId }: SponsorshipPackageManag
           fee_configuration: feeConfiguration,
         });
 
-      if (error) throw error;
+      if (result.error) throw result.error;
 
       toast.success("Sponsorship package created!");
       setIsDialogOpen(false);

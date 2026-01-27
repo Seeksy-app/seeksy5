@@ -8,25 +8,25 @@ export function InvestorAnalyticsCards() {
   const { data: links } = useQuery({
     queryKey: ['investorLinksStats'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('investor_links')
         .select('*')
         .order('created_at', { ascending: false });
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any[];
     },
   });
 
   const { data: activities } = useQuery({
     queryKey: ['allLinkActivities'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('investor_link_activity')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(100);
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any[];
     },
   });
 

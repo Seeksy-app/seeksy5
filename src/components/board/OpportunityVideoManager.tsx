@@ -24,8 +24,8 @@ export function OpportunityVideoManager({ opportunityId, opportunityName }: Oppo
   const { data: allVideos } = useQuery<DemoVideo[]>({
     queryKey: ["all-demo-videos"],
     queryFn: async () => {
-      const result = await (supabase
-        .from("demo_videos") as any)
+      const result = await (supabase as any)
+        .from("demo_videos")
         .select("id, title, thumbnail_url, duration_seconds, category")
         .eq("is_active", true)
         .order("title");
@@ -36,8 +36,8 @@ export function OpportunityVideoManager({ opportunityId, opportunityName }: Oppo
   const { data: attachedVideos, refetch: refetchAttached } = useQuery<AttachedVideo[]>({
     queryKey: ["opportunity-videos", opportunityId],
     queryFn: async () => {
-      const result = await (supabase
-        .from("sales_opportunity_videos") as any)
+      const result = await (supabase as any)
+        .from("sales_opportunity_videos")
         .select("id, video_id, display_order")
         .eq("opportunity_id", opportunityId)
         .order("display_order");
@@ -46,8 +46,8 @@ export function OpportunityVideoManager({ opportunityId, opportunityName }: Oppo
       if (!data || data.length === 0) return [];
       
       const videoIds = data.map(v => v.video_id);
-      const videosResult = await (supabase
-        .from("demo_videos") as any)
+      const videosResult = await (supabase as any)
+        .from("demo_videos")
         .select("id, title, thumbnail_url, duration_seconds")
         .in("id", videoIds);
       const videos = videosResult.data as DemoVideo[] | null;
@@ -68,11 +68,11 @@ export function OpportunityVideoManager({ opportunityId, opportunityName }: Oppo
 
   const saveMutation = useMutation({
     mutationFn: async (videoIds: string[]) => {
-      await (supabase.from("sales_opportunity_videos") as any)
+      await (supabase as any).from("sales_opportunity_videos")
         .delete()
         .eq("opportunity_id", opportunityId);
       if (videoIds.length > 0) {
-        await (supabase.from("sales_opportunity_videos") as any)
+        await (supabase as any).from("sales_opportunity_videos")
           .insert(videoIds.map((videoId, index) => ({ 
             opportunity_id: opportunityId, 
             video_id: videoId, 
@@ -88,7 +88,7 @@ export function OpportunityVideoManager({ opportunityId, opportunityName }: Oppo
   });
 
   const removeVideo = async (videoId: string) => {
-    await (supabase.from("sales_opportunity_videos") as any)
+    await (supabase as any).from("sales_opportunity_videos")
       .delete()
       .eq("opportunity_id", opportunityId)
       .eq("video_id", videoId);

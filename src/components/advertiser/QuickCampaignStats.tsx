@@ -13,7 +13,7 @@ export function QuickCampaignStats({ campaignId }: QuickCampaignStatsProps) {
   const { data: campaign, isLoading: campaignLoading } = useQuery({
     queryKey: ["quick-campaign", campaignId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("ad_campaigns")
         .select(`
           *,
@@ -26,8 +26,8 @@ export function QuickCampaignStats({ campaignId }: QuickCampaignStatsProps) {
         .eq("id", campaignId)
         .single();
 
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any;
     },
   });
 

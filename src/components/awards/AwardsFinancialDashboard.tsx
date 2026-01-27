@@ -13,35 +13,40 @@ export function AwardsFinancialDashboard({ programId }: AwardsFinancialDashboard
     queryKey: ["awards-financials", programId],
     queryFn: async () => {
       // Get program details
-      const { data: program } = await supabase
+      const programResult = await (supabase as any)
         .from("awards_programs")
         .select("*")
         .eq("id", programId)
         .single();
+      const program = programResult.data as any;
 
       // Get all sponsorships
-      const { data: sponsorships } = await supabase
+      const sponsorshipsResult = await (supabase as any)
         .from("award_sponsorships")
         .select("amount_paid, status, paid_at")
         .eq("program_id", programId);
+      const sponsorships = (sponsorshipsResult.data || []) as any[];
 
       // Get all self-nominations
-      const { data: nominations } = await supabase
+      const nominationsResult = await (supabase as any)
         .from("award_self_nominations")
         .select("amount_paid, status, paid_at")
         .eq("program_id", programId);
+      const nominations = (nominationsResult.data || []) as any[];
 
       // Get all registrations
-      const { data: registrations } = await supabase
+      const registrationsResult = await (supabase as any)
         .from("award_registrations")
         .select("amount_paid, status, paid_at")
         .eq("program_id", programId);
+      const registrations = (registrationsResult.data || []) as any[];
 
       // Get all payouts
-      const { data: payouts } = await supabase
+      const payoutsResult = await (supabase as any)
         .from("award_payouts")
         .select("*")
         .eq("program_id", programId);
+      const payouts = (payoutsResult.data || []) as any[];
 
       // Calculate totals
       const allTransactions = [

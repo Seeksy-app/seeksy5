@@ -81,12 +81,12 @@ export function GenerateLinkModal({ open, onOpenChange, onSuccess }: GenerateLin
   const { data: demoVideos } = useQuery({
     queryKey: ['demo-videos-for-share'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('demo_videos')
         .select('id, title, description, category, thumbnail_url')
         .order('order_index');
-      if (error) throw error;
-      return data as DemoVideo[];
+      if (result.error) throw result.error;
+      return result.data as DemoVideo[];
     },
   });
 
@@ -183,7 +183,7 @@ export function GenerateLinkModal({ open, onOpenChange, onSuccess }: GenerateLin
       const passcode = generatePasscode();
       const expiresAt = calculateExpiration();
 
-      const { data, error } = await supabase.from('investor_links').insert({
+      const result = await (supabase as any).from('investor_links').insert({
         token,
         passcode,
         investor_name: investorName || null,
@@ -199,7 +199,8 @@ export function GenerateLinkModal({ open, onOpenChange, onSuccess }: GenerateLin
         status: 'active',
       }).select().single();
 
-      if (error) throw error;
+      if (result.error) throw result.error;
+      const data = result.data as any;
 
       const url = `${window.location.origin}/investor/${token}`;
       setGeneratedData({ id: data.id, url, passcode, token });

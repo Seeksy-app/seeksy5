@@ -57,8 +57,8 @@ export function OpportunityEditModal({ opportunity, open, onOpenChange }: Opport
 
   const updateAccessCodeMutation = useMutation({
     mutationFn: async (newCode: string) => {
-      const { error } = await (supabase
-        .from("sales_opportunities") as any)
+      const { error } = await (supabase as any)
+        .from("sales_opportunities")
         .update({ access_code: newCode })
         .eq("id", opportunity.id);
       if (error) throw error;

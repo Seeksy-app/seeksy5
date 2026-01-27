@@ -27,14 +27,14 @@ export function ModuleTooltip({ moduleId, children, fallbackData }: ModuleToolti
   const { data: dbTooltip } = useQuery({
     queryKey: ['module-tooltip', moduleId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('module_tooltips')
         .select('*')
         .eq('module_id', moduleId)
         .maybeSingle();
       
-      if (error) throw error;
-      return data as ModuleTooltipData | null;
+      if (result.error) throw result.error;
+      return result.data as ModuleTooltipData | null;
     },
     staleTime: 10 * 60 * 1000,
   });

@@ -26,14 +26,14 @@ export function CategoryTooltip({ categoryId, children, fallbackData }: Category
   const { data: tooltip } = useQuery({
     queryKey: ['category-tooltip', categoryId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('category_tooltips')
         .select('*')
         .eq('category_id', categoryId)
         .maybeSingle();
       
-      if (error) throw error;
-      return data as CategoryTooltipData | null;
+      if (result.error) throw result.error;
+      return result.data as CategoryTooltipData | null;
     },
     staleTime: 10 * 60 * 1000,
   });

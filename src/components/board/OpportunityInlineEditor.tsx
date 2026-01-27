@@ -67,7 +67,7 @@ export function OpportunityInlineEditor({ opportunity, onClose }: OpportunityInl
   const { data: allVideos } = useQuery<DemoVideo[]>({
     queryKey: ["all-demo-videos"],
     queryFn: async () => {
-      const result = await (supabase.from("demo_videos") as any)
+      const result = await (supabase as any).from("demo_videos")
         .select("id, title, thumbnail_url, duration_seconds, category")
         .eq("is_active", true)
         .order("title");
@@ -79,7 +79,7 @@ export function OpportunityInlineEditor({ opportunity, onClose }: OpportunityInl
   const { data: attachedVideos } = useQuery({
     queryKey: ["opportunity-videos", opportunity.id],
     queryFn: async () => {
-      const result = await (supabase.from("sales_opportunity_videos") as any)
+      const result = await (supabase as any).from("sales_opportunity_videos")
         .select("video_id")
         .eq("opportunity_id", opportunity.id);
       return (result.data || []).map((v: any) => v.video_id) as string[];
@@ -90,7 +90,7 @@ export function OpportunityInlineEditor({ opportunity, onClose }: OpportunityInl
   const { data: allProformas } = useQuery({
     queryKey: ["opportunity-proformas-all", opportunity.id],
     queryFn: async () => {
-      const result = await (supabase.from("opportunity_proformas") as any)
+      const result = await (supabase as any).from("opportunity_proformas")
         .select("*")
         .eq("opportunity_id", opportunity.id)
         .eq("status", "active")
@@ -103,7 +103,7 @@ export function OpportunityInlineEditor({ opportunity, onClose }: OpportunityInl
   const { data: attachedProformas } = useQuery({
     queryKey: ["opportunity-proformas-attached", opportunity.id],
     queryFn: async () => {
-      const result = await (supabase.from("sales_opportunity_proformas") as any)
+      const result = await (supabase as any).from("sales_opportunity_proformas")
         .select("proforma_id")
         .eq("opportunity_id", opportunity.id);
       return (result.data || []).map((p: any) => p.proforma_id) as string[];
@@ -130,7 +130,7 @@ export function OpportunityInlineEditor({ opportunity, onClose }: OpportunityInl
 
   const updateOpportunityMutation = useMutation({
     mutationFn: async (updates: Partial<SalesOpportunity>) => {
-      const { error } = await (supabase.from("sales_opportunities") as any)
+      const { error } = await (supabase as any).from("sales_opportunities")
         .update(updates)
         .eq("id", opportunity.id);
       if (error) throw error;
@@ -146,11 +146,11 @@ export function OpportunityInlineEditor({ opportunity, onClose }: OpportunityInl
 
   const saveVideosMutation = useMutation({
     mutationFn: async (videoIds: string[]) => {
-      await (supabase.from("sales_opportunity_videos") as any)
+      await (supabase as any).from("sales_opportunity_videos")
         .delete()
         .eq("opportunity_id", opportunity.id);
       if (videoIds.length > 0) {
-        await (supabase.from("sales_opportunity_videos") as any)
+        await (supabase as any).from("sales_opportunity_videos")
           .insert(videoIds.map((videoId, index) => ({
             opportunity_id: opportunity.id,
             video_id: videoId,
@@ -166,11 +166,11 @@ export function OpportunityInlineEditor({ opportunity, onClose }: OpportunityInl
 
   const saveProformasMutation = useMutation({
     mutationFn: async (proformaIds: string[]) => {
-      await (supabase.from("sales_opportunity_proformas") as any)
+      await (supabase as any).from("sales_opportunity_proformas")
         .delete()
         .eq("opportunity_id", opportunity.id);
       if (proformaIds.length > 0) {
-        await (supabase.from("sales_opportunity_proformas") as any)
+        await (supabase as any).from("sales_opportunity_proformas")
           .insert(proformaIds.map((proformaId, index) => ({
             opportunity_id: opportunity.id,
             proforma_id: proformaId,

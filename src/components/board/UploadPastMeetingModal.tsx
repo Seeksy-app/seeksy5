@@ -95,7 +95,7 @@ export function UploadPastMeetingModal({
       const needsAudioTranscription = !hasTextTranscript && audioFile;
 
       // 1. Create the meeting record with host/creator info
-      const { data: meeting, error: createError } = await supabase
+      const createResult = await (supabase as any)
         .from("board_meeting_notes")
         .insert({
           title: title.trim(),
@@ -110,6 +110,9 @@ export function UploadPastMeetingModal({
         })
         .select()
         .single();
+      
+      const meeting = createResult.data as any;
+      const createError = createResult.error;
 
       if (createError) throw createError;
 
@@ -128,7 +131,7 @@ export function UploadPastMeetingModal({
           audioPath = null;
         } else {
           // Update meeting with audio path
-          await supabase
+          await (supabase as any)
             .from("board_meeting_notes")
             .update({ audio_file_url: audioPath })
             .eq("id", meeting.id);

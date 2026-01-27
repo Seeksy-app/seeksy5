@@ -19,12 +19,12 @@ export function SponsorshipFlyerUpload({ programId, currentFlyerUrl }: Sponsorsh
 
   const updateFlyerMutation = useMutation({
     mutationFn: async (url: string) => {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("awards_programs")
         .update({ sponsorship_flyer_url: url })
         .eq("id", programId);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["awards-program", programId] });
