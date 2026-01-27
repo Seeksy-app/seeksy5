@@ -17,40 +17,43 @@ export const EmailSmartInsights = ({ userId }: EmailSmartInsightsProps) => {
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
       // Get top performing subject line
-      const { data: campaigns } = await supabase
+      const campaignResult = await (supabase as any)
         .from("email_campaigns")
-        .select("subject, total_sent, total_opened")
+        .select("subject, sent_count, opened_count")
         .eq("user_id", userId)
         .gte("created_at", thirtyDaysAgo.toISOString())
-        .order("total_opened", { ascending: false })
+        .order("opened_count", { ascending: false })
         .limit(1);
 
+      const campaigns = campaignResult.data as any[];
       const topSubject = campaigns?.[0];
-      const topSubjectOpenRate = topSubject && topSubject.total_sent > 0
-        ? ((topSubject.total_opened / topSubject.total_sent) * 100).toFixed(1)
+      const topSubjectOpenRate = topSubject && topSubject.sent_count > 0
+        ? (((topSubject.opened_count || 0) / topSubject.sent_count) * 100).toFixed(1)
         : null;
 
       // Get most active segment
-      const { data: segments } = await supabase
+      const segmentResult = await (supabase as any)
         .from("segments")
         .select("name")
         .eq("user_id", userId)
         .limit(1);
 
+      const segments = segmentResult.data as any[];
       const topSegment = segments?.[0];
 
       // Calculate best send window from opened events
-      const { data: openEvents } = await supabase
+      const openEventsResult = await (supabase as any)
         .from("email_events")
         .select("created_at")
         .eq("user_id", userId)
         .eq("event_type", "opened")
         .gte("created_at", thirtyDaysAgo.toISOString());
 
+      const openEvents = openEventsResult.data as any[];
       let bestSendWindow = "9–11 AM";
       if (openEvents && openEvents.length > 5) {
         const hourCounts = new Map<number, number>();
-        openEvents.forEach(event => {
+        openEvents.forEach((event: any) => {
           const hour = new Date(event.created_at).getHours();
           hourCounts.set(hour, (hourCounts.get(hour) || 0) + 1);
         });

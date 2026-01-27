@@ -17,14 +17,14 @@ export function ListCommunicationTab({ listId }: ListCommunicationTabProps) {
   const { data: campaigns, isLoading } = useQuery({
     queryKey: ["list-campaigns", listId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("email_campaigns")
         .select("*")
         .eq("recipient_list_id", listId)
         .order("sent_at", { ascending: false });
 
-      if (error) throw error;
-      return data || [];
+      if (result.error) throw result.error;
+      return (result.data || []) as any[];
     },
   });
 
@@ -64,15 +64,20 @@ export function ListCommunicationTab({ listId }: ListCommunicationTabProps) {
                 </TableCell>
               </TableRow>
             ) : (
-              campaigns?.map((campaign) => {
-                const deliveredRate = campaign.total_sent > 0
-                  ? ((campaign.total_delivered / campaign.total_sent) * 100).toFixed(1)
+              campaigns?.map((campaign: any) => {
+                const sentCount = campaign.sent_count || 0;
+                const deliveredCount = campaign.delivered_count || 0;
+                const openedCount = campaign.opened_count || 0;
+                const clickedCount = campaign.clicked_count || 0;
+                
+                const deliveredRate = sentCount > 0
+                  ? ((deliveredCount / sentCount) * 100).toFixed(1)
                   : "0.0";
-                const openRate = campaign.total_sent > 0
-                  ? ((campaign.total_opened / campaign.total_sent) * 100).toFixed(1)
+                const openRate = sentCount > 0
+                  ? ((openedCount / sentCount) * 100).toFixed(1)
                   : "0.0";
-                const clickRate = campaign.total_sent > 0
-                  ? ((campaign.total_clicked / campaign.total_sent) * 100).toFixed(1)
+                const clickRate = sentCount > 0
+                  ? ((clickedCount / sentCount) * 100).toFixed(1)
                   : "0.0";
 
                 return (
@@ -99,13 +104,13 @@ export function ListCommunicationTab({ listId }: ListCommunicationTabProps) {
                         : "-"}
                     </TableCell>
                     <TableCell>
-                      {campaign.total_delivered || 0} ({deliveredRate}%)
+                      {deliveredCount} ({deliveredRate}%)
                     </TableCell>
                     <TableCell>
-                      {campaign.total_opened || 0} ({openRate}%)
+                      {openedCount} ({openRate}%)
                     </TableCell>
                     <TableCell>
-                      {campaign.total_clicked || 0} ({clickRate}%)
+                      {clickedCount} ({clickRate}%)
                     </TableCell>
                     <TableCell className="text-right">
                       <Button

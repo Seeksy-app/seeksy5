@@ -32,8 +32,8 @@ export function IdentityVerificationWidget() {
 
       // Check voice verification
       try {
-        const result = await (supabase
-          .from("creator_voice_profiles") as any)
+        const result = await (supabase as any)
+          .from("creator_voice_profiles")
           .select("is_verified")
           .eq("creator_id", user.id)
           .limit(1)
@@ -45,8 +45,8 @@ export function IdentityVerificationWidget() {
 
       // Check face verification from identity_assets  
       try {
-        const result = await (supabase
-          .from("identity_assets") as any)
+        const result = await (supabase as any)
+          .from("identity_assets")
           .select("cert_status")
           .eq("user_id", user.id)
           .limit(1)

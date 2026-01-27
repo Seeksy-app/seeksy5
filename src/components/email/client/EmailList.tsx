@@ -128,21 +128,21 @@ export function EmailList({
         const email = emails.find((e: any) => e.id === emailId);
         
         if (email?.event_type === "draft") {
-          const { error } = await supabase
+          const { error } = await (supabase as any)
             .from("email_campaigns")
             .delete()
             .eq("id", emailId)
             .eq("user_id", user.id);
           if (error) throw error;
         } else if (email?.is_inbox || email?.event_type === "received") {
-          const { error } = await supabase
+          const { error } = await (supabase as any)
             .from("inbox_messages")
             .update({ deleted_at: new Date().toISOString() })
             .eq("id", emailId)
             .eq("user_id", user.id);
           if (error) throw error;
         } else {
-          const { error } = await supabase
+          const { error } = await (supabase as any)
             .from("email_events")
             .update({ 
               deleted_at: new Date().toISOString(),

@@ -32,7 +32,7 @@ export function AutomationList({ automations, selectedId, onSelect, onRefresh }:
 
   const toggleActive = useMutation({
     mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("automations")
         .update({ is_active })
         .eq("id", id);

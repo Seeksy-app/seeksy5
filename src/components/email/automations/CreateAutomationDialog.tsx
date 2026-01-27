@@ -32,7 +32,7 @@ export function CreateAutomationDialog({ open, onOpenChange, onSuccess }: Create
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("automations")
         .insert({
           user_id: user.id,
