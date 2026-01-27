@@ -44,12 +44,12 @@ export const EmailTemplateFullScreenEditor = ({ open, onOpenChange, template }: 
       if (!user) return [];
       const { data, error } = await supabase
         .from("email_template_folders")
-        .select("*")
+        .select("id, user_id, name, color, created_at")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
       
       if (error) throw error;
-      return data;
+      return data || [];
     },
     enabled: !!user,
   });
@@ -89,7 +89,7 @@ export const EmailTemplateFullScreenEditor = ({ open, onOpenChange, template }: 
           name: templateName,
           customized_html: editedHtml,
           customization_data: {},
-        })
+        } as any)
         .select()
         .single();
 

@@ -15,20 +15,7 @@ export function AIJobsDebugPanel({ mediaId }: AIJobsDebugPanelProps) {
     queryFn: async () => {
       let query = supabase
         .from("ai_jobs")
-        .select(`
-          *,
-          ai_edited_assets (
-            id,
-            output_type,
-            storage_path,
-            metadata
-          ),
-          ai_edit_events (
-            id,
-            event_type,
-            timestamp_seconds
-          )
-        `)
+        .select(`*`)
         .order("created_at", { ascending: false });
 
       if (mediaId) {
@@ -39,7 +26,7 @@ export function AIJobsDebugPanel({ mediaId }: AIJobsDebugPanelProps) {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data;
+      return data as any[];
     },
   });
 

@@ -94,20 +94,22 @@ export function MyPageVideoSelector() {
           campaign_name,
           audio_url, 
           duration_seconds, 
-          advertiser_id,
-          advertisers (
-            company_name
-          )
+          advertiser_id
         `)
         .in('status', ['completed', 'ready'])
         .not('audio_url', 'is', null)
         .order('created_at', { ascending: false });
 
-      // Filter to only video ads (mp4, webm)
-      const videoAds = (ads || []).filter(ad => 
-        ad.audio_url?.toLowerCase().endsWith('.mp4') || 
-        ad.audio_url?.toLowerCase().endsWith('.webm')
-      );
+      // Filter to only video ads (mp4, webm) and transform to AdVideo type
+      const videoAds = (ads || [])
+        .filter(ad => 
+          ad.audio_url?.toLowerCase().endsWith('.mp4') || 
+          ad.audio_url?.toLowerCase().endsWith('.webm')
+        )
+        .map(ad => ({
+          ...ad,
+          advertisers: undefined // We're not joining advertisers table
+        })) as AdVideo[];
 
       setAdVideos(videoAds);
     } catch (error) {

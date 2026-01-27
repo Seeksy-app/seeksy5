@@ -116,6 +116,9 @@ export interface Database {
           id: string
           user_id: string
           balance: number
+          total_purchased: number
+          total_spent: number
+          total_earned: number
           created_at: string
           updated_at: string
         }
@@ -123,6 +126,9 @@ export interface Database {
           id?: string
           user_id: string
           balance?: number
+          total_purchased?: number
+          total_spent?: number
+          total_earned?: number
           created_at?: string
           updated_at?: string
         }
@@ -130,6 +136,9 @@ export interface Database {
           id?: string
           user_id?: string
           balance?: number
+          total_purchased?: number
+          total_spent?: number
+          total_earned?: number
           created_at?: string
           updated_at?: string
         }
@@ -140,18 +149,21 @@ export interface Database {
           id: string
           user_id: string
           name: string
+          color: string | null
           created_at: string
         }
         Insert: {
           id?: string
           user_id: string
           name: string
+          color?: string | null
           created_at?: string
         }
         Update: {
           id?: string
           user_id?: string
           name?: string
+          color?: string | null
           created_at?: string
         }
         Relationships: []
@@ -567,27 +579,51 @@ export interface Database {
       ad_slots: {
         Row: {
           id: string
-          podcast_id: string
+          episode_id: string | null
+          podcast_id: string | null
           slot_type: string
+          position_seconds: number | null
+          manual_audio_url: string | null
+          assigned_campaign_id: string | null
+          status: string
+          cta_url: string | null
+          cta_text: string | null
           start_time: number | null
           end_time: number | null
           created_at: string
+          updated_at: string | null
         }
         Insert: {
           id?: string
-          podcast_id: string
+          episode_id?: string | null
+          podcast_id?: string | null
           slot_type: string
+          position_seconds?: number | null
+          manual_audio_url?: string | null
+          assigned_campaign_id?: string | null
+          status?: string
+          cta_url?: string | null
+          cta_text?: string | null
           start_time?: number | null
           end_time?: number | null
           created_at?: string
+          updated_at?: string | null
         }
         Update: {
           id?: string
-          podcast_id?: string
+          episode_id?: string | null
+          podcast_id?: string | null
           slot_type?: string
+          position_seconds?: number | null
+          manual_audio_url?: string | null
+          assigned_campaign_id?: string | null
+          status?: string
+          cta_url?: string | null
+          cta_text?: string | null
           start_time?: number | null
           end_time?: number | null
           created_at?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -656,6 +692,9 @@ export interface Database {
           my_page_video_id: string | null
           my_page_video_loop: boolean | null
           my_page_ad_id: string | null
+          my_page_cta_button_text: string | null
+          my_page_cta_phone_number: string | null
+          my_page_cta_text_keyword: string | null
           account_full_name: string | null
           account_avatar_url: string | null
           advertiser_onboarding_completed: boolean | null
@@ -680,6 +719,9 @@ export interface Database {
           my_page_video_id?: string | null
           my_page_video_loop?: boolean | null
           my_page_ad_id?: string | null
+          my_page_cta_button_text?: string | null
+          my_page_cta_phone_number?: string | null
+          my_page_cta_text_keyword?: string | null
           account_full_name?: string | null
           account_avatar_url?: string | null
           advertiser_onboarding_completed?: boolean | null
@@ -704,6 +746,9 @@ export interface Database {
           my_page_video_id?: string | null
           my_page_video_loop?: boolean | null
           my_page_ad_id?: string | null
+          my_page_cta_button_text?: string | null
+          my_page_cta_phone_number?: string | null
+          my_page_cta_text_keyword?: string | null
           account_full_name?: string | null
           account_avatar_url?: string | null
           advertiser_onboarding_completed?: boolean | null
@@ -991,6 +1036,7 @@ export interface Database {
         Row: {
           id: string
           user_id: string | null
+          owner_profile_id: string | null
           company_name: string
           contact_email: string | null
           contact_phone: string | null
@@ -1000,12 +1046,14 @@ export interface Database {
           budget: number | null
           status: string | null
           notes: string | null
+          business_description: string | null
           created_at: string | null
           updated_at: string | null
         }
         Insert: {
           id?: string
           user_id?: string | null
+          owner_profile_id?: string | null
           company_name: string
           contact_email?: string | null
           contact_phone?: string | null
@@ -1015,12 +1063,14 @@ export interface Database {
           budget?: number | null
           status?: string | null
           notes?: string | null
+          business_description?: string | null
           created_at?: string | null
           updated_at?: string | null
         }
         Update: {
           id?: string
           user_id?: string | null
+          owner_profile_id?: string | null
           company_name?: string
           contact_email?: string | null
           contact_phone?: string | null
@@ -1030,6 +1080,7 @@ export interface Database {
           budget?: number | null
           status?: string | null
           notes?: string | null
+          business_description?: string | null
           created_at?: string | null
           updated_at?: string | null
         }
@@ -1069,33 +1120,60 @@ export interface Database {
         Row: {
           id: string
           user_id: string | null
+          advertiser_id: string | null
+          campaign_id: string | null
           campaign_name: string
           script: string | null
           audio_url: string | null
           duration_seconds: number | null
           status: string | null
+          ad_type: string | null
+          voice_id: string | null
+          voice_name: string | null
+          phone_number: string | null
+          phone_number_type: string | null
+          elevenlabs_agent_id: string | null
+          conversation_config: Json | null
           created_at: string | null
           updated_at: string | null
         }
         Insert: {
           id?: string
           user_id?: string | null
+          advertiser_id?: string | null
+          campaign_id?: string | null
           campaign_name: string
           script?: string | null
           audio_url?: string | null
           duration_seconds?: number | null
           status?: string | null
+          ad_type?: string | null
+          voice_id?: string | null
+          voice_name?: string | null
+          phone_number?: string | null
+          phone_number_type?: string | null
+          elevenlabs_agent_id?: string | null
+          conversation_config?: Json | null
           created_at?: string | null
           updated_at?: string | null
         }
         Update: {
           id?: string
           user_id?: string | null
+          advertiser_id?: string | null
+          campaign_id?: string | null
           campaign_name?: string
           script?: string | null
           audio_url?: string | null
           duration_seconds?: number | null
           status?: string | null
+          ad_type?: string | null
+          voice_id?: string | null
+          voice_name?: string | null
+          phone_number?: string | null
+          phone_number_type?: string | null
+          elevenlabs_agent_id?: string | null
+          conversation_config?: Json | null
           created_at?: string | null
           updated_at?: string | null
         }
@@ -1251,12 +1329,680 @@ export interface Database {
         }
         Relationships: []
       }
+      ad_impressions: {
+        Row: {
+          id: string
+          ad_slot_id: string | null
+          campaign_id: string | null
+          episode_id: string | null
+          podcast_id: string | null
+          creator_id: string | null
+          listener_id: string | null
+          impression_type: string | null
+          duration_listened: number | null
+          completed: boolean | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          ad_slot_id?: string | null
+          campaign_id?: string | null
+          episode_id?: string | null
+          podcast_id?: string | null
+          creator_id?: string | null
+          listener_id?: string | null
+          impression_type?: string | null
+          duration_listened?: number | null
+          completed?: boolean | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          ad_slot_id?: string | null
+          campaign_id?: string | null
+          episode_id?: string | null
+          podcast_id?: string | null
+          creator_id?: string | null
+          listener_id?: string | null
+          impression_type?: string | null
+          duration_listened?: number | null
+          completed?: boolean | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          id: string
+          user_id: string
+          plan_name: string
+          status: string
+          stripe_subscription_id: string | null
+          stripe_customer_id: string | null
+          current_period_start: string | null
+          current_period_end: string | null
+          cancel_at_period_end: boolean | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          plan_name?: string
+          status?: string
+          stripe_subscription_id?: string | null
+          stripe_customer_id?: string | null
+          current_period_start?: string | null
+          current_period_end?: string | null
+          cancel_at_period_end?: boolean | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          plan_name?: string
+          status?: string
+          stripe_subscription_id?: string | null
+          stripe_customer_id?: string | null
+          current_period_start?: string | null
+          current_period_end?: string | null
+          cancel_at_period_end?: boolean | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      app_audio_descriptions: {
+        Row: {
+          id: string
+          app_id: string
+          app_name: string
+          script: string | null
+          audio_url: string | null
+          avatar_url: string | null
+          voice_id: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          app_id: string
+          app_name: string
+          script?: string | null
+          audio_url?: string | null
+          avatar_url?: string | null
+          voice_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          app_id?: string
+          app_name?: string
+          script?: string | null
+          audio_url?: string | null
+          avatar_url?: string | null
+          voice_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ad_creatives: {
+        Row: {
+          id: string
+          campaign_id: string | null
+          audio_ad_id: string | null
+          name: string | null
+          status: string
+          creative_type: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          campaign_id?: string | null
+          audio_ad_id?: string | null
+          name?: string | null
+          status?: string
+          creative_type?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          campaign_id?: string | null
+          audio_ad_id?: string | null
+          name?: string | null
+          status?: string
+          creative_type?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      episodes: {
+        Row: {
+          id: string
+          podcast_id: string | null
+          title: string
+          description: string | null
+          audio_url: string | null
+          duration_seconds: number | null
+          publish_date: string
+          is_published: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          podcast_id?: string | null
+          title: string
+          description?: string | null
+          audio_url?: string | null
+          duration_seconds?: number | null
+          publish_date?: string
+          is_published?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          podcast_id?: string | null
+          title?: string
+          description?: string | null
+          audio_url?: string | null
+          duration_seconds?: number | null
+          publish_date?: string
+          is_published?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ai_edited_assets: {
+        Row: {
+          id: string
+          job_id: string | null
+          output_type: string | null
+          storage_path: string | null
+          metadata: Json | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          job_id?: string | null
+          output_type?: string | null
+          storage_path?: string | null
+          metadata?: Json | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          job_id?: string | null
+          output_type?: string | null
+          storage_path?: string | null
+          metadata?: Json | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      ai_edit_events: {
+        Row: {
+          id: string
+          job_id: string | null
+          event_type: string
+          timestamp_seconds: number | null
+          metadata: Json | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          job_id?: string | null
+          event_type: string
+          timestamp_seconds?: number | null
+          metadata?: Json | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          job_id?: string | null
+          event_type?: string
+          timestamp_seconds?: number | null
+          metadata?: Json | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      blog_generation_schedules: {
+        Row: {
+          id: string
+          user_id: string | null
+          portal: string
+          category: string
+          frequency_hours: number
+          next_run_at: string | null
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          portal: string
+          category: string
+          frequency_hours?: number
+          next_run_at?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          portal?: string
+          category?: string
+          frequency_hours?: number
+          next_run_at?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      investor_shares: {
+        Row: {
+          id: string
+          user_id: string | null
+          investor_email: string
+          investor_name: string
+          access_code: string
+          status: string
+          shares_percentage: number | null
+          investment_amount: number | null
+          notes: string | null
+          expires_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          investor_email: string
+          investor_name: string
+          access_code?: string
+          status?: string
+          shares_percentage?: number | null
+          investment_amount?: number | null
+          notes?: string | null
+          expires_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          investor_email?: string
+          investor_name?: string
+          access_code?: string
+          status?: string
+          shares_percentage?: number | null
+          investment_amount?: number | null
+          notes?: string | null
+          expires_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      advertiser_pricing_tiers: {
+        Row: {
+          id: string
+          tier_name: string
+          cpm_min: number
+          cpm_max: number
+          min_deposit: number
+          conversational_ad_rate: number | null
+          conversational_ad_discount: number | null
+          features: Json | null
+          display_order: number
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          tier_name: string
+          cpm_min: number
+          cpm_max: number
+          min_deposit: number
+          conversational_ad_rate?: number | null
+          conversational_ad_discount?: number | null
+          features?: Json | null
+          display_order?: number
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          tier_name?: string
+          cpm_min?: number
+          cpm_max?: number
+          min_deposit?: number
+          conversational_ad_rate?: number | null
+          conversational_ad_discount?: number | null
+          features?: Json | null
+          display_order?: number
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      role_permissions: {
+        Row: {
+          id: string
+          role: string
+          permission: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          role: string
+          permission: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          role?: string
+          permission?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
+      security_alerts: {
+        Row: {
+          id: string
+          alert_type: string
+          severity: string
+          title: string
+          description: string
+          source: string | null
+          is_resolved: boolean
+          resolved_at: string | null
+          resolved_by: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          alert_type: string
+          severity: string
+          title: string
+          description: string
+          source?: string | null
+          is_resolved?: boolean
+          resolved_at?: string | null
+          resolved_by?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          alert_type?: string
+          severity?: string
+          title?: string
+          description?: string
+          source?: string | null
+          is_resolved?: boolean
+          resolved_at?: string | null
+          resolved_by?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      usage_tracking: {
+        Row: {
+          id: string
+          user_id: string
+          feature_type: string
+          usage_count: number
+          period_start: string
+          period_end: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          feature_type: string
+          usage_count?: number
+          period_start: string
+          period_end: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          feature_type?: string
+          usage_count?: number
+          period_start?: string
+          period_end?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
+      teams: {
+        Row: {
+          id: string
+          name: string
+          description: string | null
+          owner_id: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          description?: string | null
+          owner_id: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          description?: string | null
+          owner_id?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      team_members: {
+        Row: {
+          id: string
+          team_id: string
+          user_id: string
+          role: string
+          joined_at: string
+        }
+        Insert: {
+          id?: string
+          team_id: string
+          user_id: string
+          role?: string
+          joined_at?: string
+        }
+        Update: {
+          id?: string
+          team_id?: string
+          user_id?: string
+          role?: string
+          joined_at?: string
+        }
+        Relationships: []
+      }
+      tasks: {
+        Row: {
+          id: string
+          user_id: string
+          title: string
+          description: string | null
+          status: string
+          priority: string
+          due_date: string | null
+          completed_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          title: string
+          description?: string | null
+          status?: string
+          priority?: string
+          due_date?: string | null
+          completed_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          title?: string
+          description?: string | null
+          status?: string
+          priority?: string
+          due_date?: string | null
+          completed_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      email_logs: {
+        Row: {
+          id: string
+          user_id: string | null
+          recipient_email: string
+          from_email: string | null
+          subject: string | null
+          message_body: string | null
+          status: string
+          sent_at: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          recipient_email: string
+          from_email?: string | null
+          subject?: string | null
+          message_body?: string | null
+          status?: string
+          sent_at?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          recipient_email?: string
+          from_email?: string | null
+          subject?: string | null
+          message_body?: string | null
+          status?: string
+          sent_at?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
+      email_campaigns: {
+        Row: {
+          id: string
+          user_id: string | null
+          subject: string
+          html_content: string
+          status: string
+          sent_count: number
+          opened_count: number
+          clicked_count: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          subject: string
+          html_content: string
+          status?: string
+          sent_count?: number
+          opened_count?: number
+          clicked_count?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          subject?: string
+          html_content?: string
+          status?: string
+          sent_count?: number
+          opened_count?: number
+          clicked_count?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      email_events: {
+        Row: {
+          id: string
+          user_id: string | null
+          to_email: string
+          from_email: string | null
+          email_subject: string
+          event_type: string
+          occurred_at: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          to_email: string
+          from_email?: string | null
+          email_subject: string
+          event_type: string
+          occurred_at: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          to_email?: string
+          from_email?: string | null
+          email_subject?: string
+          event_type?: string
+          occurred_at?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
       increment_feature_usage: {
+        Args: {
+          _user_id: string
+          _feature_type: string
+          _increment: number
+        }
+        Returns: void
+      }
+      increment_usage: {
         Args: {
           _user_id: string
           _feature_type: string
