@@ -8,11 +8,11 @@ export const ChannelsTab = () => {
   const { data: channels } = useQuery({
     queryKey: ["gtm-channels"],
     queryFn: async () => {
-      const { data } = await supabase
+      const result = await (supabase as any)
         .from("gtm_channels")
         .select("*")
         .order("display_order");
-      return data || [];
+      return (result.data || []) as any[];
     },
   });
 
@@ -42,7 +42,7 @@ export const ChannelsTab = () => {
       </div>
 
       <div className="grid gap-4">
-        {channels?.map((channel) => (
+        {channels?.map((channel: any) => (
           <Card key={channel.id} className="hover:border-primary/50 transition-all">
             <CardHeader>
               <div className="flex items-start justify-between">

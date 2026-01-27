@@ -27,7 +27,7 @@ export function ListSubscribersTab({ listId }: ListSubscribersTabProps) {
   const { data: members, isLoading } = useQuery({
     queryKey: ["list-members", listId, searchQuery, statusFilter],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("contact_list_members")
         .select(`
           *,
@@ -36,8 +36,8 @@ export function ListSubscribersTab({ listId }: ListSubscribersTabProps) {
         .eq("list_id", listId)
         .order("joined_at", { ascending: false });
 
-      if (error) throw error;
-      return data || [];
+      if (result.error) throw result.error;
+      return (result.data || []) as any[];
     },
   });
 
@@ -47,18 +47,18 @@ export function ListSubscribersTab({ listId }: ListSubscribersTabProps) {
       if (!user) throw new Error("Not authenticated");
 
       // First, check if contact exists
-      let { data: existingContact } = await supabase
+      const existingResult = await (supabase as any)
         .from("contacts")
         .select("id")
         .eq("email", newEmail)
         .eq("user_id", user.id)
         .single();
 
-      let contactId = existingContact?.id;
+      let contactId = existingResult.data?.id;
 
       // If not, create contact
       if (!contactId) {
-        const { data: newContact, error: contactError } = await supabase
+        const newContactResult = await (supabase as any)
           .from("contacts")
           .insert({
             name: newName,
@@ -68,19 +68,19 @@ export function ListSubscribersTab({ listId }: ListSubscribersTabProps) {
           .select("id")
           .single();
 
-        if (contactError) throw contactError;
-        contactId = newContact.id;
+        if (newContactResult.error) throw newContactResult.error;
+        contactId = newContactResult.data.id;
       }
 
       // Add to list
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("contact_list_members")
         .insert({
           list_id: listId,
           contact_id: contactId,
         });
 
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["list-members", listId] });
@@ -97,12 +97,12 @@ export function ListSubscribersTab({ listId }: ListSubscribersTabProps) {
 
   const removeSubscriber = useMutation({
     mutationFn: async (memberId: string) => {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("contact_list_members")
         .delete()
         .eq("id", memberId);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["list-members", listId] });

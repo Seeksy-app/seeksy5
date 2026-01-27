@@ -81,7 +81,7 @@ export const RegisterFaceDialog = ({
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      const { error: insertError } = await supabase
+      const insertResult = await (supabase as any)
         .from("creator_faces")
         .insert({
           creator_id: user.id,
@@ -89,7 +89,7 @@ export const RegisterFaceDialog = ({
           thumbnail_url: publicUrl,
         });
 
-      if (insertError) throw insertError;
+      if (insertResult.error) throw insertResult.error;
 
       toast({
         title: "Face registered successfully!",

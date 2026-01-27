@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Target, CheckCircle2 } from "lucide-react";
+import { Target, CheckCircle2, TrendingUp } from "lucide-react";
 
 interface Strategy {
   title: string;
@@ -12,23 +12,23 @@ export const GTMStrategyTab = () => {
   const { data: phases } = useQuery({
     queryKey: ["gtm-phases"],
     queryFn: async () => {
-      const { data } = await supabase
+      const result = await (supabase as any)
         .from("gtm_phases")
         .select("*")
         .order("display_order");
-      return data || [];
+      return (result.data || []) as any[];
     },
   });
 
   const { data: keyMetrics } = useQuery({
     queryKey: ["gtm-key-success-metrics"],
     queryFn: async () => {
-      const { data } = await supabase
+      const result = await (supabase as any)
         .from("gtm_market_metrics")
         .select("*")
         .eq("category", "financial")
         .order("display_order");
-      return data || [];
+      return (result.data || []) as any[];
     },
   });
 
@@ -40,7 +40,7 @@ export const GTMStrategyTab = () => {
       </div>
 
       {/* GTM Phases */}
-      {phases?.map((phase) => {
+      {phases?.map((phase: any) => {
         const strategies = (phase.strategies as unknown) as Strategy[];
         return (
           <Card 
@@ -58,7 +58,7 @@ export const GTMStrategyTab = () => {
             </CardHeader>
             <CardContent className="pt-6">
               <ul className="space-y-4">
-                {strategies.map((strategy, idx) => (
+                {strategies?.map((strategy: any, idx: number) => (
                   <li key={idx} className="flex gap-3">
                     <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
                     <div>
@@ -83,12 +83,12 @@ export const GTMStrategyTab = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {keyMetrics?.slice(0, 3).map((metric) => (
+            {keyMetrics?.slice(0, 3).map((metric: any) => (
               <div key={metric.id} className="text-center p-6 bg-background rounded-lg border border-border/50">
                 <p className="text-4xl font-bold mb-2" style={{
-                  color: metric.metric_name.includes("Revenue") 
+                  color: metric.metric_name?.includes("Revenue") 
                     ? "hsl(var(--chart-2))" 
-                    : metric.metric_name.includes("Target")
+                    : metric.metric_name?.includes("Target")
                     ? "hsl(var(--primary))"
                     : "hsl(var(--chart-3))"
                 }}>
@@ -103,5 +103,3 @@ export const GTMStrategyTab = () => {
     </div>
   );
 };
-
-import { TrendingUp } from "lucide-react";

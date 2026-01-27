@@ -29,7 +29,7 @@ export function ListOverviewTab({ list, onListUpdated }: ListOverviewTabProps) {
 
   const updateList = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("contact_lists")
         .update({
           name,
@@ -37,7 +37,7 @@ export function ListOverviewTab({ list, onListUpdated }: ListOverviewTabProps) {
         })
         .eq("id", list.id);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["contact-lists"] });
@@ -53,20 +53,20 @@ export function ListOverviewTab({ list, onListUpdated }: ListOverviewTabProps) {
   const deleteList = useMutation({
     mutationFn: async () => {
       // Delete list members first
-      const { error: membersError } = await supabase
+      const membersResult = await (supabase as any)
         .from("contact_list_members")
         .delete()
         .eq("list_id", list.id);
 
-      if (membersError) throw membersError;
+      if (membersResult.error) throw membersResult.error;
 
       // Delete list
-      const { error } = await supabase
+      const listResult = await (supabase as any)
         .from("contact_lists")
         .delete()
         .eq("id", list.id);
 
-      if (error) throw error;
+      if (listResult.error) throw listResult.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["contact-lists"] });

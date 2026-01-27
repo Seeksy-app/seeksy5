@@ -34,14 +34,14 @@ export function EventCheckIn({ eventId }: EventCheckInProps) {
 
   const loadAttendees = async () => {
     try {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("event_registrations")
         .select("*")
         .eq("event_id", eventId)
         .order("attendee_name");
 
-      if (error) throw error;
-      setAttendees(data || []);
+      if (result.error) throw result.error;
+      setAttendees((result.data || []) as Attendee[]);
     } catch (error) {
       console.error("Error loading attendees:", error);
     } finally {
@@ -53,15 +53,15 @@ export function EventCheckIn({ eventId }: EventCheckInProps) {
     setCheckingIn(attendeeId);
     try {
       // Update registration
-      const { error: regError } = await supabase
+      const regResult = await (supabase as any)
         .from("event_registrations")
         .update({ checked_in: true })
         .eq("id", attendeeId);
 
-      if (regError) throw regError;
+      if (regResult.error) throw regResult.error;
 
       // Log check-in
-      const { error: checkInError } = await supabase
+      const checkInResult = await (supabase as any)
         .from("event_check_ins")
         .insert({
           event_id: eventId,
@@ -69,7 +69,7 @@ export function EventCheckIn({ eventId }: EventCheckInProps) {
           check_in_method: "manual",
         });
 
-      if (checkInError) console.error("Check-in log error:", checkInError);
+      if (checkInResult.error) console.error("Check-in log error:", checkInResult.error);
 
       // Update local state
       setAttendees(prev =>

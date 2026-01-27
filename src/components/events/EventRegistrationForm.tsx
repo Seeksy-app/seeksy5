@@ -51,14 +51,14 @@ export function EventRegistrationForm({ event, ticketTiers, registrationCount }:
     setLoading(true);
     try {
       // Check for existing registration
-      const { data: existing } = await supabase
+      const existingResult = await (supabase as any)
         .from("event_registrations")
         .select("id")
         .eq("event_id", event.id)
         .eq("attendee_email", email)
         .single();
 
-      if (existing) {
+      if (existingResult.data) {
         toast({
           title: "Already registered",
           description: "This email is already registered for this event.",
@@ -69,7 +69,7 @@ export function EventRegistrationForm({ event, ticketTiers, registrationCount }:
       }
 
       // Create registration
-      const { data: registration, error } = await supabase
+      const regResult = await (supabase as any)
         .from("event_registrations")
         .insert({
           event_id: event.id,
@@ -80,10 +80,10 @@ export function EventRegistrationForm({ event, ticketTiers, registrationCount }:
         .select()
         .single();
 
-      if (error) throw error;
+      if (regResult.error) throw regResult.error;
 
       // Registration created - ticket creation handled by database trigger or admin
-      setRegistrationData(registration);
+      setRegistrationData(regResult.data);
       setRegistered(true);
       toast({
         title: "Registration successful!",

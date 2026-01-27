@@ -76,14 +76,14 @@ export function EventSessionManager({ eventId, eventDate, isAdmin = false }: Eve
 
   const loadSessions = async () => {
     try {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("event_sessions")
         .select("*, event_session_speakers(event_speakers(*))")
         .eq("event_id", eventId)
         .order("start_time");
 
-      if (error) throw error;
-      setSessions(data || []);
+      if (result.error) throw result.error;
+      setSessions((result.data || []) as Session[]);
     } catch (error) {
       console.error("Error loading sessions:", error);
     } finally {
@@ -154,19 +154,19 @@ export function EventSessionManager({ eventId, eventDate, isAdmin = false }: Eve
       };
 
       if (editingSession) {
-        const { error } = await supabase
+        const result = await (supabase as any)
           .from("event_sessions")
           .update(sessionData)
           .eq("id", editingSession.id);
 
-        if (error) throw error;
+        if (result.error) throw result.error;
         toast({ title: "Session updated" });
       } else {
-        const { error } = await supabase
+        const result = await (supabase as any)
           .from("event_sessions")
           .insert(sessionData);
 
-        if (error) throw error;
+        if (result.error) throw result.error;
         toast({ title: "Session created" });
       }
 
@@ -187,12 +187,12 @@ export function EventSessionManager({ eventId, eventDate, isAdmin = false }: Eve
     if (!confirm("Are you sure you want to delete this session?")) return;
 
     try {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("event_sessions")
         .delete()
         .eq("id", sessionId);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
       toast({ title: "Session deleted" });
       loadSessions();
     } catch (error: any) {

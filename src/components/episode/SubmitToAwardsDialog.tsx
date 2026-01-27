@@ -59,15 +59,14 @@ export function SubmitToAwardsDialog({
   const { data: programs, isLoading: programsLoading } = useQuery({
     queryKey: ["awards-programs-active"],
     queryFn: async () => {
-      const now = new Date().toISOString();
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("awards_programs")
         .select("*")
         .in("status", ["nominations_open", "voting_open", "completed"])
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return (result.data || []) as any[];
     },
     enabled: open,
   });
@@ -77,14 +76,14 @@ export function SubmitToAwardsDialog({
     queryKey: ["award-categories", selectedProgram],
     queryFn: async () => {
       if (!selectedProgram) return [];
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("award_categories")
         .select("*")
         .eq("program_id", selectedProgram)
         .order("display_order", { ascending: true });
 
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return (result.data || []) as any[];
     },
     enabled: !!selectedProgram,
   });
@@ -97,7 +96,7 @@ export function SubmitToAwardsDialog({
       }
 
       // Create nominee (database will prevent duplicates via constraints)
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("award_nominees")
         .insert({
           program_id: selectedProgram,
@@ -111,11 +110,11 @@ export function SubmitToAwardsDialog({
           status: "pending",
         });
 
-      if (error) {
-        if (error.code === '23505') {
+      if (result.error) {
+        if (result.error.code === '23505') {
           throw new Error("This episode is already nominated in this category");
         }
-        throw error;
+        throw result.error;
       }
     },
     onSuccess: () => {
@@ -198,7 +197,7 @@ export function SubmitToAwardsDialog({
                     <Loader2 className="h-4 w-4 animate-spin" />
                   </div>
                 )}
-                {programs?.map((program) => (
+                {programs?.map((program: any) => (
                   <SelectItem key={program.id} value={program.id}>
                     {program.title}
                   </SelectItem>
@@ -230,7 +229,7 @@ export function SubmitToAwardsDialog({
                       <Loader2 className="h-4 w-4 animate-spin" />
                     </div>
                   )}
-                  {categories?.map((category) => (
+                  {categories?.map((category: any) => (
                     <SelectItem key={category.id} value={category.id}>
                       {category.name}
                     </SelectItem>
