@@ -7,6 +7,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 
+interface Task {
+  id: string;
+  title: string;
+  description: string | null;
+  status: string;
+  priority: string;
+  category: string;
+  due_date: string | null;
+}
+
 export function TodaysTasks() {
   const { data: tasks = [], isLoading } = useQuery({
     queryKey: ["admin-todays-tasks"],
@@ -16,7 +26,7 @@ export function TodaysTasks() {
 
       const today = format(new Date(), "yyyy-MM-dd");
 
-      const { data } = await supabase
+      const { data } = await (supabase as any)
         .from("tasks")
         .select("*")
         .eq("user_id", user.id)
@@ -25,7 +35,7 @@ export function TodaysTasks() {
         .order("priority", { ascending: true })
         .limit(10);
 
-      return data || [];
+      return (data || []) as Task[];
     },
   });
 

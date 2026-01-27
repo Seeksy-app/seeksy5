@@ -62,32 +62,32 @@ export function UserProfileDrawer({ open, onClose, contactId }: UserProfileDrawe
   const fetchContact = async () => {
     if (!contactId) return;
     setLoading(true);
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from("crm_contacts")
       .select("*")
       .eq("id", contactId)
       .single();
     
-    if (data) setContact(data);
+    if (data) setContact(data as Contact);
     setLoading(false);
   };
 
   const fetchActivities = async () => {
     if (!contactId) return;
-    const { data } = await supabase
+    const { data } = await (supabase as any)
       .from("crm_activity_timeline")
       .select("*")
       .eq("contact_id", contactId)
       .order("created_at", { ascending: false })
       .limit(50);
     
-    setActivities(data || []);
+    setActivities((data || []) as Activity[]);
   };
 
   const handleAddNote = async () => {
     if (!newNote.trim() || !contactId) return;
     
-    await supabase.from("crm_activity_timeline").insert({
+    await (supabase as any).from("crm_activity_timeline").insert({
       contact_id: contactId,
       activity_type: "note",
       title: "Note added",

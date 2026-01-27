@@ -11,7 +11,6 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { toast } from 'sonner';
 import { Plus, Trash2, Calendar, Clock, Mail } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
 
 const DAYS_OF_WEEK = [
   { value: 0, label: 'Sun' },
@@ -27,11 +26,13 @@ interface Schedule {
   id: string;
   name: string;
   portal: string;
+  category: string;
   article_count: number;
   schedule_time: string;
   timezone: string;
-  days_of_week: number[];
-  email_to_creators: boolean;
+  frequency_hours: number;
+  keywords: string[];
+  tone: string;
   is_active: boolean;
   last_run_at: string | null;
   next_run_at: string | null;
@@ -43,32 +44,43 @@ export default function BlogScheduler() {
   const [newSchedule, setNewSchedule] = useState({
     name: 'Daily Creator Articles',
     portal: 'creator',
+    category: 'general',
     article_count: 3,
     schedule_time: '09:00',
     timezone: 'America/New_York',
-    days_of_week: [1, 2, 3, 4, 5],
-    email_to_creators: true,
   });
 
   const { data: schedules, isLoading } = useQuery({
     queryKey: ['blog-schedules'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+
+      const { data, error } = await (supabase as any)
         .from('blog_generation_schedules')
         .select('*')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
       if (error) throw error;
-      return data as Schedule[];
+      return (data || []) as Schedule[];
     }
   });
 
   const createScheduleMutation = useMutation({
     mutationFn: async (schedule: typeof newSchedule) => {
-      const { error } = await supabase
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { error } = await (supabase as any)
         .from('blog_generation_schedules')
         .insert({
-          ...schedule,
-          schedule_time: schedule.schedule_time + ':00',
+          user_id: user.id,
+          name: schedule.name,
+          portal: schedule.portal,
+          category: schedule.category,
+          article_count: schedule.article_count,
+          schedule_time: schedule.schedule_time,
+          timezone: schedule.timezone,
         });
       if (error) throw error;
     },
@@ -79,11 +91,10 @@ export default function BlogScheduler() {
       setNewSchedule({
         name: 'Daily Creator Articles',
         portal: 'creator',
+        category: 'general',
         article_count: 3,
         schedule_time: '09:00',
         timezone: 'America/New_York',
-        days_of_week: [1, 2, 3, 4, 5],
-        email_to_creators: true,
       });
     },
     onError: (err: any) => toast.error(err.message)
@@ -91,7 +102,7 @@ export default function BlogScheduler() {
 
   const toggleScheduleMutation = useMutation({
     mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('blog_generation_schedules')
         .update({ is_active })
         .eq('id', id);
@@ -105,7 +116,7 @@ export default function BlogScheduler() {
 
   const deleteScheduleMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('blog_generation_schedules')
         .delete()
         .eq('id', id);
@@ -116,15 +127,6 @@ export default function BlogScheduler() {
       toast.success('Schedule deleted');
     }
   });
-
-  const toggleDay = (day: number) => {
-    setNewSchedule(prev => ({
-      ...prev,
-      days_of_week: prev.days_of_week.includes(day)
-        ? prev.days_of_week.filter(d => d !== day)
-        : [...prev.days_of_week, day].sort()
-    }));
-  };
 
   return (
     <Card>
@@ -222,41 +224,12 @@ export default function BlogScheduler() {
                     </Select>
                   </div>
                 </div>
-
-                <div className="space-y-2">
-                  <Label>Days of Week</Label>
-                  <div className="flex gap-1">
-                    {DAYS_OF_WEEK.map((day) => (
-                      <Button
-                        key={day.value}
-                        type="button"
-                        variant={newSchedule.days_of_week.includes(day.value) ? 'default' : 'outline'}
-                        size="sm"
-                        className="w-10 h-10 p-0"
-                        onClick={() => toggleDay(day.value)}
-                      >
-                        {day.label}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">Email to Creators</span>
-                  </div>
-                  <Switch
-                    checked={newSchedule.email_to_creators}
-                    onCheckedChange={(checked) => setNewSchedule({ ...newSchedule, email_to_creators: checked })}
-                  />
-                </div>
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
                 <Button 
                   onClick={() => createScheduleMutation.mutate(newSchedule)}
-                  disabled={!newSchedule.name || newSchedule.days_of_week.length === 0}
+                  disabled={!newSchedule.name}
                 >
                   Create Schedule
                 </Button>
@@ -283,19 +256,12 @@ export default function BlogScheduler() {
                   <div className="flex items-center gap-2">
                     <span className="font-medium">{schedule.name}</span>
                     <Badge variant="secondary">{schedule.portal}</Badge>
-                    {schedule.email_to_creators && (
-                      <Badge variant="outline" className="gap-1">
-                        <Mail className="h-3 w-3" /> Email
-                      </Badge>
-                    )}
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Clock className="h-3 w-3" />
                     {schedule.schedule_time.substring(0, 5)} {schedule.timezone.split('/')[1] || schedule.timezone}
                     <span className="mx-1">•</span>
                     {schedule.article_count} article{schedule.article_count > 1 ? 's' : ''}
-                    <span className="mx-1">•</span>
-                    {schedule.days_of_week.map(d => DAYS_OF_WEEK.find(dw => dw.value === d)?.label).join(', ')}
                   </div>
                 </div>
                 <div className="flex items-center gap-2">

@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { 
   Shield, AlertTriangle, CheckCircle2, Clock, Users, 
-  Plus, Send, Eye, FileText, Sparkles, Loader2
+  Plus, Send, Sparkles, Loader2
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -21,13 +21,12 @@ interface CrisisEvent {
   severity: string | null;
   status: string | null;
   description: string | null;
-  affected_users_count: number | null;
-  affected_segments: string[] | null;
-  ai_generated_response: string | null;
-  official_response: string | null;
-  channels_notified: string[] | null;
-  created_at: string | null;
+  stakeholders: string[];
+  timeline: unknown[];
+  lessons_learned: string | null;
   resolved_at: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 const crisisTypes = [
@@ -45,15 +44,13 @@ export function CrisisModule() {
   const [crises, setCrises] = useState<CrisisEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [selectedCrisis, setSelectedCrisis] = useState<CrisisEvent | null>(null);
   const [generatingResponse, setGeneratingResponse] = useState(false);
   const [newCrisis, setNewCrisis] = useState({
     title: "",
     crisis_type: "outage",
     severity: "medium",
     description: "",
-    affected_users_count: 0,
-    affected_segments: ""
+    stakeholders: ""
   });
 
   useEffect(() => {
@@ -62,12 +59,18 @@ export function CrisisModule() {
 
   const fetchCrises = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    const { data, error } = await (supabase as any)
       .from("cco_crisis_events")
       .select("*")
       .order("created_at", { ascending: false });
 
-    if (data) setCrises(data);
+    if (data) setCrises(data as CrisisEvent[]);
     setLoading(false);
   };
 
@@ -77,13 +80,19 @@ export function CrisisModule() {
       return;
     }
 
-    const { error } = await supabase.from("cco_crisis_events").insert({
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast.error("Not authenticated");
+      return;
+    }
+
+    const { error } = await (supabase as any).from("cco_crisis_events").insert({
+      user_id: user.id,
       title: newCrisis.title,
       crisis_type: newCrisis.crisis_type,
       severity: newCrisis.severity,
       description: newCrisis.description || null,
-      affected_users_count: newCrisis.affected_users_count,
-      affected_segments: newCrisis.affected_segments.split(",").map(s => s.trim()).filter(Boolean)
+      stakeholders: newCrisis.stakeholders.split(",").map((s: string) => s.trim()).filter(Boolean)
     });
 
     if (error) {
@@ -93,17 +102,17 @@ export function CrisisModule() {
 
     toast.success("Crisis event created");
     setIsCreateOpen(false);
-    setNewCrisis({ title: "", crisis_type: "outage", severity: "medium", description: "", affected_users_count: 0, affected_segments: "" });
+    setNewCrisis({ title: "", crisis_type: "outage", severity: "medium", description: "", stakeholders: "" });
     fetchCrises();
   };
 
   const handleStatusChange = async (crisisId: string, newStatus: string) => {
-    const updates: any = { status: newStatus, updated_at: new Date().toISOString() };
+    const updates: Record<string, unknown> = { status: newStatus, updated_at: new Date().toISOString() };
     if (newStatus === "resolved") {
       updates.resolved_at = new Date().toISOString();
     }
 
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from("cco_crisis_events")
       .update(updates)
       .eq("id", crisisId);
@@ -112,67 +121,6 @@ export function CrisisModule() {
       toast.success("Status updated");
       fetchCrises();
     }
-  };
-
-  const generateAIResponse = async (crisis: CrisisEvent, type: "internal" | "public") => {
-    setGeneratingResponse(true);
-    
-    // Simulate AI generation
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    const affectedSystems = crisis.affected_segments?.join(", ") || "Unknown";
-    const affectedCount = crisis.affected_users_count || 0;
-    const detectedTime = crisis.created_at ? new Date(crisis.created_at).toLocaleTimeString() : "Unknown";
-    
-    const responses = {
-      internal: `INTERNAL CRISIS RESPONSE - ${crisis.title}
-
-SEVERITY: ${(crisis.severity || "medium").toUpperCase()}
-AFFECTED USERS: ${affectedCount}
-SYSTEMS: ${affectedSystems}
-
-IMMEDIATE ACTIONS:
-1. Engineering team to investigate root cause
-2. Support team to prepare customer communication
-3. Leadership to be briefed within 1 hour
-4. Status page to be updated
-
-COMMUNICATION CADENCE:
-- Internal: Every 30 minutes until resolved
-- External: Every hour on status page
-
-ESCALATION PATH:
-1. On-call engineer → 2. Engineering lead → 3. CTO → 4. CEO
-
-POST-INCIDENT:
-- Full post-mortem within 48 hours
-- Customer communication within 24 hours of resolution`,
-      public: `We're aware that some users are experiencing ${crisis.title.toLowerCase()}. Our team is actively investigating and working to resolve this as quickly as possible.
-
-What we know:
-- The issue was first detected at ${detectedTime}
-- Approximately ${affectedCount} users may be affected
-- Our engineering team is actively working on a fix
-
-What you can do:
-- We recommend refreshing the page or trying again in a few minutes
-- For urgent issues, please contact support@seeksy.io
-
-We'll provide updates every hour until this is resolved. We apologize for any inconvenience this may cause.
-
-Thank you for your patience.
-The Seeksy Team`
-    };
-
-    const field = type === "internal" ? "ai_generated_response" : "official_response";
-    await supabase
-      .from("cco_crisis_events")
-      .update({ [field]: responses[type] })
-      .eq("id", crisis.id);
-
-    toast.success(`${type === "internal" ? "Internal response" : "Public statement"} generated`);
-    setGeneratingResponse(false);
-    fetchCrises();
   };
 
   const getSeverityColor = (severity: string | null) => {
@@ -285,19 +233,11 @@ The Seeksy Team`
                 </div>
               </div>
               <div>
-                <Label>Affected Users (estimate)</Label>
+                <Label>Stakeholders (comma-separated)</Label>
                 <Input 
-                  type="number"
-                  value={newCrisis.affected_users_count}
-                  onChange={(e) => setNewCrisis({ ...newCrisis, affected_users_count: parseInt(e.target.value) || 0 })}
-                />
-              </div>
-              <div>
-                <Label>Affected Systems (comma-separated)</Label>
-                <Input 
-                  value={newCrisis.affected_segments}
-                  onChange={(e) => setNewCrisis({ ...newCrisis, affected_segments: e.target.value })}
-                  placeholder="e.g., Studio, API, Database"
+                  value={newCrisis.stakeholders}
+                  onChange={(e) => setNewCrisis({ ...newCrisis, stakeholders: e.target.value })}
+                  placeholder="e.g., Engineering, Support, Leadership"
                 />
               </div>
               <div>
@@ -342,7 +282,7 @@ The Seeksy Team`
                     <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <Users className="h-4 w-4" />
-                        {crisis.affected_users_count || 0} affected
+                        {crisis.stakeholders?.length || 0} stakeholders
                       </span>
                       <span className="flex items-center gap-1">
                         <Clock className="h-4 w-4" />
@@ -371,56 +311,12 @@ The Seeksy Team`
                   <p className="text-sm text-muted-foreground mb-4">{crisis.description}</p>
                 )}
                 
-                {crisis.affected_segments && crisis.affected_segments.length > 0 && (
+                {crisis.stakeholders && crisis.stakeholders.length > 0 && (
                   <div className="flex gap-2 mb-4">
-                    <span className="text-sm font-medium">Systems:</span>
-                    {crisis.affected_segments.map(sys => (
-                      <Badge key={sys} variant="secondary">{sys}</Badge>
+                    <span className="text-sm font-medium">Stakeholders:</span>
+                    {crisis.stakeholders.map(stakeholder => (
+                      <Badge key={stakeholder} variant="secondary">{stakeholder}</Badge>
                     ))}
-                  </div>
-                )}
-
-                <div className="flex gap-2">
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    disabled={generatingResponse}
-                    onClick={() => generateAIResponse(crisis, "internal")}
-                  >
-                    {generatingResponse ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Sparkles className="h-4 w-4 mr-1" />}
-                    Generate Internal Response
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    disabled={generatingResponse}
-                    onClick={() => generateAIResponse(crisis, "public")}
-                  >
-                    {generatingResponse ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Sparkles className="h-4 w-4 mr-1" />}
-                    Generate Public Statement
-                  </Button>
-                  {crisis.official_response && (
-                    <Button size="sm">
-                      <Send className="h-4 w-4 mr-1" />
-                      Publish Statement
-                    </Button>
-                  )}
-                </div>
-
-                {(crisis.ai_generated_response || crisis.official_response) && (
-                  <div className="grid md:grid-cols-2 gap-4 mt-4">
-                    {crisis.ai_generated_response && (
-                      <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                        <p className="text-xs font-medium text-yellow-800 mb-2">Internal Response</p>
-                        <p className="text-xs whitespace-pre-wrap">{crisis.ai_generated_response}</p>
-                      </div>
-                    )}
-                    {crisis.official_response && (
-                      <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                        <p className="text-xs font-medium text-blue-800 mb-2">Public Statement</p>
-                        <p className="text-xs whitespace-pre-wrap">{crisis.official_response}</p>
-                      </div>
-                    )}
                   </div>
                 )}
               </CardContent>

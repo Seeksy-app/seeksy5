@@ -80,7 +80,7 @@ export function VoiceOfSeeksyAI() {
     // Log the session
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-      await supabase.from("cco_ai_sessions").insert({
+      await (supabase as any).from("cco_ai_sessions").insert({
         user_id: user.id,
         session_type: tone,
         input_text: inputText,

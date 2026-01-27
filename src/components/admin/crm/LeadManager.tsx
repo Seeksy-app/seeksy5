@@ -66,12 +66,12 @@ export function LeadManager() {
     setLoading(true);
     
     const [salesRes, siteRes] = await Promise.all([
-      supabase.from("crm_sales_leads").select("*").order("created_at", { ascending: false }),
-      supabase.from("crm_site_leads").select("*").order("created_at", { ascending: false })
+      (supabase as any).from("crm_sales_leads").select("*").order("created_at", { ascending: false }),
+      (supabase as any).from("crm_site_leads").select("*").order("created_at", { ascending: false })
     ]);
 
-    setSalesLeads(salesRes.data || []);
-    setSiteLeads(siteRes.data || []);
+    setSalesLeads((salesRes.data || []) as SalesLead[]);
+    setSiteLeads((siteRes.data || []) as SiteLead[]);
     setLoading(false);
   };
 
@@ -81,7 +81,7 @@ export function LeadManager() {
       return;
     }
 
-    const { error } = await supabase.from("crm_sales_leads").insert({
+    const { error } = await (supabase as any).from("crm_sales_leads").insert({
       title: newLead.title,
       email: newLead.email,
       company: newLead.company || null,
@@ -103,7 +103,7 @@ export function LeadManager() {
   };
 
   const handleStageChange = async (leadId: string, newStage: string) => {
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from("crm_sales_leads")
       .update({ stage: newStage, updated_at: new Date().toISOString() })
       .eq("id", leadId);

@@ -22,14 +22,14 @@ interface SecurityAlert {
   metadata: Record<string, unknown> | null;
 }
 
-const severityColors = {
+const severityColors: Record<string, string> = {
   critical: "bg-red-500/20 text-red-400 border-red-500/50",
   high: "bg-orange-500/20 text-orange-400 border-orange-500/50",
   medium: "bg-yellow-500/20 text-yellow-400 border-yellow-500/50",
   low: "bg-blue-500/20 text-blue-400 border-blue-500/50",
 };
 
-const severityIcons = {
+const severityIcons: Record<string, React.ReactNode> = {
   critical: <AlertTriangle className="h-4 w-4 text-red-400" />,
   high: <AlertTriangle className="h-4 w-4 text-orange-400" />,
   medium: <Shield className="h-4 w-4 text-yellow-400" />,
@@ -43,14 +43,14 @@ export function SecurityAlertsPanel() {
   const { data: alerts, isLoading } = useQuery({
     queryKey: ["security-alerts"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("security_alerts")
         .select("*")
         .order("created_at", { ascending: false })
         .limit(50);
       
       if (error) throw error;
-      return data as SecurityAlert[];
+      return (data || []) as SecurityAlert[];
     },
   });
 
@@ -86,7 +86,7 @@ export function SecurityAlertsPanel() {
 
   const resolveAlert = useMutation({
     mutationFn: async (alertId: string) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("security_alerts")
         .update({ 
           is_resolved: true, 
@@ -172,12 +172,12 @@ export function SecurityAlertsPanel() {
                   className={`p-4 rounded-lg border ${
                     alert.is_resolved 
                       ? "bg-muted/30 border-border opacity-60" 
-                      : severityColors[alert.severity]
+                      : severityColors[alert.severity] || severityColors.medium
                   }`}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-start gap-3 flex-1">
-                      {!alert.is_resolved && severityIcons[alert.severity]}
+                      {!alert.is_resolved && (severityIcons[alert.severity] || severityIcons.medium)}
                       {alert.is_resolved && <CheckCircle className="h-4 w-4 text-green-500" />}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
