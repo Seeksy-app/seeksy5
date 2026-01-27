@@ -31,13 +31,13 @@ export function RSSMigrationTab({ userId }: RSSMigrationTabProps) {
     queryKey: ["rss-migrations", selectedPodcast],
     queryFn: async () => {
       if (!selectedPodcast) return [];
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("rss_migrations")
         .select("*")
         .eq("podcast_id", selectedPodcast)
         .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any[];
     },
     enabled: !!selectedPodcast,
   });

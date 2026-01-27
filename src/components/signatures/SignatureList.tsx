@@ -21,7 +21,7 @@ export function SignatureList({ signatures, onSelect, onDelete }: SignatureListP
       // Toggle active state - allow multiple active signatures
       const newActiveState = !signature.is_active;
       
-      await supabase
+      await (supabase as any)
         .from("email_signatures")
         .update({ is_active: newActiveState })
         .eq("id", signature.id);
@@ -57,11 +57,11 @@ export function SignatureList({ signatures, onSelect, onDelete }: SignatureListP
         updated_at: undefined,
       };
 
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("email_signatures")
         .insert(newSignature);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
 
       toast({
         title: "Signature duplicated",
@@ -83,7 +83,7 @@ export function SignatureList({ signatures, onSelect, onDelete }: SignatureListP
     try {
       const newValue = !signature[field];
       
-      await supabase
+      await (supabase as any)
         .from("email_signatures")
         .update({ [field]: newValue })
         .eq("id", signature.id);

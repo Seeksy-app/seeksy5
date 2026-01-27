@@ -105,7 +105,7 @@ export const WebsiteTab = ({ podcastId }: WebsiteTabProps) => {
               <Edit className="w-4 h-4" />
               Edit in My Page Builder
             </Button>
-            <Button variant="outline" onClick={() => window.open(`/${podcast?.author_name}`, '_blank')} className="gap-2">
+            <Button variant="outline" onClick={() => window.open(`/${(podcast as any)?.author_name || 'podcast'}`, '_blank')} className="gap-2">
               <Globe className="w-4 h-4" />
               View Public Page
             </Button>

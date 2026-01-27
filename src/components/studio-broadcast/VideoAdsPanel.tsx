@@ -23,14 +23,14 @@ export function VideoAdsPanel({ onAdSelect, selectedAd }: VideoAdsPanelProps) {
   const { data: videoAds, isLoading, refetch } = useQuery({
     queryKey: ['video-ads-inventory'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('ad_videos')
         .select('*')
         .eq('is_active', true)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      return data || [];
+      if (result.error) throw result.error;
+      return (result.data as any[]) || [];
     }
   });
 
@@ -41,14 +41,14 @@ export function VideoAdsPanel({ onAdSelect, selectedAd }: VideoAdsPanelProps) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('ad_videos')
         .select('*')
         .eq('created_by_user_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      return data || [];
+      if (result.error) throw result.error;
+      return (result.data as any[]) || [];
     }
   });
 
@@ -88,7 +88,7 @@ export function VideoAdsPanel({ onAdSelect, selectedAd }: VideoAdsPanelProps) {
         .getPublicUrl(fileName);
 
       // Create ad_videos record
-      const { error: insertError } = await supabase
+      const insertResult = await (supabase as any)
         .from('ad_videos')
         .insert({
           created_by_user_id: user.id,
@@ -97,7 +97,7 @@ export function VideoAdsPanel({ onAdSelect, selectedAd }: VideoAdsPanelProps) {
           is_active: true
         });
 
-      if (insertError) throw insertError;
+      if (insertResult.error) throw insertResult.error;
 
       toast.success("Video ad uploaded successfully!");
       refetch();

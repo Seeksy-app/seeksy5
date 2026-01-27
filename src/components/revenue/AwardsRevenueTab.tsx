@@ -21,48 +21,53 @@ export function AwardsRevenueTab() {
       if (!user) return [];
 
       // Get all user's programs
-      const { data: programsData } = await supabase
+      const programsResult = await (supabase as any)
         .from("awards_programs")
         .select("*")
         .eq("user_id", user.id);
 
+      const programsData = programsResult.data as any[];
       if (!programsData) return [];
 
       // For each program, get financial data
       const programsWithFinancials = await Promise.all(
-        programsData.map(async (program) => {
-          const { data: sponsorships } = await supabase
+        programsData.map(async (program: any) => {
+          const sponsorshipsResult = await (supabase as any)
             .from("award_sponsorships")
             .select("amount_paid, status")
             .eq("program_id", program.id)
             .eq("status", "paid");
+          const sponsorships = sponsorshipsResult.data as any[];
 
-          const { data: nominations } = await supabase
+          const nominationsResult = await (supabase as any)
             .from("award_self_nominations")
             .select("amount_paid, status")
             .eq("program_id", program.id)
             .eq("status", "paid");
+          const nominations = nominationsResult.data as any[];
 
-          const { data: registrations } = await supabase
+          const registrationsResult = await (supabase as any)
             .from("award_registrations")
             .select("amount_paid, status")
             .eq("program_id", program.id)
             .eq("status", "paid");
+          const registrations = registrationsResult.data as any[];
 
-          const { data: payouts } = await supabase
+          const payoutsResult = await (supabase as any)
             .from("award_payouts")
             .select("net_amount, status")
             .eq("program_id", program.id);
+          const payouts = payoutsResult.data as any[];
 
           const totalCollected = [
             ...(sponsorships || []),
             ...(nominations || []),
             ...(registrations || []),
-          ].reduce((sum, t) => sum + Number(t.amount_paid), 0);
+          ].reduce((sum: number, t: any) => sum + Number(t.amount_paid), 0);
 
           const totalPaidOut = (payouts || [])
-            .filter((p) => p.status === "completed")
-            .reduce((sum, p) => sum + Number(p.net_amount), 0);
+            .filter((p: any) => p.status === "completed")
+            .reduce((sum: number, p: any) => sum + Number(p.net_amount), 0);
 
           const held = totalCollected - totalPaidOut;
 
@@ -83,9 +88,9 @@ export function AwardsRevenueTab() {
     enabled: !!user,
   });
 
-  const totalRevenue = programs?.reduce((sum, p) => sum + p.totalCollected, 0) || 0;
-  const totalPaidOut = programs?.reduce((sum, p) => sum + p.totalPaidOut, 0) || 0;
-  const totalHeld = programs?.reduce((sum, p) => sum + p.held, 0) || 0;
+  const totalRevenue = programs?.reduce((sum: number, p: any) => sum + p.totalCollected, 0) || 0;
+  const totalPaidOut = programs?.reduce((sum: number, p: any) => sum + p.totalPaidOut, 0) || 0;
+  const totalHeld = programs?.reduce((sum: number, p: any) => sum + p.held, 0) || 0;
   const totalPrograms = programs?.length || 0;
 
   return (
@@ -159,7 +164,7 @@ export function AwardsRevenueTab() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {programs.map((program) => (
+                {programs.map((program: any) => (
                   <TableRow key={program.id}>
                     <TableCell className="font-medium">{program.title}</TableCell>
                     <TableCell>

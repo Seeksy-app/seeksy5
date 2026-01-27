@@ -65,7 +65,7 @@ export function SignatureAnalytics({ signatures }: SignatureAnalyticsProps) {
       else if (dateRange === "30d") startDate.setDate(now.getDate() - 30);
       else if (dateRange === "90d") startDate.setDate(now.getDate() - 90);
 
-      let query = supabase
+      let query = (supabase as any)
         .from("signature_tracking_events")
         .select("*")
         .eq("user_id", user.id)
@@ -77,7 +77,8 @@ export function SignatureAnalytics({ signatures }: SignatureAnalyticsProps) {
         query = query.eq("signature_id", selectedSignature);
       }
 
-      const { data } = await query;
+      const result = await query;
+      const data = result.data as any[];
       setEvents((data as TrackingEvent[]) || []);
     } catch (error) {
       console.error("Error fetching events:", error);

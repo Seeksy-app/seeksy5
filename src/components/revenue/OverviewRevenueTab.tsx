@@ -16,18 +16,19 @@ export function OverviewRevenueTab() {
   const { data: adRevenue } = useQuery({
     queryKey: ["ad-revenue-overview", user?.id],
     queryFn: async () => {
-      const { data } = await supabase
+      const result = await (supabase as any)
         .from("creator_earnings")
         .select("creator_share, payout_status")
         .eq("user_id", user?.id);
 
-      const total = data?.reduce((sum, e) => sum + Number(e.creator_share || 0), 0) || 0;
+      const data = result.data as any[];
+      const total = data?.reduce((sum: number, e: any) => sum + Number(e.creator_share || 0), 0) || 0;
       const pending = data
-        ?.filter((e) => e.payout_status === "pending")
-        .reduce((sum, e) => sum + Number(e.creator_share || 0), 0) || 0;
+        ?.filter((e: any) => e.payout_status === "pending")
+        .reduce((sum: number, e: any) => sum + Number(e.creator_share || 0), 0) || 0;
       const paid = data
-        ?.filter((e) => e.payout_status === "paid")
-        .reduce((sum, e) => sum + Number(e.creator_share || 0), 0) || 0;
+        ?.filter((e: any) => e.payout_status === "paid")
+        .reduce((sum: number, e: any) => sum + Number(e.creator_share || 0), 0) || 0;
 
       return { total, pending, paid };
     },
@@ -40,34 +41,38 @@ export function OverviewRevenueTab() {
     queryFn: async () => {
       if (!user) return { total: 0, pending: 0, paid: 0 };
 
-      const { data: programs } = await supabase
+      const programsResult = await (supabase as any)
         .from("awards_programs")
         .select("id")
         .eq("user_id", user.id);
 
+      const programs = programsResult.data as any[];
       if (!programs || programs.length === 0) return { total: 0, pending: 0, paid: 0 };
 
-      const programIds = programs.map((p) => p.id);
+      const programIds = programs.map((p: any) => p.id);
 
       // Get all transactions
-      const [{ data: sponsorships }, { data: nominations }, { data: registrations }] =
-        await Promise.all([
-          supabase
-            .from("award_sponsorships")
-            .select("amount_paid, status")
-            .in("program_id", programIds)
-            .eq("status", "paid"),
-          supabase
-            .from("award_self_nominations")
-            .select("amount_paid, status")
-            .in("program_id", programIds)
-            .eq("status", "paid"),
-          supabase
-            .from("award_registrations")
-            .select("amount_paid, status")
-            .in("program_id", programIds)
-            .eq("status", "paid"),
-        ]);
+      const [sponsorshipsResult, nominationsResult, registrationsResult] = await Promise.all([
+        (supabase as any)
+          .from("award_sponsorships")
+          .select("amount_paid, status")
+          .in("program_id", programIds)
+          .eq("status", "paid"),
+        (supabase as any)
+          .from("award_self_nominations")
+          .select("amount_paid, status")
+          .in("program_id", programIds)
+          .eq("status", "paid"),
+        (supabase as any)
+          .from("award_registrations")
+          .select("amount_paid, status")
+          .in("program_id", programIds)
+          .eq("status", "paid"),
+      ]);
+
+      const sponsorships = sponsorshipsResult.data as any[];
+      const nominations = nominationsResult.data as any[];
+      const registrations = registrationsResult.data as any[];
 
       const allTransactions = [
         ...(sponsorships || []),
@@ -75,17 +80,18 @@ export function OverviewRevenueTab() {
         ...(registrations || []),
       ];
 
-      const total = allTransactions.reduce((sum, t) => sum + Number(t.amount_paid), 0);
+      const total = allTransactions.reduce((sum: number, t: any) => sum + Number(t.amount_paid), 0);
 
       // Get payouts
-      const { data: payouts } = await supabase
+      const payoutsResult = await (supabase as any)
         .from("award_payouts")
         .select("net_amount, status")
         .in("program_id", programIds);
 
+      const payouts = payoutsResult.data as any[];
       const paid = (payouts || [])
-        .filter((p) => p.status === "completed")
-        .reduce((sum, p) => sum + Number(p.net_amount), 0);
+        .filter((p: any) => p.status === "completed")
+        .reduce((sum: number, p: any) => sum + Number(p.net_amount), 0);
 
       const pending = total - paid;
 
@@ -108,12 +114,12 @@ export function OverviewRevenueTab() {
 
       if (!profile) return { total: 0, pending: 0, paid: 0 };
 
-      const { count } = await supabase
+      const countResult = await (supabase as any)
         .from("my_page_video_impressions")
         .select("*", { count: "exact", head: true })
         .eq("profile_id", profile.id);
 
-      const totalImpressions = count || 0;
+      const totalImpressions = countResult.count || 0;
       const streamingCPM = 5;
       const estimatedRevenue = (totalImpressions / 1000) * streamingCPM;
       const creatorShare = estimatedRevenue * 0.70;

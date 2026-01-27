@@ -88,17 +88,18 @@ export function MediaSourceSelector({
     if (!pollingMediaId) return;
 
     const pollStatus = async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('media_files')
         .select('id, status, file_name, thumbnail_url, duration_seconds, error_message')
         .eq('id', pollingMediaId)
         .single();
 
-      if (error) {
-        console.error('Polling error:', error);
+      if (result.error) {
+        console.error('Polling error:', result.error);
         return;
       }
 
+      const data = result.data as any;
       if (data.status === 'ready') {
         setCurrentImportStatus('ready');
         setPollingMediaId(null);

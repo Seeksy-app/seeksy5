@@ -117,7 +117,7 @@ export function SignatureEditor({ signature, onUpdate }: SignatureEditorProps) {
       const htmlSignature = generateHtmlSignature(formData, signature.id);
       const plainTextSignature = generatePlainTextSignature(formData);
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("email_signatures")
         .update({
           ...formData,
@@ -128,9 +128,9 @@ export function SignatureEditor({ signature, onUpdate }: SignatureEditorProps) {
         .select()
         .single();
 
-      if (error) throw error;
+      if (result.error) throw result.error;
 
-      onUpdate(data);
+      onUpdate(result.data as any);
       toast({
         title: "Signature saved",
         description: "Your changes have been saved",

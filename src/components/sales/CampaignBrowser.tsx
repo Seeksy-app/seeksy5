@@ -25,14 +25,15 @@ export function CampaignBrowser() {
     queryKey: ['user-podcast-categories', user?.id],
     queryFn: async () => {
       if (!user) return [];
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('podcasts')
         .select('category')
         .eq('user_id', user.id);
       
-      if (error) throw error;
+      if (result.error) throw result.error;
+      const data = result.data as any[];
       // Get unique categories
-      const categories = [...new Set(data.map(p => p.category).filter(Boolean))];
+      const categories = [...new Set(data.map((p: any) => p.category).filter(Boolean))];
       return categories;
     },
     enabled: !!user,
@@ -57,7 +58,7 @@ export function CampaignBrowser() {
     queryKey: ['available-campaigns'],
     queryFn: async () => {
       // Get campaigns that are active and have properties with pending status
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('multi_channel_campaigns')
         .select(`
           *,
@@ -74,8 +75,8 @@ export function CampaignBrowser() {
         .eq('status', 'active')
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any[];
     },
   });
 
@@ -83,12 +84,12 @@ export function CampaignBrowser() {
   useEffect(() => {
     if (!adCampaigns || !userCategories) return;
     
-    const matchingCampaigns = adCampaigns.filter(campaign => {
+    const matchingCampaigns = adCampaigns.filter((campaign: any) => {
       const targetingRules = campaign.targeting_rules as any;
       if (!targetingRules?.categories) return false;
       
       const targetCategories = targetingRules.categories as string[];
-      return targetCategories.some(cat => userCategories.includes(cat));
+      return targetCategories.some((cat: string) => userCategories.includes(cat));
     });
 
     setTotalCount(adCampaigns.length);
@@ -192,10 +193,10 @@ export function CampaignBrowser() {
 
       <div className="grid gap-4">
         {/* Ad Campaigns with Category Targeting */}
-        {adCampaigns?.map((campaign) => {
+        {adCampaigns?.map((campaign: any) => {
           const targetingRules = campaign.targeting_rules as any;
           const targetCategories = targetingRules?.categories as string[] || [];
-          const isMatched = userCategories?.some(cat => targetCategories.includes(cat));
+          const isMatched = userCategories?.some((cat: string) => targetCategories.includes(cat));
 
           return (
             <motion.div
@@ -298,7 +299,7 @@ export function CampaignBrowser() {
         })}
 
         {/* Multi-Channel Campaigns */}
-        {campaigns.map((campaign) => {
+        {campaigns?.map((campaign: any) => {
           const totalBudget = campaign.total_budget || 0;
           const totalImpressions = campaign.impression_goal || 0;
           const avgCPM = totalBudget && totalImpressions ? (totalBudget / totalImpressions) * 1000 : 0;
@@ -308,7 +309,7 @@ export function CampaignBrowser() {
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="space-y-1">
-                    <CardTitle className="text-xl">{campaign.campaign_name}</CardTitle>
+                    <CardTitle className="text-xl">{campaign.campaign_name || campaign.name}</CardTitle>
                     <CardDescription>
                       Campaign ID: {campaign.id.slice(0, 8)}
                     </CardDescription>
@@ -343,11 +344,11 @@ export function CampaignBrowser() {
                   </div>
                 </div>
 
-                {campaign.campaign_properties && campaign.campaign_properties.length > 0 && (
+                {campaign.campaign_properties && Array.isArray(campaign.campaign_properties) && campaign.campaign_properties.length > 0 && (
                   <div className="space-y-2">
                     <p className="text-sm font-medium">Available Properties:</p>
                     <div className="flex flex-wrap gap-2">
-                      {campaign.campaign_properties.map((prop) => (
+                      {campaign.campaign_properties.map((prop: any) => (
                         <Badge key={prop.id} variant="outline">
                           {prop.property_type}: {prop.property_name}
                         </Badge>
@@ -356,12 +357,14 @@ export function CampaignBrowser() {
                   </div>
                 )}
 
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Calendar className="h-4 w-4" />
-                  <span>
-                    {format(new Date(campaign.start_date), 'MMM d')} - {format(new Date(campaign.end_date), 'MMM d, yyyy')}
-                  </span>
-                </div>
+                {campaign.start_date && campaign.end_date && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Calendar className="h-4 w-4" />
+                    <span>
+                      {format(new Date(campaign.start_date), 'MMM d')} - {format(new Date(campaign.end_date), 'MMM d, yyyy')}
+                    </span>
+                  </div>
+                )}
 
                 <Button className="w-full">
                   View Details & Bid

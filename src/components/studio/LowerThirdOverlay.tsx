@@ -25,15 +25,15 @@ export const LowerThirdOverlay = ({
     queryKey: ["studio-guests", studioSessionId],
     queryFn: async () => {
       if (!studioSessionId) return [];
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("studio_guests")
         .select("*")
         .eq("studio_session_id", studioSessionId)
         .eq("is_active", true)
         .order("display_order", { ascending: true });
       
-      if (error) throw error;
-      return data as Guest[];
+      if (result.error) throw result.error;
+      return (result.data as any[]) as Guest[];
     },
     enabled: !!studioSessionId
   });

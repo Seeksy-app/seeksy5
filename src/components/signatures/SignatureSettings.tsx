@@ -37,22 +37,24 @@ export function SignatureSettings({ signatures }: SignatureSettingsProps) {
     if (!user) return;
 
     // Fetch API key
-    const { data: keyData } = await supabase
+    const keyResult = await (supabase as any)
       .from("signature_extension_keys")
       .select("api_key")
       .eq("user_id", user.id)
       .eq("is_active", true)
       .single();
 
+    const keyData = keyResult.data as any;
     if (keyData) setApiKey(keyData.api_key);
 
     // Fetch notification settings
-    const { data: settingsData } = await supabase
+    const settingsResult = await (supabase as any)
       .from("signature_notification_settings")
       .select("*")
       .eq("user_id", user.id)
       .single();
 
+    const settingsData = settingsResult.data as any;
     if (settingsData) {
       setSettings({
         notify_on_open: settingsData.notify_on_open ?? true,
@@ -73,12 +75,12 @@ export function SignatureSettings({ signatures }: SignatureSettingsProps) {
     const newKey = `sk_${crypto.randomUUID().replace(/-/g, "")}`;
 
     // Deactivate existing keys
-    await supabase
+    await (supabase as any)
       .from("signature_extension_keys")
       .update({ is_active: false })
       .eq("user_id", user.id);
 
-    const { error } = await supabase
+    const result = await (supabase as any)
       .from("signature_extension_keys")
       .insert({
         user_id: user.id,
@@ -86,7 +88,7 @@ export function SignatureSettings({ signatures }: SignatureSettingsProps) {
         is_active: true,
       });
 
-    if (error) {
+    if (result.error) {
       toast({ title: "Error", description: "Failed to generate API key", variant: "destructive" });
     } else {
       setApiKey(newKey);
@@ -107,7 +109,7 @@ export function SignatureSettings({ signatures }: SignatureSettingsProps) {
     if (!user) return;
 
     setSaving(true);
-    const { error } = await supabase
+    const result = await (supabase as any)
       .from("signature_notification_settings")
       .upsert({
         user_id: user.id,
@@ -116,7 +118,7 @@ export function SignatureSettings({ signatures }: SignatureSettingsProps) {
 
     setSaving(false);
 
-    if (error) {
+    if (result.error) {
       toast({ title: "Error", description: "Failed to save settings", variant: "destructive" });
     } else {
       toast({ title: "Settings saved", description: "Notification preferences updated" });
