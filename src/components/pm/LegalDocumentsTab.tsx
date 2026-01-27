@@ -31,20 +31,20 @@ export const LegalDocumentsTab = ({ userId }: LegalDocumentsTabProps) => {
   const { data: legalDocs } = useQuery({
     queryKey: ["legal-documents", userId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("legal_documents")
         .select("*")
         .eq("user_id", userId)
         .order("created_at", { ascending: false });
       
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return (result.data || []) as any[];
     },
   });
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("legal_documents")
         .delete()
         .eq("id", id);

@@ -50,7 +50,7 @@ export const CreateLegalDocDialog = ({
   const mutation = useMutation({
     mutationFn: async () => {
       if (editingDoc) {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from("legal_documents")
           .update({
             document_type: documentType,
@@ -60,7 +60,7 @@ export const CreateLegalDocDialog = ({
           .eq("id", editingDoc.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from("legal_documents")
           .insert({
             user_id: userId,

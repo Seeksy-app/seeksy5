@@ -24,7 +24,7 @@ export function AddSectionDialog({ open, onClose, userId }: AddSectionDialogProp
 
   const addMutation = useMutation({
     mutationFn: async (sectionType: SectionType) => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("my_page_sections")
         .insert({
           user_id: userId,

@@ -23,21 +23,21 @@ export const PersonaShowcase = () => {
   const { data: personas, isLoading } = useQuery({
     queryKey: ["ai-personas-showcase"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("ai_personas")
         .select("*")
         .eq("is_active", true)
         .order("display_order", { ascending: true })
         .order("created_at", { ascending: true });
 
-      if (error) {
-        console.error("Error loading personas:", error);
+      if (result.error) {
+        console.error("Error loading personas:", result.error);
         toast.error("Failed to load AI personas");
-        throw error;
+        throw result.error;
       }
 
       // Transform database personas to component format
-      return data.map((p) => ({
+      return ((result.data || []) as any[]).map((p: any) => ({
         id: p.id,
         name: p.name,
         role: p.role,

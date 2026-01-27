@@ -51,14 +51,14 @@ export const BlockchainCertificationTab = ({ userId }: BlockchainCertificationTa
     queryKey: ["blockchain-certificates", selectedPodcast],
     queryFn: async () => {
       if (!selectedPodcast) return [];
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("episode_blockchain_certificates")
         .select("*, episodes(title)")
         .eq("podcast_id", selectedPodcast)
         .order("certified_at", { ascending: false });
       
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return (result.data || []) as any[];
     },
     enabled: !!selectedPodcast,
   });

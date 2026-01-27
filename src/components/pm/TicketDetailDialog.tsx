@@ -50,7 +50,7 @@ export function TicketDetailDialog({ ticketId, open, onOpenChange, onUpdate }: T
     
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("client_tickets")
         .select(`
           *,
@@ -64,15 +64,16 @@ export function TicketDetailDialog({ ticketId, open, onOpenChange, onUpdate }: T
         .eq("id", ticketId)
         .single();
 
-      if (error) throw error;
+      if (result.error) throw result.error;
+      const data = result.data as any;
 
       setTicket(data);
       setStatus(data.status || "open");
       setPriority(data.priority || "medium");
-      setAssignedTo((data as any).assigned_to || "");
-      setNotes((data as any).notes || "");
+      setAssignedTo(data.assigned_to || "");
+      setNotes(data.notes || "");
       setDueDate(data.due_date ? new Date(data.due_date).toISOString().split('T')[0] : "");
-      setPaymentMethod((data as any).payment_method || "");
+      setPaymentMethod(data.payment_method || "");
     } catch (error) {
       console.error("Error loading ticket:", error);
       toast.error("Failed to load ticket details");
@@ -123,14 +124,14 @@ export function TicketDetailDialog({ ticketId, open, onOpenChange, onUpdate }: T
     if (!ticketId) return;
     
     try {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("ticket_comments")
         .select("*")
         .eq("ticket_id", ticketId)
         .order("created_at", { ascending: true });
       
-      if (error) throw error;
-      setComments(data || []);
+      if (result.error) throw result.error;
+      setComments(result.data || []);
     } catch (error) {
       console.error("Error loading comments:", error);
     }
@@ -143,7 +144,7 @@ export function TicketDetailDialog({ ticketId, open, onOpenChange, onUpdate }: T
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      const { error } = await supabase.from("ticket_comments").insert({
+      const { error } = await (supabase as any).from("ticket_comments").insert({
         ticket_id: ticketId,
         user_id: user.id,
         comment_text: comment,
@@ -175,7 +176,7 @@ export function TicketDetailDialog({ ticketId, open, onOpenChange, onUpdate }: T
         last_activity_at: new Date().toISOString(),
       };
 
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("client_tickets")
         .update(updateData)
         .eq("id", ticketId);

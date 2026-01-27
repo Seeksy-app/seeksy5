@@ -47,13 +47,13 @@ export const DirectoriesTab = ({ userId }: DirectoriesTabProps) => {
     queryKey: ["podcast-directories", selectedPodcast],
     queryFn: async () => {
       if (!selectedPodcast) return [];
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("podcast_directories")
         .select("*")
         .eq("podcast_id", selectedPodcast);
       
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return (result.data || []) as any[];
     },
     enabled: !!selectedPodcast,
   });
@@ -62,7 +62,7 @@ export const DirectoriesTab = ({ userId }: DirectoriesTabProps) => {
     if (!selectedPodcast) return;
 
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("podcast_directories")
         .upsert({
           podcast_id: selectedPodcast,

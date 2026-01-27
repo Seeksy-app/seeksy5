@@ -34,7 +34,7 @@ export function WalletWidget({ wallet, advertiserId }: WalletWidgetProps) {
       // First, get or create wallet
       let walletId = wallet?.id;
       if (!walletId) {
-        const { data: newWallet, error: walletError } = await supabase
+        const { data: newWallet, error: walletError } = await (supabase as any)
           .from('advertiser_wallet')
           .insert({
             advertiser_id: advertiserId,
@@ -44,13 +44,13 @@ export function WalletWidget({ wallet, advertiserId }: WalletWidgetProps) {
           .single();
         
         if (walletError) throw walletError;
-        walletId = newWallet.id;
+        walletId = (newWallet as any).id;
       }
 
       const newBalance = (wallet?.balance || 0) + amount;
 
       // Update wallet balance
-      const { error: updateError } = await supabase
+      const { error: updateError } = await (supabase as any)
         .from('advertiser_wallet')
         .update({ 
           balance: newBalance,
@@ -62,7 +62,7 @@ export function WalletWidget({ wallet, advertiserId }: WalletWidgetProps) {
       if (updateError) throw updateError;
 
       // Record transaction
-      const { error: txError } = await supabase
+      const { error: txError } = await (supabase as any)
         .from('advertiser_funding_transactions')
         .insert({
           advertiser_id: advertiserId,

@@ -54,12 +54,13 @@ export function PodcastAgentChat({ podcastId, episodeId }: PodcastAgentChatProps
   }, [messages]);
 
   const fetchWorkspace = async (wsId: string) => {
-    const { data } = await supabase
+    const result = await (supabase as any)
       .from("podcast_episode_workspaces")
       .select("*")
       .eq("id", wsId)
       .single();
     
+    const data = result.data as any;
     if (data) {
       setWorkspace({
         id: data.id,
@@ -75,13 +76,13 @@ export function PodcastAgentChat({ podcastId, episodeId }: PodcastAgentChatProps
     }
 
     // Fetch pending tasks
-    const { count } = await supabase
+    const taskResult = await (supabase as any)
       .from("podcast_agent_tasks")
       .select("*", { count: "exact", head: true })
       .eq("workspace_id", wsId)
       .eq("status", "pending");
     
-    setPendingTasks(count || 0);
+    setPendingTasks(taskResult.count || 0);
   };
 
   const sendMessage = async (messageText: string) => {

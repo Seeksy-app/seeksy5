@@ -65,11 +65,13 @@ export function ImportRSSButton({ onImportComplete }: ImportRSSButtonProps) {
       if (!user) throw new Error("Not authenticated");
 
       // Check if podcast with this RSS URL already exists
-      const { data: existingPodcast } = await supabase
+      const existingResult = await (supabase as any)
         .from("podcasts")
         .select("id, title")
         .eq("source_url", rssUrl.trim())
         .maybeSingle();
+
+      const existingPodcast = existingResult.data;
 
       if (existingPodcast) {
         throw new Error(`This RSS feed has already been imported as "${existingPodcast.title}"`);
@@ -99,13 +101,13 @@ export function ImportRSSButton({ onImportComplete }: ImportRSSButtonProps) {
       
       // Check if slug exists and append number if needed
       while (true) {
-        const { data: existingSlug } = await supabase
+        const slugResult = await (supabase as any)
           .from("podcasts")
           .select("id")
           .eq("slug", slug)
           .maybeSingle();
         
-        if (!existingSlug) break;
+        if (!slugResult.data) break;
         slug = `${baseSlug}-${counter}`;
         counter++;
       }

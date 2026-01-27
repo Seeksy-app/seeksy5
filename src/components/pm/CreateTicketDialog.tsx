@@ -45,13 +45,13 @@ export const CreateTicketDialog = ({ open, onOpenChange, onSuccess, userId }: Cr
   const { data: teamMembers } = useQuery({
     queryKey: ["team-members", userId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("user_roles")
         .select("user_id, profiles(id, full_name)")
         .in("role", ["admin", "super_admin", "member", "staff"]);
       
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any[];
     },
   });
 

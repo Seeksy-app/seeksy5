@@ -82,7 +82,7 @@ export function SectionConfigDrawer({ section, onClose, userId }: SectionConfigD
     mutationFn: async () => {
       if (!section) return;
       
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("my_page_sections")
         .update({ config: config as any })
         .eq("id", section.id);
@@ -100,7 +100,7 @@ export function SectionConfigDrawer({ section, onClose, userId }: SectionConfigD
     mutationFn: async () => {
       if (!section) return;
       
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("my_page_sections")
         .delete()
         .eq("id", section.id);

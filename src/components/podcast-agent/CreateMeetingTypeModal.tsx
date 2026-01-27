@@ -48,7 +48,7 @@ export function CreateMeetingTypeModal({
       // Generate slug from name
       const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("meeting_types")
         .insert({
           user_id: user.id,
@@ -61,7 +61,8 @@ export function CreateMeetingTypeModal({
         .select()
         .single();
 
-      if (error) throw error;
+      if (result.error) throw result.error;
+      const data = result.data as any;
 
       toast({
         title: "Meeting type created",

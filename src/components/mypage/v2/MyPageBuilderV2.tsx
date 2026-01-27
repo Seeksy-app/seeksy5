@@ -32,18 +32,19 @@ export default function MyPageBuilderV2() {
         .single();
 
       if (profile) {
+        const p = profile as any;
         // Load theme from my_page_v2_theme or construct from existing fields
-        if (profile.my_page_v2_theme) {
-          setTheme(profile.my_page_v2_theme as unknown as MyPageTheme);
+        if (p.my_page_v2_theme) {
+          setTheme(p.my_page_v2_theme as unknown as MyPageTheme);
         } else {
           setTheme(prev => ({
             ...prev,
-            displayName: profile.account_full_name || profile.full_name || "",
-            username: profile.username || "",
-            bio: profile.bio || "",
-            profileImage: profile.account_avatar_url || profile.avatar_url || null,
-            backgroundColor: profile.page_background_color || "#ffffff",
-            themeColor: profile.theme_color || "#3b82f6",
+            displayName: p.account_full_name || p.full_name || "",
+            username: p.username || "",
+            bio: p.bio || "",
+            profileImage: p.account_avatar_url || p.avatar_url || null,
+            backgroundColor: p.page_background_color || "#ffffff",
+            themeColor: p.theme_color || "#3b82f6",
           }));
         }
       }

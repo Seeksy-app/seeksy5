@@ -71,15 +71,15 @@ export const PersonaGrid = () => {
   const { data: personas, isLoading } = useQuery({
     queryKey: ["ai-personas"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("ai_personas")
         .select("*")
         .eq("is_active", true)
         .order("display_order", { ascending: true })
         .order("created_at", { ascending: true });
 
-      if (error) throw error;
-      return data as Persona[];
+      if (result.error) throw result.error;
+      return (result.data || []) as Persona[];
     },
   });
 

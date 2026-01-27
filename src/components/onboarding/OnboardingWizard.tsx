@@ -109,7 +109,7 @@ export function OnboardingWizard() {
           granted_at: new Date().toISOString()
         }));
 
-        const { error: modulesError } = await supabase
+        const { error: modulesError } = await (supabase as any)
           .from('user_modules')
           .upsert(modulesToInsert, { onConflict: 'user_id,module_id' });
         
@@ -163,7 +163,7 @@ export function OnboardingWizard() {
             position: index,
           }));
 
-          const { error: wsModulesError } = await supabase
+          const { error: wsModulesError } = await (supabase as any)
             .from('workspace_modules')
             .upsert(workspaceModulesToInsert, { 
               onConflict: 'workspace_id,module_id',

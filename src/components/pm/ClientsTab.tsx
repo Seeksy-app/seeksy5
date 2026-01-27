@@ -51,8 +51,8 @@ export const ClientsTab = ({ userId }: ClientsTabProps) => {
                     <p className="text-sm text-foreground mt-1">{client.name}</p>
                   )}
                 </div>
-                <Badge variant={client.lead_status === 'customer' ? 'default' : 'secondary'}>
-                  {client.lead_status || 'contact'}
+                <Badge variant={(client as any).lead_status === 'customer' ? 'default' : 'secondary'}>
+                  {(client as any).lead_status || 'contact'}
                 </Badge>
               </div>
             </CardHeader>
