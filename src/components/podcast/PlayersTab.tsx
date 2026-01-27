@@ -213,14 +213,14 @@ export const PlayersTab = ({ podcastId }: PlayersTabProps) => {
           <div className="flex items-center justify-between pt-3 border-t">
             <div>
               <span className="font-medium">RSS Feed</span>
-              <p className="text-sm text-muted-foreground truncate max-w-md">{podcast?.rss_feed_url || "Not generated"}</p>
+              <p className="text-sm text-muted-foreground truncate max-w-md">{(podcast as any)?.rss_feed_url || (podcast as any)?.rss_url || "Not generated"}</p>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => copyLink(podcast?.rss_feed_url)}>
+              <Button variant="outline" size="sm" onClick={() => copyLink((podcast as any)?.rss_feed_url || (podcast as any)?.rss_url)}>
                 <Copy className="w-4 h-4" />
               </Button>
-              {podcast?.rss_feed_url && (
-                <Button variant="outline" size="sm" onClick={() => window.open(podcast.rss_feed_url, '_blank')}>
+              {((podcast as any)?.rss_feed_url || (podcast as any)?.rss_url) && (
+                <Button variant="outline" size="sm" onClick={() => window.open((podcast as any)?.rss_feed_url || (podcast as any)?.rss_url, '_blank')}>
                   <ExternalLink className="w-4 h-4" />
                 </Button>
               )}

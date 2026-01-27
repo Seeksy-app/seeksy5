@@ -68,17 +68,18 @@ export function ChannelsModal({ isOpen, onClose, sessionId }: ChannelsModalProps
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
       
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("streaming_destinations")
         .select("*")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
       
-      if (error) throw error;
+      if (result.error) throw result.error;
       
+      const data = result.data as any[];
       // Initialize session toggles based on is_active_default
       const toggles: Record<string, boolean> = {};
-      (data || []).forEach((d) => {
+      (data || []).forEach((d: any) => {
         toggles[d.id] = d.is_active_default ?? true;
       });
       setSessionToggles(toggles);
@@ -93,7 +94,7 @@ export function ChannelsModal({ isOpen, onClose, sessionId }: ChannelsModalProps
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
       
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("streaming_destinations")
         .insert([{
           user_id: user.id,
@@ -104,8 +105,8 @@ export function ChannelsModal({ isOpen, onClose, sessionId }: ChannelsModalProps
         .select()
         .single();
       
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["streaming-destinations"] });
@@ -127,12 +128,12 @@ export function ChannelsModal({ isOpen, onClose, sessionId }: ChannelsModalProps
       if (params.platformMeta) {
         updateData.platform_meta = params.platformMeta;
       }
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("streaming_destinations")
         .update(updateData)
         .eq("id", params.id);
       
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["streaming-destinations"] });
@@ -145,12 +146,12 @@ export function ChannelsModal({ isOpen, onClose, sessionId }: ChannelsModalProps
   // Delete destination mutation
   const deleteDestination = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("streaming_destinations")
         .delete()
         .eq("id", id);
       
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["streaming-destinations"] });

@@ -21,7 +21,7 @@ export const StudioAdInventory = ({ onAdSelect, selectedAd }: StudioAdInventoryP
   const { data: audioAds, isLoading } = useQuery({
     queryKey: ['studio-ad-inventory'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('audio_ads')
         .select(`
           *,
@@ -42,10 +42,11 @@ export const StudioAdInventory = ({ onAdSelect, selectedAd }: StudioAdInventoryP
         .eq('status', 'active')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (result.error) throw result.error;
 
+      const data = result.data as any[];
       // Filter to only include ads with active campaigns (including quick campaigns)
-      return data?.filter(ad => 
+      return data?.filter((ad: any) => 
         ad.campaign && 
         ad.campaign.status === 'active' &&
         new Date(ad.campaign.start_date) <= new Date() &&

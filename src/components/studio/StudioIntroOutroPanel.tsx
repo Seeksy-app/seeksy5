@@ -162,7 +162,7 @@ export function StudioIntroOutroPanel({ type, sessionId, onSuccess }: StudioIntr
         if (user) {
           const voiceName = voices.find(v => v.voice_id === selectedVoice)?.name || 'Unknown';
           
-          await supabase.from('studio_intro_outro_library').insert({
+          await (supabase as any).from('studio_intro_outro_library').insert({
             user_id: user.id,
             session_id: sessionId,
             type,

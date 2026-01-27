@@ -38,17 +38,17 @@ export function StreamingRevenueTab() {
     queryFn: async () => {
       if (!profileQuery.data?.id) return [];
       
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("my_page_video_impressions")
         .select("id, video_id, video_type, viewed_at")
         .eq("profile_id", profileQuery.data.id)
         .order("viewed_at", { ascending: false });
       
-      if (error) {
-        console.error("Error fetching streaming impressions:", error);
+      if (result.error) {
+        console.error("Error fetching streaming impressions:", result.error);
         return [];
       }
-      return data || [];
+      return (result.data as any[]) || [];
     },
     enabled: !!profileQuery.data?.id,
   });

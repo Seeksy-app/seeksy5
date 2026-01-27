@@ -44,14 +44,15 @@ const AIMeetingNotesPanel: React.FC<AIMeetingNotesPanelProps> = ({
 
   const loadIntelligence = async () => {
     try {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('meeting_intelligence')
         .select('*')
         .eq('meeting_id', meetingId)
         .single();
 
-      if (error && error.code !== 'PGRST116') throw error;
+      if (result.error && result.error.code !== 'PGRST116') throw result.error;
 
+      const data = result.data as any;
       if (data) {
         setIntelligence({
           summary: data.summary || '',

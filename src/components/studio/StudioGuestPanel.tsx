@@ -36,14 +36,14 @@ export const StudioGuestPanel = ({ studioSessionId }: StudioGuestPanelProps) => 
     queryKey: ["studio-guests", studioSessionId],
     queryFn: async () => {
       if (!studioSessionId) return [];
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("studio_guests")
         .select("*")
         .eq("studio_session_id", studioSessionId)
         .order("display_order", { ascending: true });
       
-      if (error) throw error;
-      return data as Guest[];
+      if (result.error) throw result.error;
+      return (result.data as any[]) as Guest[];
     },
     enabled: !!studioSessionId
   });
@@ -63,7 +63,7 @@ export const StudioGuestPanel = ({ studioSessionId }: StudioGuestPanelProps) => 
         throw new Error("Cannot add guests to demo templates. Please create your own studio template first.");
       }
 
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("studio_guests")
         .insert({
           studio_session_id: studioSessionId,
@@ -73,7 +73,7 @@ export const StudioGuestPanel = ({ studioSessionId }: StudioGuestPanelProps) => 
           display_order: guests.length
         });
 
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["studio-guests", studioSessionId] });
@@ -96,12 +96,12 @@ export const StudioGuestPanel = ({ studioSessionId }: StudioGuestPanelProps) => 
   // Remove guest mutation
   const removeGuestMutation = useMutation({
     mutationFn: async (guestId: string) => {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("studio_guests")
         .delete()
         .eq("id", guestId);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["studio-guests", studioSessionId] });

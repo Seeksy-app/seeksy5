@@ -50,14 +50,14 @@ export const StudioBrandingMenu = ({
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("qr_codes")
         .select("*")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
-      setSavedQRCodes(data || []);
+      if (result.error) throw result.error;
+      setSavedQRCodes((result.data as any[]) || []);
     } catch (error) {
       console.error("Error loading QR codes:", error);
     } finally {

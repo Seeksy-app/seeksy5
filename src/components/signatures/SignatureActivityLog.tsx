@@ -46,7 +46,7 @@ export function SignatureActivityLog({ signatures }: SignatureActivityLogProps) 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      let query = supabase
+      let query = (supabase as any)
         .from("signature_tracking_events")
         .select("*")
         .eq("user_id", user.id)
@@ -61,7 +61,8 @@ export function SignatureActivityLog({ signatures }: SignatureActivityLogProps) 
         query = query.eq("event_type", selectedEventType);
       }
 
-      const { data } = await query;
+      const result = await query;
+      const data = result.data as any[];
       setEvents((data as TrackingEvent[]) || []);
     } catch (error) {
       console.error("Error fetching events:", error);

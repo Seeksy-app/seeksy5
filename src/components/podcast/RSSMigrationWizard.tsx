@@ -45,10 +45,11 @@ export function RSSMigrationWizard({ userId, podcastId }: RSSMigrationWizardProp
 
   // Pre-populate old RSS URL if podcast was imported via RSS
   useEffect(() => {
-    if (podcast?.rss_feed_url && !oldRssUrl) {
-      setOldRssUrl(podcast.rss_feed_url);
+    const rssUrl = (podcast as any)?.rss_feed_url || (podcast as any)?.rss_url;
+    if (rssUrl && !oldRssUrl) {
+      setOldRssUrl(rssUrl);
     }
-  }, [podcast?.rss_feed_url]);
+  }, [(podcast as any)?.rss_feed_url, (podcast as any)?.rss_url]);
 
   // Auto-generate new RSS URL from podcast title
   const generateSlug = (title: string) => {
@@ -61,12 +62,12 @@ export function RSSMigrationWizard({ userId, podcastId }: RSSMigrationWizardProp
   const { data: instructions } = useQuery({
     queryKey: ['rss-redirect-instructions'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('rss_redirect_instructions')
         .select('*')
         .order('platform_display_name');
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any[];
     },
   });
 
@@ -85,7 +86,7 @@ export function RSSMigrationWizard({ userId, podcastId }: RSSMigrationWizardProp
 
   const createMigration = useMutation({
     mutationFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('rss_migrations')
         .insert({
           podcast_id: podcastId,
@@ -98,10 +99,10 @@ export function RSSMigrationWizard({ userId, podcastId }: RSSMigrationWizardProp
         })
         .select()
         .single();
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any;
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       setMigrationId(data.id);
       queryClient.invalidateQueries({ queryKey: ['rss-migrations'] });
     },
@@ -110,11 +111,11 @@ export function RSSMigrationWizard({ userId, podcastId }: RSSMigrationWizardProp
   const updateMigration = useMutation({
     mutationFn: async (updates: any) => {
       if (!migrationId) return;
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('rss_migrations')
         .update(updates)
         .eq('id', migrationId);
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['rss-migrations'] });
@@ -220,7 +221,7 @@ export function RSSMigrationWizard({ userId, podcastId }: RSSMigrationWizardProp
     return ((steps.indexOf(step) + 1) / steps.length) * 100;
   };
 
-  const platformInstructions = instructions?.find(i => i.platform_name === detectedPlatform);
+  const platformInstructions = instructions?.find((i: any) => i.platform_name === detectedPlatform) as any;
 
   return (
     <Card className="w-full max-w-3xl mx-auto">

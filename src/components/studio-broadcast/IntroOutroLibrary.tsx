@@ -43,7 +43,7 @@ export function IntroOutroLibrary({ sessionId, onSelect }: IntroOutroLibraryProp
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('studio_intro_outro_library')
         .select(`
           *,
@@ -52,22 +52,22 @@ export function IntroOutroLibrary({ sessionId, onSelect }: IntroOutroLibraryProp
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      return data || [];
+      if (result.error) throw result.error;
+      return (result.data as any[]) || [];
     }
   });
 
-  const intros = libraryItems?.filter(item => item.type === 'intro') || [];
-  const outros = libraryItems?.filter(item => item.type === 'outro') || [];
+  const intros = libraryItems?.filter((item: any) => item.type === 'intro') || [];
+  const outros = libraryItems?.filter((item: any) => item.type === 'outro') || [];
 
   const handleDelete = async (id: string) => {
     try {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('studio_intro_outro_library')
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
 
       toast.success("Deleted successfully");
       refetch();
