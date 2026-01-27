@@ -28,7 +28,7 @@ export const SystemHealthBanner = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
       
-      const { data } = await supabase
+      const result = await (supabase as any)
         .from('identity_assets')
         .select('updated_at')
         .eq('user_id', user.id)
@@ -36,7 +36,7 @@ export const SystemHealthBanner = () => {
         .limit(1)
         .maybeSingle();
       
-      return data?.updated_at || null;
+      return (result.data as any)?.updated_at || null;
     },
     refetchInterval: 30000,
   });

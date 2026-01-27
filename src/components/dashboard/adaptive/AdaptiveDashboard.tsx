@@ -32,12 +32,13 @@ export function AdaptiveDashboard({ userId, userName }: AdaptiveDashboardProps) 
   const loadUserPreferences = async () => {
     try {
       // Get user type from preferences
-      const { data: prefs } = await supabase
+      const result = await (supabase as any)
         .from("user_preferences")
         .select("user_type, onboarding_completed, my_page_enabled, pinned_modules")
         .eq("user_id", userId)
         .maybeSingle();
 
+      const prefs = result.data as any;
       if (prefs?.user_type) {
         setUserType(prefs.user_type as UserType);
       }
@@ -47,18 +48,18 @@ export function AdaptiveDashboard({ userId, userName }: AdaptiveDashboardProps) 
       if (storedModules) {
         setActivatedModules(JSON.parse(storedModules));
       } else if (prefs?.pinned_modules && Array.isArray(prefs.pinned_modules)) {
-        setActivatedModules(prefs.pinned_modules.map(m => String(m)));
+        setActivatedModules(prefs.pinned_modules.map((m: any) => String(m)));
       }
 
       // Determine completed checklist items
       const completed: string[] = [];
 
       // Check social connection
-      const { count: socialCount } = await supabase
+      const socialResult = await (supabase as any)
         .from("social_media_profiles")
         .select("*", { count: "exact", head: true })
         .eq("user_id", userId);
-      if (socialCount && socialCount > 0) {
+      if (socialResult.count && socialResult.count > 0) {
         completed.push("connect-social", "connect-social-biz", "connect-creator-social");
       }
 
@@ -99,11 +100,11 @@ export function AdaptiveDashboard({ userId, userName }: AdaptiveDashboardProps) 
       }
 
       // Check segments
-      const { count: segmentCount } = await supabase
+      const segmentResult = await (supabase as any)
         .from("segments")
         .select("*", { count: "exact", head: true })
         .eq("user_id", userId);
-      if (segmentCount && segmentCount > 0) {
+      if (segmentResult.count && segmentResult.count > 0) {
         completed.push("create-segment");
       }
 
@@ -126,11 +127,11 @@ export function AdaptiveDashboard({ userId, userName }: AdaptiveDashboardProps) 
       }
 
       // Check proposals
-      const { count: proposalCount } = await supabase
+      const proposalResult = await (supabase as any)
         .from("proposals")
         .select("*", { count: "exact", head: true })
         .eq("user_id", userId);
-      if (proposalCount && proposalCount > 0) {
+      if (proposalResult.count && proposalResult.count > 0) {
         completed.push("build-proposal");
       }
 
@@ -146,19 +147,19 @@ export function AdaptiveDashboard({ userId, userName }: AdaptiveDashboardProps) 
 
       // Load various KPI data
       const [
-        { count: contacts },
-        { count: podcasts },
-        { data: earnings },
-        { data: socialProfile },
+        contactsResult,
+        podcastsResult,
+        earningsResult,
+        socialProfileResult,
       ] = await Promise.all([
-        supabase.from("contacts").select("*", { count: "exact", head: true }).eq("user_id", userId),
-        supabase.from("podcasts").select("*", { count: "exact", head: true }).eq("user_id", userId),
-        supabase.from("creator_earnings").select("creator_share, total_impressions").eq("user_id", userId),
-        supabase.from("social_media_profiles").select("followers_count").eq("user_id", userId).maybeSingle(),
+        (supabase as any).from("contacts").select("*", { count: "exact", head: true }).eq("user_id", userId),
+        (supabase as any).from("podcasts").select("*", { count: "exact", head: true }).eq("user_id", userId),
+        (supabase as any).from("creator_earnings").select("creator_share, total_impressions").eq("user_id", userId),
+        (supabase as any).from("social_media_profiles").select("followers_count").eq("user_id", userId).maybeSingle(),
       ]);
 
-      const totalRevenue = earnings?.reduce((sum, e) => sum + (e.creator_share || 0), 0) || 0;
-      const followersCount = socialProfile?.followers_count || 0;
+      const totalRevenue = (earningsResult.data as any[])?.reduce((sum: number, e: any) => sum + (e.creator_share || 0), 0) || 0;
+      const followersCount = (socialProfileResult.data as any)?.followers_count || 0;
 
       setKpiData({
         totalFollowers: followersCount,
@@ -169,7 +170,7 @@ export function AdaptiveDashboard({ userId, userName }: AdaptiveDashboardProps) 
         avgDownloads: 0,
         topLocation: "US",
         retention: 65,
-        totalContacts: contacts || 0,
+        totalContacts: contactsResult.count || 0,
         campaignEngagement: 24.5,
         websiteTraffic: 0,
         leadConversions: 0,

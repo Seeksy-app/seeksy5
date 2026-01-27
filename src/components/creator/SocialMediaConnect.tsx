@@ -14,24 +14,24 @@ export function SocialMediaConnect() {
   const { data: connectedAccounts, isLoading } = useQuery({
     queryKey: ['social-media-accounts'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('social_media_accounts')
         .select('*')
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any[];
     },
   });
 
   const disconnectMutation = useMutation({
     mutationFn: async (accountId: string) => {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('social_media_accounts')
         .delete()
         .eq('id', accountId);
       
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['social-media-accounts'] });

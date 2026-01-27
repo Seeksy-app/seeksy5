@@ -145,7 +145,7 @@ export function DemoVideoUpload({ onSuccess }: DemoVideoUploadProps) {
       }
 
       // Create database entry
-      const { error: dbError } = await supabase
+      const result = await (supabase as any)
         .from('demo_videos')
         .insert({
           title,
@@ -158,7 +158,7 @@ export function DemoVideoUpload({ onSuccess }: DemoVideoUploadProps) {
           created_by: user.id,
         });
 
-      if (dbError) throw dbError;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       toast({

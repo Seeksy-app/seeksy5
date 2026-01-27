@@ -26,7 +26,7 @@ export const ContactListManager = () => {
     queryKey: ["contact-lists", user?.id],
     queryFn: async () => {
       if (!user) return [];
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("contact_lists")
         .select(`
           *,
@@ -35,8 +35,8 @@ export const ContactListManager = () => {
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
       
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any[];
     },
     enabled: !!user,
   });
@@ -45,7 +45,7 @@ export const ContactListManager = () => {
     mutationFn: async (name: string) => {
       if (!user) throw new Error("Not authenticated");
       
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("contact_lists")
         .insert({
           user_id: user.id,
@@ -53,7 +53,7 @@ export const ContactListManager = () => {
           is_system: false,
         });
       
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["contact-lists"] });
@@ -68,12 +68,12 @@ export const ContactListManager = () => {
 
   const deleteList = useMutation({
     mutationFn: async (listId: string) => {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("contact_lists")
         .delete()
         .eq("id", listId);
       
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["contact-lists"] });

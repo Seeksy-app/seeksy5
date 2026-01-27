@@ -21,7 +21,7 @@ export function SubscriberListManager() {
     queryFn: async () => {
       if (!user) return [];
       
-      let query = supabase
+      let query = (supabase as any)
         .from("contact_lists")
         .select(`
           *,
@@ -34,9 +34,9 @@ export function SubscriberListManager() {
         query = query.ilike("name", `%${searchQuery}%`);
       }
 
-      const { data, error } = await query;
-      if (error) throw error;
-      return data || [];
+      const result = await query;
+      if (result.error) throw result.error;
+      return (result.data as any[]) || [];
     },
     enabled: !!user,
   });

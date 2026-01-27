@@ -43,12 +43,13 @@ export function PersonaDashboard({ personaType, userId }: PersonaDashboardProps)
 
   const loadUserPreferences = async () => {
     try {
-      const { data: prefs } = await supabase
+      const result = await (supabase as any)
         .from("user_preferences")
         .select("*")
         .eq("user_id", userId)
         .maybeSingle();
 
+      const prefs = result.data as any;
       if (prefs) {
         // Load enabled widgets from preferences
         if (prefs.pinned_modules && Array.isArray(prefs.pinned_modules)) {

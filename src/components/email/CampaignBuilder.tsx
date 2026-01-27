@@ -40,12 +40,12 @@ export const CampaignBuilder = ({ onCampaignCreated }: CampaignBuilderProps) => 
     queryKey: ["email-accounts", user?.id],
     queryFn: async () => {
       if (!user) return [];
-      const { data } = await supabase
+      const result = await (supabase as any)
         .from("email_accounts")
         .select("*")
         .eq("user_id", user.id)
         .eq("is_active", true);
-      return data || [];
+      return (result.data as any[]) || [];
     },
     enabled: !!user,
   });
@@ -54,14 +54,14 @@ export const CampaignBuilder = ({ onCampaignCreated }: CampaignBuilderProps) => 
     queryKey: ["contact-lists", user?.id],
     queryFn: async () => {
       if (!user) return [];
-      const { data } = await supabase
+      const result = await (supabase as any)
         .from("contact_lists")
         .select(`
           *,
           contact_list_members(count)
         `)
         .eq("user_id", user.id);
-      return data || [];
+      return (result.data as any[]) || [];
     },
     enabled: !!user,
   });

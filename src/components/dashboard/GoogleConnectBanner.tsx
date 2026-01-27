@@ -33,20 +33,20 @@ export function GoogleConnectBanner() {
       }
 
       // Check if Google is already connected via gmail_connections or google_calendar_connections
-      const { data: gmailConnection } = await supabase
+      const gmailResult = await (supabase as any)
         .from('gmail_connections')
         .select('id')
         .eq('user_id', user.id)
         .maybeSingle();
 
-      const { data: calendarConnection } = await supabase
+      const calendarResult = await (supabase as any)
         .from('google_calendar_connections')
         .select('id')
         .eq('user_id', user.id)
         .maybeSingle();
 
       // Only show if not connected
-      if (!gmailConnection && !calendarConnection) {
+      if (!gmailResult.data && !calendarResult.data) {
         setIsVisible(true);
       }
     } catch (error) {

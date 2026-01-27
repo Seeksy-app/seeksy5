@@ -28,27 +28,27 @@ export function AutoRenewSettings() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return null;
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('user_auto_renew_settings')
         .select('*')
         .eq('user_id', session.user.id)
         .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') throw error;
-      return data;
+      if (result.error && result.error.code !== 'PGRST116') throw result.error;
+      return result.data as any;
     },
   });
 
   const { data: packages } = useQuery({
     queryKey: ['credit-packages'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('credit_packages')
         .select('*')
         .eq('is_active', true)
         .order('display_order');
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any[];
     },
   });
 
@@ -71,11 +71,11 @@ export function AutoRenewSettings() {
         updated_at: new Date().toISOString(),
       };
 
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('user_auto_renew_settings')
         .upsert(payload, { onConflict: 'user_id' });
 
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['auto-renew-settings'] });

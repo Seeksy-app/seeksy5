@@ -56,15 +56,15 @@ export function DailyBriefModal({ open, onOpenChange, audienceType }: DailyBrief
       const now = new Date();
       const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
       
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('daily_briefs')
         .select('*')
         .eq('brief_date', today)
         .eq('audience_type', audienceType)
         .maybeSingle();
 
-      if (error) throw error;
-      setBrief(data as unknown as Brief | null);
+      if (result.error) throw result.error;
+      setBrief(result.data as unknown as Brief | null);
     } catch (error: any) {
       console.error('Failed to fetch brief:', error);
     } finally {

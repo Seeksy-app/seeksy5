@@ -21,7 +21,7 @@ export const CertifiedClipsCard = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
-      const { data } = await supabase
+      const result = await (supabase as any)
         .from('clips')
         .select('id, cert_status, created_at')
         .eq('user_id', user.id)
@@ -29,7 +29,7 @@ export const CertifiedClipsCard = () => {
         .is('deleted_at', null)
         .order('created_at', { ascending: false });
 
-      return (data || []) as ClipData[];
+      return ((result.data as any[]) || []) as ClipData[];
     },
   });
 
