@@ -15,18 +15,14 @@ export const EmailActivityFeed = ({ userId }: EmailActivityFeedProps) => {
     queryFn: async () => {
       if (!userId) return [];
       
-      const { data } = await supabase
+      const result = await (supabase as any)
         .from("email_events")
-        .select(`
-          *,
-          email_campaigns(subject),
-          contacts(name, email)
-        `)
+        .select("*")
         .eq("user_id", userId)
         .order("created_at", { ascending: false })
         .limit(10);
 
-      return data || [];
+      return (result.data || []) as any[];
     },
     enabled: !!userId,
   });
@@ -70,19 +66,19 @@ export const EmailActivityFeed = ({ userId }: EmailActivityFeedProps) => {
       <CardContent>
         {events && events.length > 0 ? (
           <div className="space-y-3">
-            {events.map((event) => (
+            {events.map((event: any) => (
               <div key={event.id} className="flex items-start gap-3 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors">
                 <div className="mt-1">
-                  <Badge variant={getEventVariant(event.event_type)}>
+                  <Badge variant={getEventVariant(event.event_type) as any}>
                     {getEventIcon(event.event_type)}
                   </Badge>
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">
-                    {event.contacts?.name || event.contacts?.email || "Unknown contact"}
+                    {event.to_email || "Unknown contact"}
                   </p>
                   <p className="text-xs text-muted-foreground truncate">
-                    {event.event_type} • {event.email_campaigns?.subject || "Campaign"}
+                    {event.event_type} • {event.email_subject || "Campaign"}
                   </p>
                 </div>
                 <div className="text-xs text-muted-foreground whitespace-nowrap">

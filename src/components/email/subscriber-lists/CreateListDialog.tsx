@@ -24,7 +24,7 @@ export function CreateListDialog({ open, onOpenChange }: CreateListDialogProps) 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("contact_lists")
         .insert({
           name,
@@ -34,8 +34,8 @@ export function CreateListDialog({ open, onOpenChange }: CreateListDialogProps) 
         .select()
         .single();
 
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["contact-lists"] });

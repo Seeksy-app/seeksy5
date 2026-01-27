@@ -27,7 +27,7 @@ export function AutomationBuilder({ automation, onUpdate }: AutomationBuilderPro
 
   const updateAutomation = useMutation({
     mutationFn: async () => {
-      const { error: automationError } = await supabase
+      const { error: automationError } = await (supabase as any)
         .from("automations")
         .update({ name, description })
         .eq("id", automation.id);
@@ -35,14 +35,14 @@ export function AutomationBuilder({ automation, onUpdate }: AutomationBuilderPro
       if (automationError) throw automationError;
 
       // Delete existing actions
-      await supabase
+      await (supabase as any)
         .from("automation_actions")
         .delete()
         .eq("automation_id", automation.id);
 
       // Insert new actions
       if (actions.length > 0) {
-        const { error: actionsError } = await supabase
+        const { error: actionsError } = await (supabase as any)
           .from("automation_actions")
           .insert(
             actions.map((a: any, index: number) => ({

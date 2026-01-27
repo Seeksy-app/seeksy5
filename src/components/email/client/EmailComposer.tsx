@@ -25,6 +25,13 @@ interface EmailComposerProps {
   replyTo?: ReplyToEmail | null;
 }
 
+interface GmailConnection {
+  id: string;
+  email: string;
+  is_default: boolean;
+  signature?: string;
+}
+
 export function EmailComposer({ open, onClose, draftId, replyTo }: EmailComposerProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -38,26 +45,26 @@ export function EmailComposer({ open, onClose, draftId, replyTo }: EmailComposer
   const [showBcc, setShowBcc] = useState(false);
 
   // Fetch connected Gmail accounts
-  const { data: accounts = [] } = useQuery({
+  const { data: accounts = [] } = useQuery<GmailConnection[]>({
     queryKey: ["gmail-connections"],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
       
-      const { data } = await supabase
+      const result = await (supabase as any)
         .from("gmail_connections")
         .select("*")
         .eq("user_id", user.id)
         .order("is_default", { ascending: false });
       
-      return data || [];
+      return (result.data || []) as GmailConnection[];
     },
   });
 
   // Set default account (prefer is_default=true)
   useEffect(() => {
     if (accounts.length > 0 && !fromAccountId) {
-      const defaultAccount = accounts.find(acc => acc.is_default) || accounts[0];
+      const defaultAccount = accounts.find((acc: GmailConnection) => acc.is_default) || accounts[0];
       setFromAccountId(defaultAccount.id);
     }
   }, [accounts, fromAccountId]);
@@ -89,12 +96,13 @@ export function EmailComposer({ open, onClose, draftId, replyTo }: EmailComposer
   useEffect(() => {
     if (draftId && open && !replyTo) {
       const loadDraft = async () => {
-        const { data: draft } = await supabase
+        const result = await (supabase as any)
           .from("email_campaigns")
           .select("*")
           .eq("id", draftId)
           .single();
         
+        const draft = result.data as any;
         if (draft && draft.draft_data) {
           const draftData = draft.draft_data as any;
           setFromAccountId(draftData.fromAccountId || accounts[0]?.id || "");
@@ -117,7 +125,7 @@ export function EmailComposer({ open, onClose, draftId, replyTo }: EmailComposer
       if (!user) throw new Error("Not authenticated");
 
       // Get signature from selected account
-      const selectedAccount = accounts.find(acc => acc.id === fromAccountId);
+      const selectedAccount = accounts.find((acc: GmailConnection) => acc.id === fromAccountId);
       const signature = selectedAccount?.signature || "";
       
       // Append signature to body if it exists
@@ -168,7 +176,7 @@ export function EmailComposer({ open, onClose, draftId, replyTo }: EmailComposer
 
       if (draftId) {
         // Update existing draft
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from("email_campaigns")
           .update({
             subject,
@@ -181,7 +189,7 @@ export function EmailComposer({ open, onClose, draftId, replyTo }: EmailComposer
         if (error) throw error;
       } else {
         // Create new draft
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from("email_campaigns")
           .insert({
             campaign_name: subject || "Untitled Draft",
@@ -253,7 +261,7 @@ export function EmailComposer({ open, onClose, draftId, replyTo }: EmailComposer
                 <SelectValue placeholder="Select email account" />
               </SelectTrigger>
               <SelectContent>
-                {accounts.map((account) => (
+                {accounts.map((account: GmailConnection) => (
                   <SelectItem key={account.id} value={account.id}>
                     <div className="flex items-center justify-between w-full">
                       <span>{account.email}</span>

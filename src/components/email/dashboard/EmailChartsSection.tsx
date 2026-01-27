@@ -18,12 +18,13 @@ export const EmailChartsSection = ({ userId }: EmailChartsSectionProps) => {
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-      const { data: events } = await supabase
+      const result = await (supabase as any)
         .from("email_events")
         .select("event_type, created_at")
         .eq("user_id", userId)
         .gte("created_at", thirtyDaysAgo.toISOString());
 
+      const events = result.data as any[];
       if (!events) return [];
 
       // Group by day
@@ -35,7 +36,7 @@ export const EmailChartsSection = ({ userId }: EmailChartsSectionProps) => {
         dailyMap.set(dateKey, { date: dateKey, sent: 0, opened: 0, clicked: 0 });
       }
 
-      events.forEach(event => {
+      events.forEach((event: any) => {
         const dateKey = format(new Date(event.created_at), "yyyy-MM-dd");
         if (dailyMap.has(dateKey)) {
           const day = dailyMap.get(dateKey);
@@ -61,17 +62,18 @@ export const EmailChartsSection = ({ userId }: EmailChartsSectionProps) => {
     queryFn: async () => {
       if (!userId) return [];
 
-      const { data } = await supabase
+      const result = await (supabase as any)
         .from("email_campaigns")
-        .select("subject, total_sent, total_clicked")
+        .select("subject, sent_count, clicked_count")
         .eq("user_id", userId)
-        .order("total_clicked", { ascending: false })
+        .order("clicked_count", { ascending: false })
         .limit(5);
 
-      return data?.map(c => ({
-        name: c.subject.length > 30 ? c.subject.substring(0, 30) + "..." : c.subject,
-        clicks: c.total_clicked || 0,
-        ctr: c.total_sent > 0 ? ((c.total_clicked / c.total_sent) * 100).toFixed(1) : "0",
+      const data = result.data as any[];
+      return data?.map((c: any) => ({
+        name: (c.subject || "").length > 30 ? c.subject.substring(0, 30) + "..." : (c.subject || "Untitled"),
+        clicks: c.clicked_count || 0,
+        ctr: c.sent_count > 0 ? (((c.clicked_count || 0) / c.sent_count) * 100).toFixed(1) : "0",
       })) || [];
     },
     enabled: !!userId,

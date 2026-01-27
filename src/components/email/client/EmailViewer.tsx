@@ -98,13 +98,13 @@ export function EmailViewer({
       const isInboxEmail = (email as any).is_inbox || email.event_type === "received";
       
       if (isInboxEmail) {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from("inbox_messages")
           .delete()
           .eq("id", email.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from("email_events")
           .delete()
           .eq("id", email.id);
@@ -133,13 +133,13 @@ export function EmailViewer({
       const isInboxEmail = (email as any).is_inbox || email.event_type === "received";
       
       if (isInboxEmail) {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from("inbox_messages")
           .update({ deleted_at: null })
           .eq("id", email.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from("email_events")
           .update({ 
             deleted_at: null,

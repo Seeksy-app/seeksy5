@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase, type Database } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Instagram, Facebook, TrendingUp, Users, Eye, RefreshCw, Linkedin, Twitter, Youtube, ChevronDown } from "lucide-react";
@@ -9,7 +9,20 @@ import { toast } from "sonner";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useState } from "react";
 
-type SocialMediaAccount = Database['public']['Tables']['social_media_accounts']['Row'];
+interface SocialMediaAccount {
+  id: string;
+  user_id: string;
+  platform: string;
+  account_name: string;
+  account_id: string;
+  access_token: string;
+  refresh_token: string;
+  expires_at: string;
+  created_at: string;
+  updated_at: string;
+  platform_username?: string;
+  is_business_account?: boolean;
+}
 
 export function SocialMediaAnalytics() {
   const navigate = useNavigate();
@@ -23,7 +36,7 @@ export function SocialMediaAnalytics() {
       
       const userId = authData.user.id;
       
-      const result = await supabase
+      const result = await (supabase as any)
         .from('social_media_accounts')
         .select('*');
       
@@ -33,7 +46,7 @@ export function SocialMediaAnalytics() {
       // Filter and deduplicate client-side - show only the most recent account per platform
       const platformMap = new Map<string, any>();
       
-      result.data
+      (result.data as any[])
         .filter((acc: any) => acc.user_id === userId)
         .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
         .forEach((account: any) => {
@@ -202,7 +215,7 @@ export function SocialMediaAnalytics() {
                         {getPlatformIcon(account.platform)}
                       </div>
                       <div>
-                        <p className="font-semibold text-foreground">@{account.platform_username}</p>
+                        <p className="font-semibold text-foreground">@{account.platform_username || account.account_name}</p>
                         <p className="text-sm text-muted-foreground capitalize">
                           {account.platform}
                           {account.is_business_account && ' • Business'}

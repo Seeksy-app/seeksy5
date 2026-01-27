@@ -41,7 +41,7 @@ export function SegmentBuilder({ segment, onUpdate }: SegmentBuilderProps) {
 
   const updateSegment = useMutation({
     mutationFn: async () => {
-      const { error: segmentError } = await supabase
+      const { error: segmentError } = await (supabase as any)
         .from("segments")
         .update({ name, description, filter_logic: filterLogic })
         .eq("id", segment.id);
@@ -49,14 +49,14 @@ export function SegmentBuilder({ segment, onUpdate }: SegmentBuilderProps) {
       if (segmentError) throw segmentError;
 
       // Delete existing filters
-      await supabase
+      await (supabase as any)
         .from("segment_filters")
         .delete()
         .eq("segment_id", segment.id);
 
       // Insert new filters
       if (filters.length > 0) {
-        const { error: filtersError } = await supabase
+        const { error: filtersError } = await (supabase as any)
           .from("segment_filters")
           .insert(
             filters.map((f: any) => ({

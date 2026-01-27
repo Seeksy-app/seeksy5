@@ -27,6 +27,20 @@ interface FloatingEmailComposerProps {
   replyTo?: ReplyToEmail | null;
 }
 
+interface EmailAccount {
+  id: string;
+  email_address: string;
+  is_default: boolean;
+  is_active: boolean;
+}
+
+interface EmailSignature {
+  id: string;
+  name: string;
+  html_signature: string;
+  is_active: boolean;
+}
+
 export function FloatingEmailComposer({ open, onClose, draftId, initialRecipients, replyTo }: FloatingEmailComposerProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -44,13 +58,13 @@ export function FloatingEmailComposer({ open, onClose, draftId, initialRecipient
   const [selectedSignatureId, setSelectedSignatureId] = useState<string>("none");
 
   // Fetch connected email accounts
-  const { data: accounts = [] } = useQuery({
+  const { data: accounts = [] } = useQuery<EmailAccount[]>({
     queryKey: ["email-accounts"],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
       
-      const { data } = await supabase
+      const result = await (supabase as any)
         .from("email_accounts")
         .select("*")
         .eq("user_id", user.id)
@@ -58,32 +72,32 @@ export function FloatingEmailComposer({ open, onClose, draftId, initialRecipient
         .order("is_default", { ascending: false })
         .order("created_at", { ascending: false });
       
-      return data || [];
+      return (result.data || []) as EmailAccount[];
     },
   });
 
   // Fetch user signatures
-  const { data: signatures = [] } = useQuery({
+  const { data: signatures = [] } = useQuery<EmailSignature[]>({
     queryKey: ["email-signatures-composer"],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
       
-      const { data } = await supabase
+      const result = await (supabase as any)
         .from("email_signatures")
         .select("id, name, html_signature, is_active")
         .eq("user_id", user.id)
         .order("is_active", { ascending: false })
         .order("name");
       
-      return data || [];
+      return (result.data || []) as EmailSignature[];
     },
   });
 
   // Set default account
   useEffect(() => {
     if (accounts.length > 0 && !fromAccountId) {
-      const defaultAccount = accounts.find(acc => acc.is_default) || accounts[0];
+      const defaultAccount = accounts.find((acc: EmailAccount) => acc.is_default) || accounts[0];
       setFromAccountId(defaultAccount.id);
     }
   }, [accounts, fromAccountId]);
@@ -91,7 +105,7 @@ export function FloatingEmailComposer({ open, onClose, draftId, initialRecipient
   // Set default signature when signatures load
   useEffect(() => {
     if (signatures.length > 0 && selectedSignatureId === "none") {
-      const activeSignature = signatures.find((s: any) => s.is_active);
+      const activeSignature = signatures.find((s: EmailSignature) => s.is_active);
       if (activeSignature) {
         setSelectedSignatureId(activeSignature.id);
       }
@@ -148,12 +162,13 @@ export function FloatingEmailComposer({ open, onClose, draftId, initialRecipient
   useEffect(() => {
     if (draftId && open) {
       const loadDraft = async () => {
-        const { data: draft } = await supabase
+        const result = await (supabase as any)
           .from("email_campaigns")
           .select("*")
           .eq("id", draftId)
           .single();
         
+        const draft = result.data as any;
         if (draft && draft.draft_data) {
           const draftData = draft.draft_data as any;
           setFromAccountId(draftData.fromAccountId || accounts[0]?.id || "");
@@ -180,7 +195,7 @@ export function FloatingEmailComposer({ open, onClose, draftId, initialRecipient
       // Build final body with signature if selected
       let finalBody = body;
       if (selectedSignatureId && selectedSignatureId !== "none") {
-        const selectedSig = signatures.find((s: any) => s.id === selectedSignatureId);
+        const selectedSig = signatures.find((s: EmailSignature) => s.id === selectedSignatureId);
         if (selectedSig?.html_signature) {
           // Add spacing (two line breaks) between message and signature
           finalBody = `${body}<br><br>${selectedSig.html_signature}`;
@@ -202,7 +217,7 @@ export function FloatingEmailComposer({ open, onClose, draftId, initialRecipient
       
       // Delete draft after successful send
       if (currentDraftId) {
-        await supabase.from("email_campaigns").delete().eq("id", currentDraftId);
+        await (supabase as any).from("email_campaigns").delete().eq("id", currentDraftId);
       }
       
       return data;
@@ -233,7 +248,7 @@ export function FloatingEmailComposer({ open, onClose, draftId, initialRecipient
       const draftData = { fromAccountId, to, cc, bcc };
 
       if (currentDraftId) {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from("email_campaigns")
           .update({
             subject,
@@ -246,7 +261,7 @@ export function FloatingEmailComposer({ open, onClose, draftId, initialRecipient
         if (error) throw error;
       } else if (to || subject || body) {
         // Only create new draft if there's content
-        const { data, error } = await supabase
+        const result = await (supabase as any)
           .from("email_campaigns")
           .insert({
             campaign_name: subject || "Untitled Draft",
@@ -261,8 +276,8 @@ export function FloatingEmailComposer({ open, onClose, draftId, initialRecipient
           .select()
           .single();
         
-        if (error) throw error;
-        if (data) setCurrentDraftId(data.id);
+        if (result.error) throw result.error;
+        if (result.data) setCurrentDraftId(result.data.id);
       }
     },
     onSuccess: () => {
@@ -286,7 +301,7 @@ export function FloatingEmailComposer({ open, onClose, draftId, initialRecipient
       const draftData = { fromAccountId, to, cc, bcc };
 
       if (draftId) {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from("email_campaigns")
           .update({
             subject,
@@ -298,7 +313,7 @@ export function FloatingEmailComposer({ open, onClose, draftId, initialRecipient
         
         if (error) throw error;
       } else {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from("email_campaigns")
           .insert({
             campaign_name: subject || "Untitled Draft",
@@ -421,7 +436,7 @@ export function FloatingEmailComposer({ open, onClose, draftId, initialRecipient
               <SelectValue placeholder="Select email account" />
             </SelectTrigger>
             <SelectContent className="bg-popover z-[60]">
-              {accounts.map((account) => (
+              {accounts.map((account: EmailAccount) => (
                 <SelectItem key={account.id} value={account.id}>
                   <div className="flex items-center justify-between w-full">
                     <span>{account.email_address}</span>
@@ -509,68 +524,70 @@ export function FloatingEmailComposer({ open, onClose, draftId, initialRecipient
           />
         </div>
 
-        {/* Body */}
-        <Textarea
-          placeholder="Write your message..."
-          value={body}
-          onChange={(e) => setBody(e.target.value)}
-          className="min-h-[320px] resize-none"
-        />
-      </div>
-
-      {/* Footer */}
-      <div className="border-t p-4 bg-muted/30">
-        <div className="flex items-center gap-3 mb-2 flex-wrap">
+        {/* Signature selector */}
+        {signatures.length > 0 && (
           <div className="flex items-center gap-2">
-            <PenTool className="h-3.5 w-3.5 text-muted-foreground" />
+            <Label className="w-16 text-sm text-muted-foreground">Signature</Label>
             <Select value={selectedSignatureId} onValueChange={setSelectedSignatureId}>
-              <SelectTrigger className="w-[160px] h-8 text-xs">
+              <SelectTrigger className="flex-1">
                 <SelectValue placeholder="Select signature" />
               </SelectTrigger>
               <SelectContent className="bg-popover z-[60]">
-                <SelectItem value="none">No Signature</SelectItem>
-                {signatures.map((sig: any) => (
+                <SelectItem value="none">No signature</SelectItem>
+                {signatures.map((sig: EmailSignature) => (
                   <SelectItem key={sig.id} value={sig.id}>
-                    {sig.name || "Untitled"}
-                    {sig.is_active && " ✓"}
+                    {sig.name}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-primary font-semibold"
-          >
-            <Sparkles className="h-3.5 w-3.5 mr-1.5" />
-            Use Scribe ✨
-          </Button>
-          {saveStatus !== "idle" && (
-            <span className="text-xs text-muted-foreground">
-              {saveStatus === "saving" ? "Saving..." : "✓ Saved"}
-            </span>
-          )}
+        )}
+
+        {/* Body */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label className="text-sm text-muted-foreground">Message</Label>
+            <div className="flex items-center gap-2">
+              {saveStatus === "saving" && (
+                <span className="text-xs text-muted-foreground">Saving...</span>
+              )}
+              {saveStatus === "saved" && (
+                <span className="text-xs text-green-600">Saved</span>
+              )}
+            </div>
+          </div>
+          <Textarea
+            placeholder="Write your email message..."
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+            className="min-h-[300px] resize-none"
+          />
         </div>
+      </div>
+
+      {/* Actions */}
+      <div className="border-t p-4 flex items-center justify-between bg-muted/30">
         <div className="flex gap-2">
           <Button
             onClick={() => sendEmailMutation.mutate()}
             disabled={!to || !subject || !body || sendEmailMutation.isPending}
-            size="sm"
           >
-            <Send className="h-3.5 w-3.5 mr-1.5" />
+            <Send className="h-4 w-4 mr-2" />
             Send
           </Button>
           <Button
             variant="outline"
             onClick={() => saveDraftMutation.mutate()}
             disabled={saveDraftMutation.isPending}
-            size="sm"
           >
-            <Save className="h-3.5 w-3.5 mr-1.5" />
+            <Save className="h-4 w-4 mr-2" />
             Save Draft
           </Button>
         </div>
+        <Button variant="ghost" onClick={handleClose}>
+          Cancel
+        </Button>
       </div>
     </div>
   );

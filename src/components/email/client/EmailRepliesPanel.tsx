@@ -28,17 +28,17 @@ export function EmailRepliesPanel({ emailEventId, userEmail }: EmailRepliesPanel
   const [syncing, setSyncing] = useState(false);
 
   // Fetch replies for this email
-  const { data: replies = [], isLoading } = useQuery({
+  const { data: replies = [], isLoading } = useQuery<Reply[]>({
     queryKey: ["email-replies", emailEventId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("email_replies")
         .select("*")
         .eq("email_event_id", emailEventId)
         .order("received_at", { ascending: false });
 
-      if (error) throw error;
-      return data as Reply[];
+      if (result.error) throw result.error;
+      return (result.data || []) as Reply[];
     },
   });
 
