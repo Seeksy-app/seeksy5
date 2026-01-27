@@ -65,7 +65,7 @@ export function KnowledgeHubPanel({ portal, contentKey }: KnowledgeHubPanelProps
   const { data: dbArticles, isLoading } = useQuery({
     queryKey: ['knowledge-articles-panel', portal, searchQuery],
     queryFn: async () => {
-      let query = supabase
+      let query = (supabase as any)
         .from('knowledge_articles')
         .select('id, title, content, category, excerpt, key_takeaways')
         .eq('portal', portal)
@@ -79,7 +79,7 @@ export function KnowledgeHubPanel({ portal, contentKey }: KnowledgeHubPanelProps
       
       const { data } = await query;
       // Map to expected format with tags derived from category
-      return (data || []).map(article => ({
+      return ((data as any[]) || []).map((article: any) => ({
         ...article,
         tags: article.key_takeaways?.slice(0, 3) || [article.category]
       }));

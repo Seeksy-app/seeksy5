@@ -38,7 +38,7 @@ export function GuestRequestModal({
 
   const submitMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("guest_requests")
         .insert([{
           creator_id: creatorId,
@@ -50,7 +50,7 @@ export function GuestRequestModal({
           status: "new",
         }]);
       
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       setSubmitted(true);

@@ -31,8 +31,8 @@ export function EnhancedCTAManager({ landingPageId, userId }: EnhancedCTAManager
   const { data: ctas = [] } = useQuery<any[]>({
     queryKey: ["landing-ctas", landingPageId],
     queryFn: async () => {
-      const { data } = await supabase.from("landing_ctas").select("*").eq("landing_page_id", landingPageId).order("sort_order", { ascending: true });
-      return data || [];
+      const result = await (supabase as any).from("landing_ctas").select("*").eq("landing_page_id", landingPageId).order("sort_order", { ascending: true });
+      return (result.data as any[]) || [];
     },
     enabled: !!landingPageId,
   });
@@ -40,27 +40,24 @@ export function EnhancedCTAManager({ landingPageId, userId }: EnhancedCTAManager
   const { data: meetingTypes = [] } = useQuery({
     queryKey: ["meeting-types", userId],
     queryFn: async (): Promise<Array<{ id: string; name: string; description: string | null }>> => {
-      // @ts-ignore - Bypass deep Supabase type inference
-      const result = await supabase.from("meeting_types").select("id, name, description").eq("user_id", userId).eq("active", true);
-      return result.data || [];
+      const result = await (supabase as any).from("meeting_types").select("id, name, description").eq("user_id", userId).eq("active", true);
+      return (result.data as any[]) || [];
     },
   });
 
   const { data: events = [] } = useQuery({
     queryKey: ["events", userId],
     queryFn: async (): Promise<Array<{ id: string; title: string; event_date: string }>> => {
-      // @ts-ignore - Bypass deep Supabase type inference
-      const result = await supabase.from("events").select("id, title, event_date").eq("creator_id", userId).gte("event_date", new Date().toISOString()).order("event_date", { ascending: true });
-      return result.data || [];
+      const result = await (supabase as any).from("events").select("id, title, event_date").eq("creator_id", userId).gte("event_date", new Date().toISOString()).order("event_date", { ascending: true });
+      return (result.data as any[]) || [];
     },
   });
 
   const { data: signupSheets = [] } = useQuery({
     queryKey: ["signup-sheets", userId],
     queryFn: async (): Promise<Array<{ id: string; title: string }>> => {
-      // @ts-ignore - Bypass deep Supabase type inference
-      const result = await supabase.from("signup_sheets").select("id, title").eq("creator_id", userId).eq("is_active", true);
-      return result.data || [];
+      const result = await (supabase as any).from("signup_sheets").select("id, title").eq("creator_id", userId).eq("is_active", true);
+      return (result.data as any[]) || [];
     },
   });
 
@@ -80,7 +77,7 @@ export function EnhancedCTAManager({ landingPageId, userId }: EnhancedCTAManager
         url = '#guest-request';
       }
 
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("landing_ctas")
         .insert([{
           landing_page_id: landingPageId,
@@ -93,7 +90,7 @@ export function EnhancedCTAManager({ landingPageId, userId }: EnhancedCTAManager
           sort_order: maxOrder + 1,
         }]);
       
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       toast.success("CTA added!");
@@ -115,12 +112,12 @@ export function EnhancedCTAManager({ landingPageId, userId }: EnhancedCTAManager
 
   const deleteMutation = useMutation({
     mutationFn: async (ctaId: string) => {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("landing_ctas")
         .delete()
         .eq("id", ctaId);
       
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       toast.success("CTA deleted");

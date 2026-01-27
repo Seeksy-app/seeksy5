@@ -58,7 +58,7 @@ export function SpreadsheetUploadForm({ onUploadSuccess }: SpreadsheetUploadForm
       if (uploadError) throw uploadError;
 
       // Create database record
-      const { error: dbError } = await supabase
+      const result = await (supabase as any)
         .from('investor_spreadsheets')
         .insert({
           name,
@@ -69,7 +69,7 @@ export function SpreadsheetUploadForm({ onUploadSuccess }: SpreadsheetUploadForm
           uploaded_by: user.id,
         });
 
-      if (dbError) throw dbError;
+      if (result.error) throw result.error;
 
       toast.success("Spreadsheet uploaded successfully!");
       

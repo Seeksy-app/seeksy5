@@ -44,14 +44,14 @@ export const VideoMarkerPanel = ({ mediaFileId, videoDuration }: VideoMarkerPane
   const { data: markers = [] } = useQuery({
     queryKey: ["video-markers", mediaFileId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("video_markers")
         .select("*")
         .eq("media_file_id", mediaFileId)
         .order("timestamp_seconds", { ascending: true });
       
-      if (error) throw error;
-      return data as Marker[];
+      if (result.error) throw result.error;
+      return (result.data as any[]) as Marker[];
     }
   });
 
@@ -66,7 +66,7 @@ export const VideoMarkerPanel = ({ mediaFileId, videoDuration }: VideoMarkerPane
         throw new Error("Invalid timestamp");
       }
 
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("video_markers")
         .insert({
           media_file_id: mediaFileId,
@@ -76,7 +76,7 @@ export const VideoMarkerPanel = ({ mediaFileId, videoDuration }: VideoMarkerPane
           created_by: user.id
         });
 
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["video-markers", mediaFileId] });
@@ -99,12 +99,12 @@ export const VideoMarkerPanel = ({ mediaFileId, videoDuration }: VideoMarkerPane
   // Remove marker mutation
   const removeMarkerMutation = useMutation({
     mutationFn: async (markerId: string) => {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("video_markers")
         .delete()
         .eq("id", markerId);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["video-markers", mediaFileId] });

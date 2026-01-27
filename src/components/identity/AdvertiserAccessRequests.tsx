@@ -46,17 +46,17 @@ export function AdvertiserAccessRequests({ requests }: AdvertiserAccessRequestsP
         ? { status: 'approved', approved_at: new Date().toISOString() }
         : { status: 'denied', denied_at: new Date().toISOString() };
 
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("identity_access_requests")
         .update(updateData)
         .eq("id", requestId);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
 
       // Log the action
       const request = requests.find(r => r.id === requestId);
       if (request) {
-        await supabase.from("identity_access_logs").insert({
+        await (supabase as any).from("identity_access_logs").insert({
           identity_asset_id: request.identity_asset_id,
           action: approve ? 'access_granted' : 'access_denied',
           actor_id: user.id,

@@ -59,15 +59,15 @@ export function IdentityDashboard() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("identity_assets")
         .select("*")
         .eq("user_id", user.id)
         .is("revoked_at", null)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
-      return (data || []).map(asset => ({
+      if (result.error) throw result.error;
+      return ((result.data as any[]) || []).map((asset: any) => ({
         ...asset,
         permissions: asset.permissions as {
           clip_use: boolean;
@@ -89,14 +89,14 @@ export function IdentityDashboard() {
       const assetIds = assets.map(a => a.id);
       if (assetIds.length === 0) return [];
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("identity_access_requests")
         .select("*, identity_assets(title, type)")
         .in("identity_asset_id", assetIds)
         .order("requested_at", { ascending: false });
 
-      if (error) throw error;
-      return (data || []) as AccessRequest[];
+      if (result.error) throw result.error;
+      return ((result.data as any[]) || []) as AccessRequest[];
     },
     enabled: assets.length > 0,
   });
@@ -109,15 +109,15 @@ export function IdentityDashboard() {
   // Revoke identity mutation
   const revokeIdentityMutation = useMutation({
     mutationFn: async (assetId: string) => {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("identity_assets")
         .update({ revoked_at: new Date().toISOString() })
         .eq("id", assetId);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
 
       // Log revocation
-      await supabase.from("identity_access_logs").insert({
+      await (supabase as any).from("identity_access_logs").insert({
         identity_asset_id: assetId,
         action: "revoked",
         details: { reason: "User requested revocation" },

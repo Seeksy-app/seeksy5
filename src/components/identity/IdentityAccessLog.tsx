@@ -14,15 +14,15 @@ export function IdentityAccessLog({ assetIds }: IdentityAccessLogProps) {
     queryFn: async () => {
       if (!assetIds.length) return [];
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("identity_access_logs")
         .select("*")
         .in("identity_asset_id", assetIds)
         .order("created_at", { ascending: false })
         .limit(50);
 
-      if (error) throw error;
-      return data || [];
+      if (result.error) throw result.error;
+      return (result.data as any[]) || [];
     },
     enabled: assetIds.length > 0,
   });
@@ -87,19 +87,19 @@ export function IdentityAccessLog({ assetIds }: IdentityAccessLogProps) {
 
   return (
     <div className="space-y-4">
-      {logs.map((log) => (
+      {logs.map((log: any) => (
         <div
           key={log.id}
           className="flex items-start gap-3 p-3 rounded-lg border bg-card hover:bg-accent/5 transition-colors"
         >
-          <div className="mt-0.5">{getActionIcon(log.action)}</div>
+          <div className="mt-0.5">{getActionIcon(log.action || '')}</div>
           <div className="flex-1 space-y-1">
             <div className="flex items-center gap-2">
-              <Badge variant={getActionBadgeVariant(log.action)} className="text-xs">
-                {getActionLabel(log.action)}
+              <Badge variant={getActionBadgeVariant(log.action || '')} className="text-xs">
+                {getActionLabel(log.action || '')}
               </Badge>
               <span className="text-xs text-muted-foreground">
-                {format(new Date(log.created_at), "MMM d, yyyy 'at' h:mm a")}
+                {log.created_at && format(new Date(log.created_at), "MMM d, yyyy 'at' h:mm a")}
               </span>
             </div>
             {log.details && typeof log.details === "object" && (
@@ -107,9 +107,9 @@ export function IdentityAccessLog({ assetIds }: IdentityAccessLogProps) {
                 {JSON.stringify(log.details, null, 2)
                   .replace(/[{}"]/g, "")
                   .split(",")
-                  .map((line) => line.trim())
-                  .filter((line) => line)
-                  .map((line, i) => (
+                  .map((line: string) => line.trim())
+                  .filter((line: string) => line)
+                  .map((line: string, i: number) => (
                     <div key={i}>{line}</div>
                   ))}
               </div>
