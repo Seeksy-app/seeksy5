@@ -1989,6 +1989,348 @@ export interface Database {
         }
         Relationships: []
       }
+      tasks: {
+        Row: {
+          id: string
+          user_id: string
+          title: string
+          description: string | null
+          status: string
+          priority: string
+          category: string
+          due_date: string | null
+          completed_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          title: string
+          description?: string | null
+          status?: string
+          priority?: string
+          category?: string
+          due_date?: string | null
+          completed_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          title?: string
+          description?: string | null
+          status?: string
+          priority?: string
+          category?: string
+          due_date?: string | null
+          completed_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      investor_shares: {
+        Row: {
+          id: string
+          user_id: string
+          investor_email: string
+          investor_name: string
+          access_code: string
+          status: string
+          shares_percentage: number
+          investment_amount: number
+          notes: string | null
+          expires_at: string | null
+          revoked_at: string | null
+          revoked_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          investor_email: string
+          investor_name: string
+          access_code: string
+          status?: string
+          shares_percentage?: number
+          investment_amount?: number
+          notes?: string | null
+          expires_at?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          investor_email?: string
+          investor_name?: string
+          access_code?: string
+          status?: string
+          shares_percentage?: number
+          investment_amount?: number
+          notes?: string | null
+          expires_at?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      security_alerts: {
+        Row: {
+          id: string
+          alert_type: string
+          severity: string
+          title: string
+          description: string | null
+          source: string | null
+          source_ip: string | null
+          endpoint: string | null
+          metadata: Record<string, unknown> | null
+          is_resolved: boolean
+          resolved_at: string | null
+          resolved_by: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          alert_type: string
+          severity?: string
+          title: string
+          description?: string | null
+          source?: string | null
+          source_ip?: string | null
+          endpoint?: string | null
+          metadata?: Record<string, unknown> | null
+          is_resolved?: boolean
+          resolved_at?: string | null
+          resolved_by?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          alert_type?: string
+          severity?: string
+          title?: string
+          description?: string | null
+          source?: string | null
+          source_ip?: string | null
+          endpoint?: string | null
+          metadata?: Record<string, unknown> | null
+          is_resolved?: boolean
+          resolved_at?: string | null
+          resolved_by?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      blog_generation_schedules: {
+        Row: {
+          id: string
+          user_id: string
+          name: string
+          portal: string
+          category: string
+          article_count: number
+          schedule_time: string
+          timezone: string
+          frequency_hours: number
+          keywords: string[]
+          tone: string
+          next_run_at: string | null
+          last_run_at: string | null
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          name?: string
+          portal: string
+          category: string
+          article_count?: number
+          schedule_time?: string
+          timezone?: string
+          frequency_hours?: number
+          keywords?: string[]
+          tone?: string
+          next_run_at?: string | null
+          last_run_at?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          name?: string
+          portal?: string
+          category?: string
+          article_count?: number
+          schedule_time?: string
+          timezone?: string
+          frequency_hours?: number
+          keywords?: string[]
+          tone?: string
+          next_run_at?: string | null
+          last_run_at?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      cco_brand_voice: {
+        Row: {
+          id: string
+          user_id: string
+          category: string
+          title: string
+          description: string | null
+          examples: string[]
+          do_list: string[]
+          dont_list: string[]
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          category: string
+          title: string
+          description?: string | null
+          examples?: string[]
+          do_list?: string[]
+          dont_list?: string[]
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          category?: string
+          title?: string
+          description?: string | null
+          examples?: string[]
+          do_list?: string[]
+          dont_list?: string[]
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      cco_crisis_events: {
+        Row: {
+          id: string
+          user_id: string
+          title: string
+          crisis_type: string
+          severity: string | null
+          status: string | null
+          description: string | null
+          impact_assessment: string | null
+          response_plan: string | null
+          stakeholders: string[]
+          timeline: unknown[]
+          lessons_learned: string | null
+          resolved_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          title: string
+          crisis_type: string
+          severity?: string | null
+          status?: string | null
+          description?: string | null
+          impact_assessment?: string | null
+          response_plan?: string | null
+          stakeholders?: string[]
+          timeline?: unknown[]
+          lessons_learned?: string | null
+          resolved_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          title?: string
+          crisis_type?: string
+          severity?: string | null
+          status?: string | null
+          description?: string | null
+          impact_assessment?: string | null
+          response_plan?: string | null
+          stakeholders?: string[]
+          timeline?: unknown[]
+          lessons_learned?: string | null
+          resolved_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      cco_messaging: {
+        Row: {
+          id: string
+          user_id: string
+          message_type: string
+          audience: string
+          title: string
+          content: string | null
+          key_points: string[]
+          channels: string[]
+          is_approved: boolean
+          approved_by: string | null
+          approved_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          message_type: string
+          audience: string
+          title: string
+          content?: string | null
+          key_points?: string[]
+          channels?: string[]
+          is_approved?: boolean
+          approved_by?: string | null
+          approved_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          message_type?: string
+          audience?: string
+          title?: string
+          content?: string | null
+          key_points?: string[]
+          channels?: string[]
+          is_approved?: boolean
+          approved_by?: string | null
+          approved_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

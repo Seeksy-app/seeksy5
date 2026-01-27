@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { 
-  MessageCircle, Plus, Edit, Eye, CheckCircle2, Clock,
+  MessageCircle, Plus, Edit, CheckCircle2,
   Users, Target, Briefcase, Building, Flag, Globe
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,12 +17,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 interface MessagingItem {
   id: string;
   message_type: string;
-  audience: string | null;
+  audience: string;
   title: string;
-  content: string;
-  version: number;
-  status: string;
-  usage_guidelines: string | null;
+  content: string | null;
+  key_points: string[];
+  channels: string[];
+  is_approved: boolean;
+  approved_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -58,7 +58,7 @@ export function MessagingArchitecture() {
     audience: "general",
     title: "",
     content: "",
-    usage_guidelines: ""
+    key_points: ""
   });
 
   useEffect(() => {
@@ -67,13 +67,19 @@ export function MessagingArchitecture() {
 
   const fetchMessages = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    const { data, error } = await (supabase as any)
       .from("cco_messaging")
       .select("*")
       .order("message_type")
       .order("created_at", { ascending: false });
 
-    if (data) setMessages(data);
+    if (data) setMessages(data as MessagingItem[]);
     setLoading(false);
   };
 
@@ -83,12 +89,19 @@ export function MessagingArchitecture() {
       return;
     }
 
-    const { error } = await supabase.from("cco_messaging").insert({
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast.error("Not authenticated");
+      return;
+    }
+
+    const { error } = await (supabase as any).from("cco_messaging").insert({
+      user_id: user.id,
       message_type: newMessage.message_type,
       audience: newMessage.audience,
       title: newMessage.title,
       content: newMessage.content,
-      usage_guidelines: newMessage.usage_guidelines || null
+      key_points: newMessage.key_points.split("\n").map((p: string) => p.trim()).filter(Boolean)
     });
 
     if (error) {
@@ -98,30 +111,23 @@ export function MessagingArchitecture() {
 
     toast.success("Message created successfully");
     setIsCreateOpen(false);
-    setNewMessage({ message_type: "tagline", audience: "general", title: "", content: "", usage_guidelines: "" });
+    setNewMessage({ message_type: "tagline", audience: "general", title: "", content: "", key_points: "" });
     fetchMessages();
   };
 
   const handleApprove = async (id: string) => {
-    const { error } = await supabase
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { error } = await (supabase as any)
       .from("cco_messaging")
-      .update({ status: "approved", approved_at: new Date().toISOString() })
+      .update({ is_approved: true, approved_by: user.id, approved_at: new Date().toISOString() })
       .eq("id", id);
 
     if (!error) {
       toast.success("Message approved");
       fetchMessages();
     }
-  };
-
-  const getStatusColor = (status: string) => {
-    const colors: Record<string, string> = {
-      draft: "bg-gray-100 text-gray-800",
-      review: "bg-yellow-100 text-yellow-800",
-      approved: "bg-green-100 text-green-800",
-      archived: "bg-red-100 text-red-800"
-    };
-    return colors[status] || "bg-gray-100 text-gray-800";
   };
 
   const getAudienceIcon = (audience: string) => {
@@ -215,11 +221,11 @@ export function MessagingArchitecture() {
                 />
               </div>
               <div>
-                <Label>Usage Guidelines</Label>
+                <Label>Key Points (one per line)</Label>
                 <Textarea 
-                  value={newMessage.usage_guidelines}
-                  onChange={(e) => setNewMessage({ ...newMessage, usage_guidelines: e.target.value })}
-                  placeholder="When and how to use this message..."
+                  value={newMessage.key_points}
+                  onChange={(e) => setNewMessage({ ...newMessage, key_points: e.target.value })}
+                  placeholder="Key point 1&#10;Key point 2&#10;Key point 3"
                   rows={2}
                 />
               </div>
@@ -269,32 +275,36 @@ export function MessagingArchitecture() {
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-2">
-                    {message.audience && getAudienceIcon(message.audience)}
+                    {getAudienceIcon(message.audience)}
                     <CardTitle className="text-base">{message.title}</CardTitle>
                   </div>
-                  <Badge className={getStatusColor(message.status)}>{message.status}</Badge>
+                  <Badge className={message.is_approved ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}>
+                    {message.is_approved ? "Approved" : "Draft"}
+                  </Badge>
                 </div>
                 <div className="flex gap-2 mt-2">
                   <Badge variant="outline" className="text-xs">
                     {messageTypes.find(t => t.value === message.message_type)?.label}
                   </Badge>
-                  {message.audience && (
-                    <Badge variant="secondary" className="text-xs">
-                      {audiences.find(a => a.value === message.audience)?.label}
-                    </Badge>
-                  )}
-                  <Badge variant="outline" className="text-xs">v{message.version}</Badge>
+                  <Badge variant="secondary" className="text-xs">
+                    {audiences.find(a => a.value === message.audience)?.label}
+                  </Badge>
                 </div>
               </CardHeader>
               <CardContent>
                 <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                {message.usage_guidelines && (
-                  <p className="text-xs text-muted-foreground mt-3 p-2 bg-muted rounded">
-                    <strong>Usage:</strong> {message.usage_guidelines}
-                  </p>
+                {message.key_points && message.key_points.length > 0 && (
+                  <div className="mt-3 p-2 bg-muted rounded">
+                    <p className="text-xs font-medium mb-1">Key Points:</p>
+                    <ul className="text-xs text-muted-foreground list-disc list-inside">
+                      {message.key_points.map((point, idx) => (
+                        <li key={idx}>{point}</li>
+                      ))}
+                    </ul>
+                  </div>
                 )}
                 <div className="flex gap-2 mt-4">
-                  {message.status === "draft" && (
+                  {!message.is_approved && (
                     <Button size="sm" variant="outline" onClick={() => handleApprove(message.id)}>
                       <CheckCircle2 className="h-4 w-4 mr-1" />
                       Approve

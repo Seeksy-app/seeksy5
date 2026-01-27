@@ -16,6 +16,7 @@ interface Team {
   id: string;
   name: string;
   description: string | null;
+  owner_id: string;
   created_at: string;
   members: { user_id: string; profiles: { username: string; full_name: string | null } }[];
 }
@@ -65,11 +66,11 @@ export default function TeamsManagement() {
             })
           );
 
-          return { ...team, members };
+          return { ...team, members } as Team;
         })
       );
 
-      return teamsWithMembers as Team[];
+      return teamsWithMembers;
     },
   });
 
@@ -93,7 +94,11 @@ export default function TeamsManagement() {
 
       const { error } = await supabase
         .from("teams")
-        .insert([{ ...data, created_by: user.id }]);
+        .insert([{ 
+          name: data.name, 
+          description: data.description,
+          owner_id: user.id
+        }]);
 
       if (error) throw error;
     },

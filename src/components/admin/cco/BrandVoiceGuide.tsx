@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { 
   Palette, CheckCircle2, XCircle, MessageCircle, Smile,
-  Plus, Edit, Trash2, Sparkles
+  Plus, Trash2, Sparkles
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -20,7 +20,6 @@ interface BrandVoiceItem {
   title: string;
   description: string | null;
   examples: string[];
-  priority: number;
   is_active: boolean;
 }
 
@@ -50,14 +49,19 @@ export function BrandVoiceGuide() {
 
   const fetchItems = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    const { data, error } = await (supabase as any)
       .from("cco_brand_voice")
       .select("*")
       .eq("is_active", true)
-      .order("category")
-      .order("priority");
+      .order("category");
 
-    if (data) setItems(data);
+    if (data) setItems(data as BrandVoiceItem[]);
     setLoading(false);
   };
 
@@ -67,11 +71,18 @@ export function BrandVoiceGuide() {
       return;
     }
 
-    const { error } = await supabase.from("cco_brand_voice").insert({
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast.error("Not authenticated");
+      return;
+    }
+
+    const { error } = await (supabase as any).from("cco_brand_voice").insert({
+      user_id: user.id,
       category: newItem.category,
       title: newItem.title,
       description: newItem.description || null,
-      examples: newItem.examples.split("\n").map(e => e.trim()).filter(Boolean)
+      examples: newItem.examples.split("\n").map((e: string) => e.trim()).filter(Boolean)
     });
 
     if (error) {
@@ -86,7 +97,7 @@ export function BrandVoiceGuide() {
   };
 
   const handleDelete = async (id: string) => {
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from("cco_brand_voice")
       .update({ is_active: false })
       .eq("id", id);
@@ -95,10 +106,6 @@ export function BrandVoiceGuide() {
       toast.success("Item removed");
       fetchItems();
     }
-  };
-
-  const getCategoryInfo = (category: string) => {
-    return categories.find(c => c.value === category) || categories[0];
   };
 
   const groupedItems = categories.map(cat => ({
@@ -111,30 +118,23 @@ export function BrandVoiceGuide() {
     tone: [
       { title: "Warm & Confident", description: "We speak with warmth and confidence, never arrogance", examples: ["We're excited to help you grow", "Your success is our mission"] },
       { title: "Clear & Direct", description: "Avoid jargon, be straightforward", examples: ["Upload your video and we'll handle the rest", "Get paid for your content"] },
-      { title: "Empowering", description: "Focus on what creators can achieve", examples: ["Take control of your content", "Build your audience your way"] }
     ],
     do: [
       { title: "Use 'creators' not 'users'", description: "Our community consists of creators, not generic users", examples: [] },
-      { title: "Celebrate wins", description: "Acknowledge achievements and milestones", examples: ["Congrats on hitting 1,000 plays!", "You're crushing it!"] },
-      { title: "Be helpful", description: "Always offer solutions, not just information", examples: [] }
+      { title: "Celebrate wins", description: "Acknowledge achievements and milestones", examples: ["Congrats on hitting 1,000 plays!"] },
     ],
     dont: [
-      { title: "No corporate speak", description: "Avoid buzzwords and empty phrases", examples: ["synergy", "leverage", "paradigm shift"] },
+      { title: "No corporate speak", description: "Avoid buzzwords and empty phrases", examples: ["synergy", "leverage"] },
       { title: "Never blame the user", description: "Even if it's user error, be graceful", examples: [] },
-      { title: "No excessive exclamation marks", description: "One is enough, never use multiple", examples: ["Wrong: Amazing!!!", "Right: Amazing!"] }
     ],
     vocabulary: [
-      { title: "Preferred terms", description: "Words we use to describe our platform", examples: ["creator OS", "voice certification", "content authenticity"] },
-      { title: "Terms to avoid", description: "Words that don't align with our brand", examples: ["influencer platform", "social media tool", "content mill"] }
+      { title: "Preferred terms", description: "Words we use to describe our platform", examples: ["creator OS", "voice certification"] },
     ],
     emoji: [
-      { title: "Appropriate contexts", description: "Social media, celebrations, casual comms", examples: ["🎉 for milestones", "✨ for new features", "🎙️ for podcast content"] },
-      { title: "Avoid in", description: "Formal documents, investor comms, legal", examples: [] }
+      { title: "Appropriate contexts", description: "Social media, celebrations, casual comms", examples: ["🎉 for milestones", "✨ for new features"] },
     ],
     ai_prompting: [
       { title: "Always include brand context", description: "Start AI prompts with Seeksy positioning", examples: [] },
-      { title: "Specify tone", description: "Include tone requirements in every prompt", examples: ["Write in a warm, confident tone", "Be helpful and empowering"] },
-      { title: "Review before publishing", description: "AI output always needs human review", examples: [] }
     ]
   };
 
@@ -225,7 +225,6 @@ export function BrandVoiceGuide() {
                 title: d.title,
                 description: d.description,
                 examples: d.examples,
-                priority: i,
                 is_active: true
               }));
 

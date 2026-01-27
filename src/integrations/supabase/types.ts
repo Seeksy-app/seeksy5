@@ -619,6 +619,207 @@ export type Database = {
           },
         ]
       }
+      blog_generation_schedules: {
+        Row: {
+          article_count: number | null
+          category: string
+          created_at: string | null
+          frequency_hours: number | null
+          id: string
+          is_active: boolean | null
+          keywords: string[] | null
+          last_run_at: string | null
+          name: string | null
+          next_run_at: string | null
+          portal: string
+          schedule_time: string | null
+          timezone: string | null
+          tone: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          article_count?: number | null
+          category: string
+          created_at?: string | null
+          frequency_hours?: number | null
+          id?: string
+          is_active?: boolean | null
+          keywords?: string[] | null
+          last_run_at?: string | null
+          name?: string | null
+          next_run_at?: string | null
+          portal: string
+          schedule_time?: string | null
+          timezone?: string | null
+          tone?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          article_count?: number | null
+          category?: string
+          created_at?: string | null
+          frequency_hours?: number | null
+          id?: string
+          is_active?: boolean | null
+          keywords?: string[] | null
+          last_run_at?: string | null
+          name?: string | null
+          next_run_at?: string | null
+          portal?: string
+          schedule_time?: string | null
+          timezone?: string | null
+          tone?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      cco_brand_voice: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string | null
+          do_list: string[] | null
+          dont_list: string[] | null
+          examples: string[] | null
+          id: string
+          is_active: boolean | null
+          title: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          description?: string | null
+          do_list?: string[] | null
+          dont_list?: string[] | null
+          examples?: string[] | null
+          id?: string
+          is_active?: boolean | null
+          title: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          do_list?: string[] | null
+          dont_list?: string[] | null
+          examples?: string[] | null
+          id?: string
+          is_active?: boolean | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      cco_crisis_events: {
+        Row: {
+          created_at: string | null
+          crisis_type: string
+          description: string | null
+          id: string
+          impact_assessment: string | null
+          lessons_learned: string | null
+          resolved_at: string | null
+          response_plan: string | null
+          severity: string | null
+          stakeholders: string[] | null
+          status: string | null
+          timeline: Json | null
+          title: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          crisis_type: string
+          description?: string | null
+          id?: string
+          impact_assessment?: string | null
+          lessons_learned?: string | null
+          resolved_at?: string | null
+          response_plan?: string | null
+          severity?: string | null
+          stakeholders?: string[] | null
+          status?: string | null
+          timeline?: Json | null
+          title: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          crisis_type?: string
+          description?: string | null
+          id?: string
+          impact_assessment?: string | null
+          lessons_learned?: string | null
+          resolved_at?: string | null
+          response_plan?: string | null
+          severity?: string | null
+          stakeholders?: string[] | null
+          status?: string | null
+          timeline?: Json | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      cco_messaging: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          audience: string
+          channels: string[] | null
+          content: string | null
+          created_at: string | null
+          id: string
+          is_approved: boolean | null
+          key_points: string[] | null
+          message_type: string
+          title: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          audience: string
+          channels?: string[] | null
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          is_approved?: boolean | null
+          key_points?: string[] | null
+          message_type: string
+          title: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          audience?: string
+          channels?: string[] | null
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          is_approved?: boolean | null
+          key_points?: string[] | null
+          message_type?: string
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       custom_packages: {
         Row: {
           created_at: string | null
@@ -790,6 +991,57 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      investor_shares: {
+        Row: {
+          access_code: string
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          investment_amount: number | null
+          investor_email: string
+          investor_name: string
+          notes: string | null
+          revoked_at: string | null
+          revoked_by: string | null
+          shares_percentage: number | null
+          status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          access_code: string
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          investment_amount?: number | null
+          investor_email: string
+          investor_name: string
+          notes?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          shares_percentage?: number | null
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          access_code?: string
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          investment_amount?: number | null
+          investor_email?: string
+          investor_name?: string
+          notes?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          shares_percentage?: number | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       media_files: {
         Row: {
@@ -1000,6 +1252,54 @@ export type Database = {
           },
         ]
       }
+      security_alerts: {
+        Row: {
+          alert_type: string
+          created_at: string | null
+          description: string | null
+          endpoint: string | null
+          id: string
+          is_resolved: boolean | null
+          metadata: Json | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string | null
+          source: string | null
+          source_ip: string | null
+          title: string
+        }
+        Insert: {
+          alert_type: string
+          created_at?: string | null
+          description?: string | null
+          endpoint?: string | null
+          id?: string
+          is_resolved?: boolean | null
+          metadata?: Json | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string | null
+          source?: string | null
+          source_ip?: string | null
+          title: string
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string | null
+          description?: string | null
+          endpoint?: string | null
+          id?: string
+          is_resolved?: boolean | null
+          metadata?: Json | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string | null
+          source?: string | null
+          source_ip?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           cancel_at_period_end: boolean | null
@@ -1037,6 +1337,48 @@ export type Database = {
           status?: string | null
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      tasks: {
+        Row: {
+          category: string | null
+          completed_at: string | null
+          created_at: string | null
+          description: string | null
+          due_date: string | null
+          id: string
+          priority: string | null
+          status: string | null
+          title: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string | null
+          status?: string | null
+          title: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string | null
+          status?: string | null
+          title?: string
           updated_at?: string | null
           user_id?: string
         }

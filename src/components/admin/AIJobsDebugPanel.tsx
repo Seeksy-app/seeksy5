@@ -13,9 +13,9 @@ export function AIJobsDebugPanel({ mediaId }: AIJobsDebugPanelProps) {
   const { data: jobs, isLoading } = useQuery({
     queryKey: ["ai-jobs", mediaId],
     queryFn: async () => {
-      let query = supabase
+      let query = (supabase as any)
         .from("ai_jobs")
-        .select(`*`)
+        .select("*")
         .order("created_at", { ascending: false });
 
       if (mediaId) {
@@ -26,7 +26,7 @@ export function AIJobsDebugPanel({ mediaId }: AIJobsDebugPanelProps) {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as any[];
+      return data || [];
     },
   });
 

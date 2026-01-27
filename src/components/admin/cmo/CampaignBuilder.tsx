@@ -52,12 +52,12 @@ export function CampaignBuilder() {
 
   const fetchCampaigns = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from("cmo_campaigns")
       .select("*")
       .order("created_at", { ascending: false });
 
-    if (data) setCampaigns(data);
+    if (data) setCampaigns(data as Campaign[]);
     setLoading(false);
   };
 
@@ -67,7 +67,7 @@ export function CampaignBuilder() {
       return;
     }
 
-    const { error } = await supabase.from("cmo_campaigns").insert({
+    const { error } = await (supabase as any).from("cmo_campaigns").insert({
       name: newCampaign.name,
       description: newCampaign.description || null,
       campaign_type: newCampaign.campaign_type,
@@ -88,7 +88,7 @@ export function CampaignBuilder() {
   };
 
   const handleStatusChange = async (campaignId: string, newStatus: string) => {
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from("cmo_campaigns")
       .update({ status: newStatus, updated_at: new Date().toISOString() })
       .eq("id", campaignId);

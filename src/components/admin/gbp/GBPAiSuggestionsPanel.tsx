@@ -94,7 +94,7 @@ export function GBPAiSuggestionsPanel({ locationId, gbpLocationId }: GBPAiSugges
   const { data: seoLink, isLoading: linkLoading } = useQuery({
     queryKey: ["gbp-seo-link", locationId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("gbp_seo_links")
         .select("id, seo_page_id, sync_status")
         .eq("gbp_location_id", locationId)

@@ -18,7 +18,7 @@ interface InvestorShare {
   status: string;
   revoked_at: string | null;
   revoked_by: string | null;
-  expires_at: string;
+  expires_at: string | null;
   notes: string | null;
   profiles?: {
     full_name: string | null;
@@ -37,7 +37,7 @@ export const InvestorSharesManagement = () => {
 
   const fetchShares = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("investor_shares")
         .select("*")
         .order("created_at", { ascending: false });
@@ -46,7 +46,7 @@ export const InvestorSharesManagement = () => {
 
       // Fetch user profiles separately
       const sharesWithProfiles = await Promise.all(
-        (data || []).map(async (share) => {
+        (data || []).map(async (share: any) => {
           const { data: profile } = await supabase
             .from("profiles")
             .select("full_name, username")
@@ -56,7 +56,7 @@ export const InvestorSharesManagement = () => {
           return {
             ...share,
             profiles: profile,
-          };
+          } as InvestorShare;
         })
       );
 
@@ -79,7 +79,7 @@ export const InvestorSharesManagement = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("investor_shares")
         .update({
           status: "revoked",
@@ -102,13 +102,13 @@ export const InvestorSharesManagement = () => {
 
   const getStatusBadge = (share: InvestorShare) => {
     const now = new Date();
-    const expiresAt = new Date(share.expires_at);
+    const expiresAt = share.expires_at ? new Date(share.expires_at) : null;
 
     if (share.status === "revoked") {
       return <Badge variant="destructive" className="gap-1"><XCircle className="h-3 w-3" />Revoked</Badge>;
     }
     
-    if (expiresAt < now) {
+    if (expiresAt && expiresAt < now) {
       return <Badge variant="secondary" className="gap-1"><Ban className="h-3 w-3" />Expired</Badge>;
     }
 
@@ -178,13 +178,15 @@ export const InvestorSharesManagement = () => {
                       {formatDistanceToNow(new Date(share.created_at), { addSuffix: true })}
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
-                      {formatDistanceToNow(new Date(share.expires_at), { addSuffix: true })}
+                      {share.expires_at 
+                        ? formatDistanceToNow(new Date(share.expires_at), { addSuffix: true })
+                        : "Never"}
                     </TableCell>
                     <TableCell>
                       {getStatusBadge(share)}
                     </TableCell>
                     <TableCell>
-                      {share.status === "active" && new Date(share.expires_at) > new Date() && (
+                      {share.status === "active" && (!share.expires_at || new Date(share.expires_at) > new Date()) && (
                         <Button
                           variant="destructive"
                           size="sm"
