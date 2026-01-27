@@ -57,12 +57,12 @@ export const MemberFeedbackSection: React.FC<MemberFeedbackSectionProps> = ({
 
       const updatedNotes = [...memberNotes, newMemberNote];
 
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("board_meeting_notes")
         .update({ member_notes: updatedNotes as any })
         .eq("id", meetingId);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
 
       setNewNote("");
       onNotesUpdated();

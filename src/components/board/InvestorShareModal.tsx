@@ -101,7 +101,7 @@ export function InvestorShareModal({ open, onOpenChange }: InvestorShareModalPro
       const passcode = generatePasscode();
       const expiresAt = calculateExpiration();
 
-      const { error } = await supabase.from('investor_links').insert({
+      const result = await (supabase as any).from('investor_links').insert({
         token,
         passcode,
         investor_name: investorName || null,
@@ -113,7 +113,7 @@ export function InvestorShareModal({ open, onOpenChange }: InvestorShareModalPro
         allow_pdf_export: allowPDF,
       });
 
-      if (error) throw error;
+      if (result.error) throw result.error;
 
       const url = `${window.location.origin}/investor/${token}`;
       setGeneratedLink({ url, passcode });

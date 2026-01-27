@@ -39,16 +39,16 @@ export const StickyMemberNotes: React.FC<StickyMemberNotesProps> = ({
   const fetchMyNotes = useCallback(async () => {
     if (!user || !meetingId) return;
 
-    const { data, error } = await supabase
+    const result = await (supabase as any)
       .from("board_meeting_member_notes")
       .select("notes_md, updated_at")
       .eq("meeting_id", meetingId)
       .eq("member_user_id", user.id)
       .maybeSingle();
 
-    if (data) {
-      setMyNotes(data.notes_md || "");
-      setLastSaved(new Date(data.updated_at));
+    if (result.data) {
+      setMyNotes((result.data as any).notes_md || "");
+      setLastSaved(new Date((result.data as any).updated_at));
     }
   }, [user, meetingId]);
 
@@ -62,7 +62,7 @@ export const StickyMemberNotes: React.FC<StickyMemberNotesProps> = ({
     setIsSaving(true);
     try {
       // Upsert notes to the dedicated member notes table
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("board_meeting_member_notes")
         .upsert({
           meeting_id: meetingId,
@@ -73,7 +73,7 @@ export const StickyMemberNotes: React.FC<StickyMemberNotesProps> = ({
           onConflict: "meeting_id,member_user_id"
         });
 
-      if (error) throw error;
+      if (result.error) throw result.error;
 
       setLastSaved(new Date());
       toast.success("Notes saved");

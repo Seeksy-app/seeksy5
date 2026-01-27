@@ -41,13 +41,13 @@ export function ActivityLogModal({
   const { data: activities, isLoading: activitiesLoading } = useQuery({
     queryKey: ['linkActivity', linkId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('investor_link_activity')
         .select('*')
         .eq('link_id', linkId)
         .order('created_at', { ascending: false });
-      if (error) throw error;
-      return data as Activity[];
+      if (result.error) throw result.error;
+      return result.data as Activity[];
     },
     enabled: open,
   });
@@ -55,13 +55,13 @@ export function ActivityLogModal({
   const { data: emails, isLoading: emailsLoading } = useQuery({
     queryKey: ['linkEmails', linkId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('investor_emails')
         .select('*')
         .eq('link_id', linkId)
         .order('created_at', { ascending: false });
-      if (error) throw error;
-      return data as Email[];
+      if (result.error) throw result.error;
+      return result.data as Email[];
     },
     enabled: open,
   });

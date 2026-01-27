@@ -49,14 +49,14 @@ export function MeetingInviteManager({
   const { data: invites = [], isLoading } = useQuery({
     queryKey: ["board-meeting-invites", meetingId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("board_meeting_invites")
         .select("*")
         .eq("meeting_id", meetingId)
         .order("created_at", { ascending: false });
       
-      if (error) throw error;
-      return data as Invite[];
+      if (result.error) throw result.error;
+      return result.data as Invite[];
     },
     enabled: isOpen,
   });

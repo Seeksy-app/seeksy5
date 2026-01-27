@@ -123,12 +123,12 @@ export const AIMeetingNotes: React.FC<AIMeetingNotesProps> = ({
     if (!meetingId) return;
     setIsSavingSummary(true);
     try {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("board_meeting_notes")
         .update({ ai_summary_draft: editedSummary })
         .eq("id", meetingId);
       
-      if (error) throw error;
+      if (result.error) throw result.error;
       
       setIsEditingSummary(false);
       onSummaryUpdated?.();

@@ -35,23 +35,23 @@ export function ShareWithInvestorTab() {
   const { data: links, isLoading } = useQuery({
     queryKey: ['investorLinks'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('investor_links')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(5);
-      if (error) throw error;
-      return data as InvestorLink[];
+      if (result.error) throw result.error;
+      return result.data as InvestorLink[];
     },
   });
 
   const revokeMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('investor_links')
         .update({ status: 'revoked' })
         .eq('id', id);
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['investorLinks'] });

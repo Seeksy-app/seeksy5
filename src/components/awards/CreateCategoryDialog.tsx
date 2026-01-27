@@ -48,8 +48,8 @@ export function CreateCategoryDialog({ programId, programTitle, programDescripti
         media_type: "audio",
       }));
 
-      const { error } = await supabase.from("award_categories").insert(categoriesToAdd);
-      if (error) throw error;
+      const result = await (supabase as any).from("award_categories").insert(categoriesToAdd);
+      if (result.error) throw result.error;
 
       toast({ title: `Created ${categoriesToAdd.length} award categories successfully` });
       onSuccess();
