@@ -56,8 +56,8 @@ export const MyProofsTab = () => {
     queryFn: async (): Promise<{ id: string } | null> => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user?.id) return null;
-      const result = await (supabase
-        .from("social_media_profiles") as any)
+      const result = await (supabase as any)
+        .from("social_media_profiles")
         .select("id")
         .eq("user_id", user.id)
         .eq("platform", "spotify")
@@ -74,8 +74,8 @@ export const MyProofsTab = () => {
       if (!user?.id) return null;
       
       // First check for content_protection specific connection
-      let result = await (supabase
-        .from("social_media_profiles") as any)
+      let result = await (supabase as any)
+        .from("social_media_profiles")
         .select("id, purpose")
         .eq("user_id", user.id)
         .eq("platform", "youtube")
@@ -85,8 +85,8 @@ export const MyProofsTab = () => {
       if (result.data) return result.data as { id: string; purpose: string };
       
       // Fallback to analytics connection
-      result = await (supabase
-        .from("social_media_profiles") as any)
+      result = await (supabase as any)
+        .from("social_media_profiles")
         .select("id, purpose")
         .eq("user_id", user.id)
         .eq("platform", "youtube")
@@ -103,8 +103,8 @@ export const MyProofsTab = () => {
     queryFn: async (): Promise<{ id: string } | null> => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user?.id) return null;
-      const result = await (supabase
-        .from("social_media_profiles") as any)
+      const result = await (supabase as any)
+        .from("social_media_profiles")
         .select("id")
         .eq("user_id", user.id)
         .eq("platform", "instagram")
@@ -118,14 +118,14 @@ export const MyProofsTab = () => {
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user?.id) return [];
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("protected_content")
         .select("*")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
-      return data || [];
+      if (result.error) throw result.error;
+      return (result.data as any[]) || [];
     },
   });
 
@@ -136,7 +136,7 @@ export const MyProofsTab = () => {
 
       const fileHash = await generateHash(data.fileUrl || data.title);
 
-      const { data: newContent, error } = await supabase
+      const result = await (supabase as any)
         .from("protected_content")
         .insert({
           user_id: user.id,
@@ -148,8 +148,8 @@ export const MyProofsTab = () => {
         .select()
         .single();
 
-      if (error) throw error;
-      return newContent;
+      if (result.error) throw result.error;
+      return result.data as any;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["protected-content"] });

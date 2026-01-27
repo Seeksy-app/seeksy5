@@ -18,7 +18,7 @@ export default function CampaignAlerts() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("creator_campaign_alerts")
         .select(`
           *,
@@ -40,8 +40,8 @@ export default function CampaignAlerts() {
         .is("response", null)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any[];
     },
   });
 
@@ -56,7 +56,7 @@ export default function CampaignAlerts() {
       counterBid?: number;
     }) => {
       // Update alert
-      const { error: alertError } = await supabase
+      const alertResult = await (supabase as any)
         .from("creator_campaign_alerts")
         .update({
           response,
@@ -65,13 +65,13 @@ export default function CampaignAlerts() {
         })
         .eq("id", alertId);
 
-      if (alertError) throw alertError;
+      if (alertResult.error) throw alertResult.error;
 
       // Update campaign property status
-      const alert = alerts?.find((a) => a.id === alertId);
+      const alert = alerts?.find((a: any) => a.id === alertId);
       if (alert) {
         const newStatus = response === "accepted" ? "approved" : "rejected";
-        const { error: propError } = await supabase
+        const propResult = await (supabase as any)
           .from("campaign_properties")
           .update({
             status: newStatus,
@@ -80,7 +80,7 @@ export default function CampaignAlerts() {
           .eq("multi_channel_campaign_id", alert.multi_channel_campaign_id)
           .eq("property_id", alert.property_id);
 
-        if (propError) throw propError;
+        if (propResult.error) throw propResult.error;
       }
     },
     onSuccess: (_, variables) => {

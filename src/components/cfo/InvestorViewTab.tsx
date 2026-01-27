@@ -14,12 +14,12 @@ export function InvestorViewTab() {
   const { data: scenarios } = useQuery({
     queryKey: ["ad-financial-scenarios"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("ad_financial_scenarios")
         .select("*")
         .order("created_at", { ascending: true });
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any[];
     },
   });
 
@@ -27,13 +27,13 @@ export function InvestorViewTab() {
     queryKey: ["ad-financial-projections", selectedScenario],
     queryFn: async () => {
       if (!selectedScenario) return [];
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("ad_financial_projections")
         .select("*")
         .eq("scenario_id", selectedScenario)
         .order("month_index", { ascending: true });
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any[];
     },
     enabled: !!selectedScenario,
   });
@@ -42,13 +42,13 @@ export function InvestorViewTab() {
     queryKey: ["ad-financial-model-summaries", selectedScenario],
     queryFn: async () => {
       if (!selectedScenario) return null;
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("ad_financial_model_summaries")
         .select("*")
         .eq("scenario_id", selectedScenario)
         .single();
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any;
     },
     enabled: !!selectedScenario,
   });

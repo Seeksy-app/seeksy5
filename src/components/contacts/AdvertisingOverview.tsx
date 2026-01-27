@@ -28,31 +28,32 @@ export const AdvertisingOverview = ({ contact }: AdvertisingOverviewProps) => {
   const { data: linkedAdvertisers, isLoading: advertisersLoading } = useQuery({
     queryKey: ["contact-advertisers", contact.id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("advertisers")
         .select("*")
         .or(`contact_email.eq.${contact.email},company_name.ilike.%${contact.company}%`);
       
-      if (error) throw error;
-      return data || [];
+      if (result.error) throw result.error;
+      return (result.data as any[]) || [];
     },
     enabled: !!contact.email || !!contact.company,
   });
 
   // Query campaigns for linked advertisers
   const { data: campaignStats } = useQuery({
-    queryKey: ["contact-campaign-stats", linkedAdvertisers?.map(a => a.id)],
+    queryKey: ["contact-campaign-stats", linkedAdvertisers?.map((a: any) => a.id)],
     queryFn: async () => {
       if (!linkedAdvertisers || linkedAdvertisers.length === 0) return null;
       
-      const advertiserIds = linkedAdvertisers.map(a => a.id);
+      const advertiserIds = linkedAdvertisers.map((a: any) => a.id);
       
-      const { data: campaigns, error } = await supabase
+      const result = await (supabase as any)
         .from("ad_campaigns")
         .select("*")
         .in("advertiser_id", advertiserIds);
       
-      if (error) throw error;
+      if (result.error) throw result.error;
+      const campaigns = result.data as any[];
       
       const totalCampaigns = campaigns?.length || 0;
       const activeCampaigns = campaigns?.filter(c => c.status === "active").length || 0;
