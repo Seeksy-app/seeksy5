@@ -28,6 +28,10 @@ const GBP_TABS = [
   { value: 'audit', label: 'Audit', path: '/admin/gbp/audit' },
 ];
 
+interface GbpAdminSettings {
+  write_mode_enabled: boolean;
+}
+
 export function GBPLayout({ children, title, showTabs = true }: GBPLayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
@@ -36,7 +40,7 @@ export function GBPLayout({ children, title, showTabs = true }: GBPLayoutProps) 
   const { data: adminSettings } = useQuery({
     queryKey: ['gbp-admin-settings'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('gbp_admin_settings')
         .select('*')
         .limit(1)
@@ -46,7 +50,7 @@ export function GBPLayout({ children, title, showTabs = true }: GBPLayoutProps) 
         console.error('Error fetching GBP admin settings:', error);
         return null;
       }
-      return data;
+      return data as GbpAdminSettings | null;
     },
   });
 

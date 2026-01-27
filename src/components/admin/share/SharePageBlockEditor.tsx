@@ -29,7 +29,7 @@ export function SharePageBlockEditor({ block, pageId, onUpdate }: SharePageBlock
 
   const updateMutation = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("admin_share_page_blocks")
         .update({ content, title: title || null })
         .eq("id", block.id);

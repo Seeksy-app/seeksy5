@@ -56,7 +56,7 @@ export function CreateSharePageModal({ open, onOpenChange }: CreateSharePageModa
         ? btoa(password) // Simple encoding for demo, use proper hashing in production
         : null;
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("admin_share_pages")
         .insert({
           title,
