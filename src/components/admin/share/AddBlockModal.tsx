@@ -69,7 +69,7 @@ export function AddBlockModal({ open, onOpenChange, pageId, nextOrder }: AddBloc
   const createBlockMutation = useMutation({
     mutationFn: async (blockType: string) => {
       const blockConfig = blockTypes.find((b) => b.type === blockType);
-      const { error } = await supabase.from("admin_share_page_blocks").insert({
+      const { error } = await (supabase as any).from("admin_share_page_blocks").insert({
         page_id: pageId,
         block_type: blockType,
         content: blockConfig?.defaultContent || {},

@@ -20,7 +20,7 @@ export function CreatorVoiceSelector({ onSelectVoice, selectedVoiceId }: Creator
   const { data: creatorVoices, isLoading } = useQuery({
     queryKey: ['creatorVoices'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('creator_voice_profiles')
         .select('*')
         .eq('is_available_for_ads', true)
@@ -28,7 +28,7 @@ export function CreatorVoiceSelector({ onSelectVoice, selectedVoiceId }: Creator
         .order('voice_name');
       
       if (error) throw error;
-      return data;
+      return data as any[];
     },
   });
 

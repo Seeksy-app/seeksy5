@@ -19,26 +19,26 @@ export function VoiceSystemHealthPanel() {
     queryKey: ["voice-system-health"],
     queryFn: async () => {
       // Face certificates
-      const { count: faceCerts } = await supabase
+      const { count: faceCerts } = await (supabase as any)
         .from("identity_assets")
         .select("*", { count: "exact", head: true })
         .eq("type", "face_identity")
         .eq("cert_status", "minted");
 
       // Voice certificates
-      const { count: voiceCerts } = await supabase
+      const { count: voiceCerts } = await (supabase as any)
         .from("voice_blockchain_certificates")
         .select("*", { count: "exact", head: true })
         .eq("certification_status", "verified");
 
       // Certificates missing blockchain transactions
-      const { count: missingTx } = await supabase
+      const { count: missingTx } = await (supabase as any)
         .from("voice_blockchain_certificates")
         .select("*", { count: "exact", head: true })
         .or("transaction_hash.is.null,cert_explorer_url.is.null");
 
       // Voice profiles without matching certificate
-      const { count: profilesNoCert } = await supabase
+      const { count: profilesNoCert } = await (supabase as any)
         .from("creator_voice_profiles")
         .select(`
           id,
@@ -47,14 +47,14 @@ export function VoiceSystemHealthPanel() {
         .is("voice_blockchain_certificates.id", null);
 
       // Face profiles without matching certificate
-      const { count: faceNoCert } = await supabase
+      const { count: faceNoCert } = await (supabase as any)
         .from("identity_assets")
         .select("*", { count: "exact", head: true })
         .eq("type", "face_identity")
         .neq("cert_status", "minted");
 
       // Orphan certificates (no creator)
-      const { data: orphans } = await supabase
+      const { data: orphans } = await (supabase as any)
         .from("voice_blockchain_certificates")
         .select("id, creator_id")
         .is("creator_id", null);

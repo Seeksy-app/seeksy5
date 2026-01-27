@@ -11,12 +11,23 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, ExternalLink, CheckCircle2, AlertTriangle, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { cn } from "@/lib/utils";
 
 type SyncStatus = 'linked' | 'warning' | 'out_of_sync';
 
 interface LinkedGbpPanelProps {
   seoPageId: string;
+}
+
+interface GbpSeoLink {
+  id: string;
+  gbp_location_id: string;
+  sync_status: SyncStatus;
+  last_checked_at: string | null;
+  gbp_locations: {
+    id: string;
+    title: string;
+    address_json: any;
+  } | null;
 }
 
 export function LinkedGbpPanel({ seoPageId }: LinkedGbpPanelProps) {
@@ -25,7 +36,7 @@ export function LinkedGbpPanel({ seoPageId }: LinkedGbpPanelProps) {
   const { data: links, isLoading } = useQuery({
     queryKey: ['seo-gbp-links', seoPageId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('gbp_seo_links')
         .select(`
           id,
@@ -40,7 +51,7 @@ export function LinkedGbpPanel({ seoPageId }: LinkedGbpPanelProps) {
         `)
         .eq('seo_page_id', seoPageId);
       if (error) throw error;
-      return data;
+      return data as GbpSeoLink[];
     }
   });
 
@@ -102,7 +113,7 @@ export function LinkedGbpPanel({ seoPageId }: LinkedGbpPanelProps) {
         </div>
         <div className="space-y-2">
           {links.map((link) => {
-            const location = link.gbp_locations as any;
+            const location = link.gbp_locations;
             if (!location) return null;
             
             const cityState = formatLocation(location.address_json);
@@ -117,7 +128,7 @@ export function LinkedGbpPanel({ seoPageId }: LinkedGbpPanelProps) {
                     <span className="font-medium text-sm truncate">
                       {location.title}
                     </span>
-                    {getSyncStatusBadge(link.sync_status as SyncStatus)}
+                    {getSyncStatusBadge(link.sync_status)}
                   </div>
                   {cityState && (
                     <p className="text-xs text-muted-foreground mt-0.5">

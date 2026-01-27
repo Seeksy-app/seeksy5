@@ -19,8 +19,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Users, Mail, Phone, Building2, Globe, 
-  Calendar, TrendingUp, Copy, ExternalLink,
-  CheckCircle2, Clock, Eye
+  Copy, CheckCircle2, Clock, Eye
 } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import { toast } from "sonner";
@@ -32,19 +31,23 @@ interface LeadDetailDrawerProps {
   workspaceId?: string;
 }
 
-export function LeadDetailDrawer({ lead, open, onOpenChange, workspaceId }: LeadDetailDrawerProps) {
-  // Fetch events for this lead
+export function LeadDetailDrawer({ lead, open, onOpenChange }: LeadDetailDrawerProps) {
+  // Fetch events for this lead - using crm_activity_timeline as fallback
   const { data: events, isLoading: eventsLoading } = useQuery({
     queryKey: ['lead-events', lead?.id],
     queryFn: async () => {
       if (!lead?.id) return [];
-      const { data, error } = await supabase
-        .from('lead_intel_events')
+      // Try to fetch from crm_activity_timeline
+      const { data, error } = await (supabase as any)
+        .from('crm_activity_timeline')
         .select('*')
         .eq('lead_id', lead.id)
-        .order('occurred_at', { ascending: false })
+        .order('created_at', { ascending: false })
         .limit(50);
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching lead events:', error);
+        return [];
+      }
       return data || [];
     },
     enabled: !!lead?.id && open
@@ -84,7 +87,7 @@ export function LeadDetailDrawer({ lead, open, onOpenChange, workspaceId }: Lead
             </div>
             <div className="flex-1">
               <SheetTitle className="text-lg">
-                {lead.person_name || lead.email || `Lead ${lead.id.slice(0, 8)}`}
+                {lead.person_name || lead.contact_name || lead.email || `Lead ${lead.id.slice(0, 8)}`}
               </SheetTitle>
               {lead.company_name && (
                 <p className="text-sm text-muted-foreground flex items-center gap-1">
@@ -93,8 +96,8 @@ export function LeadDetailDrawer({ lead, open, onOpenChange, workspaceId }: Lead
                 </p>
               )}
             </div>
-            <div className={`text-2xl font-bold ${getIntentColor(lead.intent_score || 0)}`}>
-              {lead.intent_score || 0}
+            <div className={`text-2xl font-bold ${getIntentColor(lead.intent_score || lead.value || 0)}`}>
+              {lead.intent_score || lead.value || 0}
             </div>
           </div>
         </SheetHeader>
@@ -153,9 +156,9 @@ export function LeadDetailDrawer({ lead, open, onOpenChange, workspaceId }: Lead
                 </div>
                 
                 <div className="p-2 bg-muted rounded">
-                  <p className="text-xs text-muted-foreground">Type</p>
+                  <p className="text-xs text-muted-foreground">Priority</p>
                   <Badge variant="outline" className="mt-1 uppercase">
-                    {lead.lead_type || 'Unknown'}
+                    {lead.priority || 'Unknown'}
                   </Badge>
                 </div>
 
@@ -167,8 +170,8 @@ export function LeadDetailDrawer({ lead, open, onOpenChange, workspaceId }: Lead
                 </div>
 
                 <div className="p-2 bg-muted rounded">
-                  <p className="text-xs text-muted-foreground">Confidence</p>
-                  <span className="text-sm font-medium">{lead.confidence || 0}%</span>
+                  <p className="text-xs text-muted-foreground">Value</p>
+                  <span className="text-sm font-medium">${lead.value || 0}</span>
                 </div>
               </div>
             </div>
@@ -179,18 +182,18 @@ export function LeadDetailDrawer({ lead, open, onOpenChange, workspaceId }: Lead
               
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">First seen</span>
+                  <span className="text-muted-foreground">Created</span>
                   <span>
-                    {lead.first_seen_at 
-                      ? format(new Date(lead.first_seen_at), 'MMM d, yyyy HH:mm')
+                    {lead.created_at 
+                      ? format(new Date(lead.created_at), 'MMM d, yyyy HH:mm')
                       : '—'}
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Last seen</span>
+                  <span className="text-muted-foreground">Last contacted</span>
                   <span>
-                    {lead.last_seen_at 
-                      ? formatDistanceToNow(new Date(lead.last_seen_at), { addSuffix: true })
+                    {lead.last_contacted_at 
+                      ? formatDistanceToNow(new Date(lead.last_contacted_at), { addSuffix: true })
                       : '—'}
                   </span>
                 </div>
@@ -209,18 +212,6 @@ export function LeadDetailDrawer({ lead, open, onOpenChange, workspaceId }: Lead
                 </div>
               </div>
             )}
-
-            {/* Tags */}
-            {lead.tags && lead.tags.length > 0 && (
-              <div className="space-y-3">
-                <h4 className="text-sm font-medium">Tags</h4>
-                <div className="flex flex-wrap gap-1">
-                  {lead.tags.map((tag: string) => (
-                    <Badge key={tag} variant="outline">{tag}</Badge>
-                  ))}
-                </div>
-              </div>
-            )}
           </TabsContent>
 
           <TabsContent value="activity" className="mt-4">
@@ -234,17 +225,17 @@ export function LeadDetailDrawer({ lead, open, onOpenChange, workspaceId }: Lead
                   {events.map((event: any) => (
                     <div key={event.id} className="p-3 border rounded-lg">
                       <div className="flex items-center gap-2 mb-1">
-                        {getEventIcon(event.event_type)}
+                        {getEventIcon(event.activity_type || event.event_type)}
                         <span className="text-sm font-medium capitalize">
-                          {event.event_type?.replace('_', ' ')}
+                          {(event.activity_type || event.event_type)?.replace('_', ' ')}
                         </span>
                         <span className="text-xs text-muted-foreground ml-auto">
-                          {formatDistanceToNow(new Date(event.occurred_at), { addSuffix: true })}
+                          {formatDistanceToNow(new Date(event.created_at || event.occurred_at), { addSuffix: true })}
                         </span>
                       </div>
-                      {event.url && (
+                      {event.title && (
                         <p className="text-xs text-muted-foreground truncate">
-                          {event.url}
+                          {event.title}
                         </p>
                       )}
                     </div>

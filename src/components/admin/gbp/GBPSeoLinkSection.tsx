@@ -42,7 +42,6 @@ import {
   Link2, 
   Link2Off, 
   ExternalLink, 
-  Check, 
   ChevronsUpDown,
   Loader2,
   AlertTriangle,
@@ -59,6 +58,20 @@ interface GBPSeoLinkSectionProps {
 
 type SyncStatus = 'linked' | 'warning' | 'out_of_sync';
 
+interface SeoPage {
+  id: string;
+  title: string;
+  slug: string;
+  meta_description?: string;
+}
+
+interface GbpSeoLink {
+  id: string;
+  seo_page_id: string;
+  sync_status: string;
+  seo_pages: SeoPage | null;
+}
+
 export function GBPSeoLinkSection({ locationId, connectionId }: GBPSeoLinkSectionProps) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -71,22 +84,21 @@ export function GBPSeoLinkSection({ locationId, connectionId }: GBPSeoLinkSectio
   const { data: existingLink, isLoading: linkLoading } = useQuery({
     queryKey: ['gbp-seo-link', locationId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('gbp_seo_links')
         .select(`
           *,
           seo_pages:seo_page_id (
             id,
-            page_name,
-            route_path,
-            meta_description,
-            score
+            title,
+            slug,
+            meta_description
           )
         `)
         .eq('gbp_location_id', locationId)
         .maybeSingle();
       if (error) throw error;
-      return data;
+      return data as GbpSeoLink | null;
     }
   });
 
@@ -94,12 +106,12 @@ export function GBPSeoLinkSection({ locationId, connectionId }: GBPSeoLinkSectio
   const { data: seoPages } = useQuery({
     queryKey: ['seo-pages-for-link'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('seo_pages')
-        .select('id, page_name, route_path, score')
-        .order('page_name', { ascending: true });
+        .select('id, title, slug')
+        .order('title', { ascending: true });
       if (error) throw error;
-      return data;
+      return data as SeoPage[];
     }
   });
 
@@ -109,25 +121,22 @@ export function GBPSeoLinkSection({ locationId, connectionId }: GBPSeoLinkSectio
       const { data: { user } } = await supabase.auth.getUser();
       
       // Create the link
-      const { error: linkError } = await supabase
+      const { error: linkError } = await (supabase as any)
         .from('gbp_seo_links')
         .insert({
           gbp_location_id: locationId,
           seo_page_id: seoPageId,
-          link_type: 'primary',
           sync_status: 'linked'
         });
       if (linkError) throw linkError;
 
       // Log to audit
-      await supabase.from('gbp_audit_log').insert({
+      await (supabase as any).from('gbp_audit_log').insert({
         connection_id: connectionId,
-        location_id: locationId,
         action_type: 'GBP_SEO_LINK_CREATED',
         actor_user_id: user?.id,
         target_type: 'seo_page',
         target_id: seoPageId,
-        status: 'success',
         details: { seo_page_id: seoPageId }
       });
     },
@@ -151,21 +160,19 @@ export function GBPSeoLinkSection({ locationId, connectionId }: GBPSeoLinkSectio
       const { data: { user } } = await supabase.auth.getUser();
       
       // Remove the link
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('gbp_seo_links')
         .delete()
         .eq('id', existingLink.id);
       if (error) throw error;
 
       // Log to audit
-      await supabase.from('gbp_audit_log').insert({
+      await (supabase as any).from('gbp_audit_log').insert({
         connection_id: connectionId,
-        location_id: locationId,
         action_type: 'GBP_SEO_LINK_REMOVED',
         actor_user_id: user?.id,
         target_type: 'seo_page',
         target_id: existingLink.seo_page_id,
-        status: 'success',
         details: { seo_page_id: existingLink.seo_page_id }
       });
     },
@@ -238,29 +245,19 @@ export function GBPSeoLinkSection({ locationId, connectionId }: GBPSeoLinkSectio
               <div className="flex items-start justify-between">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="font-medium">{(existingLink.seo_pages as any).page_name}</span>
+                    <span className="font-medium">{existingLink.seo_pages.title}</span>
                     {getSyncStatusBadge(existingLink.sync_status as SyncStatus)}
                   </div>
                   <p className="text-sm text-muted-foreground font-mono">
-                    {(existingLink.seo_pages as any).route_path}
+                    {existingLink.seo_pages.slug}
                   </p>
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <span>SEO Score:</span>
-                    <span className={cn(
-                      "font-medium",
-                      (existingLink.seo_pages as any).score >= 80 ? "text-green-600" :
-                      (existingLink.seo_pages as any).score >= 60 ? "text-yellow-600" : "text-red-600"
-                    )}>
-                      {(existingLink.seo_pages as any).score}%
-                    </span>
-                  </div>
                 </div>
               </div>
               <div className="flex gap-2">
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => navigate(`/admin/seo/${(existingLink.seo_pages as any).id}`)}
+                  onClick={() => navigate(`/admin/seo/${existingLink.seo_pages?.id}`)}
                 >
                   <ExternalLink className="h-3 w-3 mr-1" />
                   View SEO Page
@@ -300,12 +297,12 @@ export function GBPSeoLinkSection({ locationId, connectionId }: GBPSeoLinkSectio
                         {seoPages?.map((page) => (
                           <CommandItem
                             key={page.id}
-                            value={`${page.page_name} ${page.route_path}`}
+                            value={`${page.title} ${page.slug}`}
                             onSelect={() => handleSelectPage(page.id)}
                           >
                             <div className="flex flex-col">
-                              <span className="font-medium">{page.page_name}</span>
-                              <span className="text-xs text-muted-foreground font-mono">{page.route_path}</span>
+                              <span className="font-medium">{page.title}</span>
+                              <span className="text-xs text-muted-foreground font-mono">{page.slug}</span>
                             </div>
                           </CommandItem>
                         ))}
@@ -330,8 +327,8 @@ export function GBPSeoLinkSection({ locationId, connectionId }: GBPSeoLinkSectio
           </AlertDialogHeader>
           {selectedPage && (
             <div className="p-3 bg-muted rounded-lg">
-              <p className="font-medium">{selectedPage.page_name}</p>
-              <p className="text-sm text-muted-foreground font-mono">{selectedPage.route_path}</p>
+              <p className="font-medium">{selectedPage.title}</p>
+              <p className="text-sm text-muted-foreground font-mono">{selectedPage.slug}</p>
             </div>
           )}
           <AlertDialogFooter>

@@ -35,17 +35,16 @@ import {
   ChevronDown,
   ChevronUp,
   Zap,
-  Eye,
   MapPin,
   ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
-import { format, formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from "date-fns";
 
 interface SeoAiSuggestionsPanelProps {
   seoPageId: string;
-  onSuggestionApplied?: () => void; // Callback to refresh SEO score
+  onSuggestionApplied?: () => void;
 }
 
 interface Suggestion {
@@ -116,7 +115,7 @@ export function SeoAiSuggestionsPanel({ seoPageId, onSuggestionApplied }: SeoAiS
   const { data: gbpLink, isLoading: linkLoading } = useQuery({
     queryKey: ["seo-gbp-link-for-ai", seoPageId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("gbp_seo_links")
         .select(`
           id,
@@ -139,15 +138,16 @@ export function SeoAiSuggestionsPanel({ seoPageId, onSuggestionApplied }: SeoAiS
   const { data: runs, isLoading: runsLoading } = useQuery({
     queryKey: ["seo-ai-suggestions-by-page", seoPageId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("seo_ai_suggestions")
         .select("*")
-        .eq("seo_page_id", seoPageId)
+        .eq("gbp_location_id", gbpLink?.gbp_location_id)
         .order("created_at", { ascending: false })
         .limit(20);
       if (error) throw error;
       return (data || []) as SuggestionRun[];
     },
+    enabled: !!gbpLink?.gbp_location_id,
   });
 
   // Generate mutation
@@ -202,26 +202,6 @@ export function SeoAiSuggestionsPanel({ seoPageId, onSuggestionApplied }: SeoAiS
             updates.h1_override = s.proposed_value;
             appliedFields.push("h1_override");
             break;
-          case "og_title":
-            updates.og_title = s.proposed_value;
-            appliedFields.push("og_title");
-            break;
-          case "og_description":
-            updates.og_description = s.proposed_value;
-            appliedFields.push("og_description");
-            break;
-          case "og_alt":
-            updates.og_image_alt = s.proposed_value;
-            appliedFields.push("og_image_alt");
-            break;
-          case "twitter_title":
-            updates.twitter_title = s.proposed_value;
-            appliedFields.push("twitter_title");
-            break;
-          case "twitter_description":
-            updates.twitter_description = s.proposed_value;
-            appliedFields.push("twitter_description");
-            break;
         }
       });
 
@@ -230,42 +210,36 @@ export function SeoAiSuggestionsPanel({ seoPageId, onSuggestionApplied }: SeoAiS
       }
 
       // Update SEO page draft
-      const { error: updateError } = await supabase
+      const { error: updateError } = await (supabase as any)
         .from("seo_pages")
         .update(updates)
         .eq("id", seoPageId);
 
       if (updateError) throw updateError;
 
-      // Get the run to check total suggestions
       const run = runs?.find((r) => r.id === runId);
       const totalSuggestions = run?.output_json?.suggestions?.length || 0;
       const newStatus = suggestions.length === totalSuggestions ? "applied" : "partial";
 
-      // Update suggestion run status
-      const { error: statusError } = await supabase
+      const { error: statusError } = await (supabase as any)
         .from("seo_ai_suggestions")
         .update({
           status: newStatus,
-          applied_at: new Date().toISOString(),
         })
         .eq("id", runId);
 
       if (statusError) throw statusError;
 
-      // Log audit
       const { data: { user } } = await supabase.auth.getUser();
-      await supabase.from("gbp_audit_log").insert({
-        user_id: user?.id,
+      await (supabase as any).from("gbp_audit_log").insert({
+        actor_user_id: user?.id,
         action_type: "SEO_AI_SUGGESTION_APPLIED",
-        entity_type: "seo_ai_suggestions",
-        entity_id: runId,
-        location_id: gbpLink?.gbp_location_id,
+        target_type: "seo_ai_suggestions",
+        target_id: runId,
         details: {
           gbp_location_id: gbpLink?.gbp_location_id,
           seo_page_id: seoPageId,
           applied_fields: appliedFields,
-          applied_suggestion_ids: suggestions.map((s) => s.id),
         },
       });
 
@@ -288,28 +262,24 @@ export function SeoAiSuggestionsPanel({ seoPageId, onSuggestionApplied }: SeoAiS
   // Dismiss mutation
   const dismissMutation = useMutation({
     mutationFn: async (runId: string) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("seo_ai_suggestions")
         .update({
           status: "dismissed",
-          dismissed_at: new Date().toISOString(),
         })
         .eq("id", runId);
 
       if (error) throw error;
 
-      // Log audit
       const { data: { user } } = await supabase.auth.getUser();
-      await supabase.from("gbp_audit_log").insert({
-        user_id: user?.id,
+      await (supabase as any).from("gbp_audit_log").insert({
+        actor_user_id: user?.id,
         action_type: "SEO_AI_SUGGESTION_DISMISSED",
-        entity_type: "seo_ai_suggestions",
-        entity_id: runId,
-        location_id: gbpLink?.gbp_location_id,
+        target_type: "seo_ai_suggestions",
+        target_id: runId,
         details: {
           gbp_location_id: gbpLink?.gbp_location_id,
           seo_page_id: seoPageId,
-          suggestion_run_id: runId,
         },
       });
     },
@@ -388,7 +358,6 @@ export function SeoAiSuggestionsPanel({ seoPageId, onSuggestionApplied }: SeoAiS
     );
   }
 
-  // No linked GBP - empty state
   if (!gbpLink) {
     return (
       <Card className="border-dashed">
@@ -513,7 +482,9 @@ export function SeoAiSuggestionsPanel({ seoPageId, onSuggestionApplied }: SeoAiS
                 <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
               </div>
             ) : runs?.length === 0 ? (
-              <p className="text-xs text-muted-foreground text-center py-4">No suggestions generated yet</p>
+              <p className="text-xs text-muted-foreground text-center py-4">
+                No suggestions generated yet
+              </p>
             ) : (
               <div className="space-y-2">
                 {runs?.map((run) => (
@@ -523,63 +494,60 @@ export function SeoAiSuggestionsPanel({ seoPageId, onSuggestionApplied }: SeoAiS
                       onClick={() => setExpandedRunId(expandedRunId === run.id ? null : run.id)}
                     >
                       <div className="flex items-center gap-2">
-                        <Badge className={`text-xs ${getStatusColor(run.status)}`}>{run.status}</Badge>
+                        <Badge className={`text-xs ${getStatusColor(run.status)}`}>
+                          {run.status}
+                        </Badge>
                         <span className="text-xs text-muted-foreground">
                           {formatDistanceToNow(new Date(run.created_at), { addSuffix: true })}
                         </span>
-                        <Badge variant="secondary" className="text-xs">
-                          {run.model.includes("gpt-5") && !run.model.includes("mini") ? "Pro" : "Mini"}
-                        </Badge>
                       </div>
-                      {expandedRunId === run.id ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                      {expandedRunId === run.id ? (
+                        <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                      )}
                     </button>
 
                     {expandedRunId === run.id && run.output_json && (
                       <div className="border-t p-3 space-y-3 bg-muted/20">
-                        {run.output_json.summary && (
-                          <div className="text-xs space-y-1">
-                            <p className="text-muted-foreground">{run.output_json.summary.why}</p>
-                            <div className="flex flex-wrap gap-1">
-                              {run.output_json.summary.primary_focus_keywords?.map((kw, i) => (
-                                <Badge key={i} variant="secondary" className="text-xs">{kw}</Badge>
-                              ))}
-                            </div>
+                        {run.output_json.suggestions && run.output_json.suggestions.length > 0 && (
+                          <div className="space-y-2">
+                            <p className="text-xs font-medium">Suggestions ({run.output_json.suggestions.length})</p>
+                            <ScrollArea className="h-[200px]">
+                              <div className="space-y-2 pr-2">
+                                {run.output_json.suggestions.map((s) => (
+                                  <div key={s.id} className="p-2 border rounded text-xs space-y-1">
+                                    <div className="flex items-center justify-between">
+                                      <span className="font-medium capitalize">{s.type.replace(/_/g, " ")}</span>
+                                      <div className="flex items-center gap-1">
+                                        {getRiskBadge(s.risk)}
+                                        <span className={`text-xs ${getPriorityColor(s.priority)}`}>
+                                          {s.priority}
+                                        </span>
+                                      </div>
+                                    </div>
+                                    <p className="text-muted-foreground line-clamp-2">{s.proposed_value}</p>
+                                  </div>
+                                ))}
+                              </div>
+                            </ScrollArea>
                           </div>
                         )}
 
-                        <div className="space-y-1">
-                          <p className="text-xs font-medium">{run.output_json.suggestions?.length || 0} suggestions</p>
-                          <div className="grid gap-1">
-                            {run.output_json.suggestions?.slice(0, 3).map((s) => (
-                              <div key={s.id} className="text-xs p-2 bg-background rounded flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                  <Badge variant="outline" className="text-xs">{s.type}</Badge>
-                                  <span className={`text-xs ${getPriorityColor(s.priority)}`}>{s.priority}</span>
-                                </div>
-                                {getRiskBadge(s.risk)}
-                              </div>
-                            ))}
-                            {(run.output_json.suggestions?.length || 0) > 3 && (
-                              <p className="text-xs text-muted-foreground text-center">
-                                +{(run.output_json.suggestions?.length || 0) - 3} more
-                              </p>
-                            )}
-                          </div>
-                        </div>
-
-                        {run.status === "draft" && (
+                        {run.status !== "applied" && run.status !== "dismissed" && (
                           <div className="flex gap-2">
-                            <Button size="sm" variant="default" className="flex-1" onClick={() => handleApply(run)}>
-                              <Eye className="h-3 w-3 mr-1" />
-                              Review & Apply
+                            <Button size="sm" onClick={() => handleApply(run)} className="flex-1">
+                              <CheckCircle2 className="h-3 w-3 mr-1" />
+                              Apply Selected
                             </Button>
                             <Button
                               size="sm"
-                              variant="ghost"
+                              variant="outline"
                               onClick={() => dismissMutation.mutate(run.id)}
                               disabled={dismissMutation.isPending}
                             >
-                              <XCircle className="h-3 w-3" />
+                              <XCircle className="h-3 w-3 mr-1" />
+                              Dismiss
                             </Button>
                           </div>
                         )}
@@ -595,98 +563,64 @@ export function SeoAiSuggestionsPanel({ seoPageId, onSuggestionApplied }: SeoAiS
 
       {/* Apply Modal */}
       <Dialog open={showApplyModal} onOpenChange={setShowApplyModal}>
-        <DialogContent className="max-w-2xl max-h-[80vh]">
+        <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Apply SEO Suggestions</DialogTitle>
+            <DialogTitle>Apply AI Suggestions</DialogTitle>
             <DialogDescription>
-              Select suggestions to apply to the SEO page draft. Changes will not be published automatically.
+              Select which suggestions to apply to your SEO page draft.
             </DialogDescription>
           </DialogHeader>
-
-          <ScrollArea className="max-h-[50vh] pr-4">
-            <div className="space-y-3">
-              {applyingRun?.output_json?.suggestions?.map((s) => (
-                <div
-                  key={s.id}
-                  className={`border rounded-lg p-3 space-y-2 ${
-                    selectedSuggestions.has(s.id) ? "border-primary bg-primary/5" : ""
-                  }`}
-                >
-                  <div className="flex items-start gap-3">
-                    <Checkbox id={s.id} checked={selectedSuggestions.has(s.id)} onCheckedChange={() => toggleSuggestion(s.id)} />
-                    <div className="flex-1 space-y-2">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <Badge variant="outline">{s.type}</Badge>
-                        <Badge variant="outline" className={getPriorityColor(s.priority)}>{s.priority}</Badge>
-                        {getRiskBadge(s.risk)}
-                        <span className="text-xs text-muted-foreground">{Math.round(s.confidence * 100)}% confident</span>
-                      </div>
-
-                      {s.current_value && (
-                        <div className="text-xs">
-                          <p className="text-muted-foreground mb-1">Current:</p>
-                          <div className="p-2 bg-muted rounded text-foreground/80">{s.current_value}</div>
+          
+          {applyingRun?.output_json?.suggestions && (
+            <ScrollArea className="h-[300px] pr-2">
+              <div className="space-y-2">
+                {applyingRun.output_json.suggestions.map((s) => (
+                  <div
+                    key={s.id}
+                    className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                      selectedSuggestions.has(s.id) ? "border-primary bg-primary/5" : ""
+                    }`}
+                    onClick={() => toggleSuggestion(s.id)}
+                  >
+                    <div className="flex items-start gap-2">
+                      <Checkbox
+                        checked={selectedSuggestions.has(s.id)}
+                        onCheckedChange={() => toggleSuggestion(s.id)}
+                        className="mt-0.5"
+                      />
+                      <div className="flex-1 space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium capitalize">
+                            {s.type.replace(/_/g, " ")}
+                          </span>
+                          {getRiskBadge(s.risk)}
                         </div>
-                      )}
-
-                      <div className="text-xs">
-                        <p className="text-muted-foreground mb-1">Proposed:</p>
-                        <div className="p-2 bg-green-500/10 border border-green-500/20 rounded">{s.proposed_value}</div>
-                      </div>
-
-                      <p className="text-xs text-muted-foreground">{s.rationale}</p>
-
-                      <div className="flex gap-2 text-xs">
-                        {s.checks.character_count_ok ? (
-                          <span className="text-green-600 flex items-center gap-1">
-                            <CheckCircle2 className="h-3 w-3" /> Length OK
-                          </span>
-                        ) : (
-                          <span className="text-yellow-600 flex items-center gap-1">
-                            <AlertTriangle className="h-3 w-3" /> Length issue
-                          </span>
-                        )}
-                        {s.checks.no_prohibited_claims ? (
-                          <span className="text-green-600 flex items-center gap-1">
-                            <CheckCircle2 className="h-3 w-3" /> No claims
-                          </span>
-                        ) : (
-                          <span className="text-red-600 flex items-center gap-1">
-                            <XCircle className="h-3 w-3" /> Has claims
-                          </span>
-                        )}
+                        <p className="text-xs text-muted-foreground">{s.proposed_value}</p>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </ScrollArea>
+                ))}
+              </div>
+            </ScrollArea>
+          )}
 
           <DialogFooter>
-            <div className="flex items-center justify-between w-full">
-              <p className="text-sm text-muted-foreground">
-                {selectedSuggestions.size} of {applyingRun?.output_json?.suggestions?.length || 0} selected
-              </p>
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={() => setShowApplyModal(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleConfirmApply} disabled={applyMutation.isPending || selectedSuggestions.size === 0}>
-                  {applyMutation.isPending ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Applying...
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle2 className="h-4 w-4 mr-2" />
-                      Apply to Draft
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
+            <Button variant="outline" onClick={() => setShowApplyModal(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleConfirmApply}
+              disabled={selectedSuggestions.size === 0 || applyMutation.isPending}
+            >
+              {applyMutation.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Applying...
+                </>
+              ) : (
+                <>Apply {selectedSuggestions.size} Suggestions</>
+              )}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

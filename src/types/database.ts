@@ -2331,6 +2331,525 @@ export interface Database {
         }
         Relationships: []
       }
+      gbp_admin_settings: {
+        Row: {
+          id: string
+          write_mode_enabled: boolean
+          default_response_tone: string
+          auto_respond_enabled: boolean
+          sync_interval_hours: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          write_mode_enabled?: boolean
+          default_response_tone?: string
+          auto_respond_enabled?: boolean
+          sync_interval_hours?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          write_mode_enabled?: boolean
+          default_response_tone?: string
+          auto_respond_enabled?: boolean
+          sync_interval_hours?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      gbp_locations: {
+        Row: {
+          id: string
+          google_location_id: string | null
+          title: string
+          address_json: Record<string, any>
+          phone_number: string | null
+          website_url: string | null
+          primary_category: string | null
+          additional_categories: string[]
+          business_hours: Record<string, any>
+          status: string
+          verification_status: string
+          last_synced_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          google_location_id?: string | null
+          title: string
+          address_json?: Record<string, any>
+          phone_number?: string | null
+          website_url?: string | null
+          primary_category?: string | null
+          additional_categories?: string[]
+          business_hours?: Record<string, any>
+          status?: string
+          verification_status?: string
+          last_synced_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          google_location_id?: string | null
+          title?: string
+          address_json?: Record<string, any>
+          phone_number?: string | null
+          website_url?: string | null
+          primary_category?: string | null
+          additional_categories?: string[]
+          business_hours?: Record<string, any>
+          status?: string
+          verification_status?: string
+          last_synced_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      seo_pages: {
+        Row: {
+          id: string
+          user_id: string | null
+          title: string
+          slug: string
+          meta_description: string | null
+          h1_tag: string | null
+          content: string | null
+          target_keywords: string[]
+          status: string
+          published_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          title: string
+          slug: string
+          meta_description?: string | null
+          h1_tag?: string | null
+          content?: string | null
+          target_keywords?: string[]
+          status?: string
+          published_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          title?: string
+          slug?: string
+          meta_description?: string | null
+          h1_tag?: string | null
+          content?: string | null
+          target_keywords?: string[]
+          status?: string
+          published_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      gbp_seo_links: {
+        Row: {
+          id: string
+          gbp_location_id: string | null
+          seo_page_id: string | null
+          sync_status: string
+          last_checked_at: string | null
+          drift_details: Record<string, any>
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          gbp_location_id?: string | null
+          seo_page_id?: string | null
+          sync_status?: string
+          last_checked_at?: string | null
+          drift_details?: Record<string, any>
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          gbp_location_id?: string | null
+          seo_page_id?: string | null
+          sync_status?: string
+          last_checked_at?: string | null
+          drift_details?: Record<string, any>
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      gbp_audit_log: {
+        Row: {
+          id: string
+          connection_id: string | null
+          action_type: string
+          actor_user_id: string | null
+          target_type: string | null
+          target_id: string | null
+          details: Record<string, any>
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          connection_id?: string | null
+          action_type: string
+          actor_user_id?: string | null
+          target_type?: string | null
+          target_id?: string | null
+          details?: Record<string, any>
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          connection_id?: string | null
+          action_type?: string
+          actor_user_id?: string | null
+          target_type?: string | null
+          target_id?: string | null
+          details?: Record<string, any>
+          created_at?: string
+        }
+        Relationships: []
+      }
+      seo_ai_suggestions: {
+        Row: {
+          id: string
+          user_id: string | null
+          gbp_location_id: string | null
+          status: string
+          model: string | null
+          tone: string
+          include_reviews: boolean
+          include_photos: boolean
+          include_services: boolean
+          suggestions: Record<string, any>
+          error_message: string | null
+          started_at: string | null
+          completed_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          gbp_location_id?: string | null
+          status?: string
+          model?: string | null
+          tone?: string
+          include_reviews?: boolean
+          include_photos?: boolean
+          include_services?: boolean
+          suggestions?: Record<string, any>
+          error_message?: string | null
+          started_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          gbp_location_id?: string | null
+          status?: string
+          model?: string | null
+          tone?: string
+          include_reviews?: boolean
+          include_photos?: boolean
+          include_services?: boolean
+          suggestions?: Record<string, any>
+          error_message?: string | null
+          started_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      cmo_campaigns: {
+        Row: {
+          id: string
+          user_id: string | null
+          name: string
+          description: string | null
+          campaign_type: string
+          status: string
+          budget: number
+          start_date: string | null
+          end_date: string | null
+          target_audience: Record<string, any>
+          channels: string[]
+          goals: Record<string, any>
+          metrics: Record<string, any>
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          name: string
+          description?: string | null
+          campaign_type?: string
+          status?: string
+          budget?: number
+          start_date?: string | null
+          end_date?: string | null
+          target_audience?: Record<string, any>
+          channels?: string[]
+          goals?: Record<string, any>
+          metrics?: Record<string, any>
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          name?: string
+          description?: string | null
+          campaign_type?: string
+          status?: string
+          budget?: number
+          start_date?: string | null
+          end_date?: string | null
+          target_audience?: Record<string, any>
+          channels?: string[]
+          goals?: Record<string, any>
+          metrics?: Record<string, any>
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      crm_sales_leads: {
+        Row: {
+          id: string
+          user_id: string | null
+          contact_name: string
+          company_name: string | null
+          email: string | null
+          phone: string | null
+          source: string
+          status: string
+          priority: string
+          value: number
+          notes: string | null
+          assigned_to: string | null
+          last_contacted_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          contact_name: string
+          company_name?: string | null
+          email?: string | null
+          phone?: string | null
+          source?: string
+          status?: string
+          priority?: string
+          value?: number
+          notes?: string | null
+          assigned_to?: string | null
+          last_contacted_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          contact_name?: string
+          company_name?: string | null
+          email?: string | null
+          phone?: string | null
+          source?: string
+          status?: string
+          priority?: string
+          value?: number
+          notes?: string | null
+          assigned_to?: string | null
+          last_contacted_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      crm_contacts: {
+        Row: {
+          id: string
+          user_id: string | null
+          first_name: string
+          last_name: string | null
+          email: string | null
+          phone: string | null
+          company: string | null
+          job_title: string | null
+          address: Record<string, any>
+          tags: string[]
+          notes: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          first_name: string
+          last_name?: string | null
+          email?: string | null
+          phone?: string | null
+          company?: string | null
+          job_title?: string | null
+          address?: Record<string, any>
+          tags?: string[]
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          first_name?: string
+          last_name?: string | null
+          email?: string | null
+          phone?: string | null
+          company?: string | null
+          job_title?: string | null
+          address?: Record<string, any>
+          tags?: string[]
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      crm_activity_timeline: {
+        Row: {
+          id: string
+          user_id: string | null
+          contact_id: string | null
+          lead_id: string | null
+          activity_type: string
+          title: string
+          description: string | null
+          metadata: Record<string, any>
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          contact_id?: string | null
+          lead_id?: string | null
+          activity_type: string
+          title: string
+          description?: string | null
+          metadata?: Record<string, any>
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          contact_id?: string | null
+          lead_id?: string | null
+          activity_type?: string
+          title?: string
+          description?: string | null
+          metadata?: Record<string, any>
+          created_at?: string
+        }
+        Relationships: []
+      }
+      crm_site_leads: {
+        Row: {
+          id: string
+          user_id: string | null
+          name: string
+          email: string | null
+          phone: string | null
+          source_url: string | null
+          source_type: string
+          form_data: Record<string, any>
+          status: string
+          converted_to_lead_id: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          name: string
+          email?: string | null
+          phone?: string | null
+          source_url?: string | null
+          source_type?: string
+          form_data?: Record<string, any>
+          status?: string
+          converted_to_lead_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          name?: string
+          email?: string | null
+          phone?: string | null
+          source_url?: string | null
+          source_type?: string
+          form_data?: Record<string, any>
+          status?: string
+          converted_to_lead_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      cco_ai_sessions: {
+        Row: {
+          id: string
+          user_id: string | null
+          session_type: string
+          title: string | null
+          messages: any[]
+          context: Record<string, any>
+          status: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          session_type: string
+          title?: string | null
+          messages?: any[]
+          context?: Record<string, any>
+          status?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          session_type?: string
+          title?: string | null
+          messages?: any[]
+          context?: Record<string, any>
+          status?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
