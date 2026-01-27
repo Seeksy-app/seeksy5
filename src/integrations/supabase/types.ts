@@ -82,6 +82,7 @@ export type Database = {
       advertisers: {
         Row: {
           budget: number | null
+          business_description: string | null
           company_name: string
           contact_email: string | null
           contact_phone: string | null
@@ -96,6 +97,7 @@ export type Database = {
         }
         Insert: {
           budget?: number | null
+          business_description?: string | null
           company_name: string
           contact_email?: string | null
           contact_phone?: string | null
@@ -110,6 +112,7 @@ export type Database = {
         }
         Update: {
           budget?: number | null
+          business_description?: string | null
           company_name?: string
           contact_email?: string | null
           contact_phone?: string | null
@@ -169,6 +172,9 @@ export type Database = {
       app_settings: {
         Row: {
           created_at: string | null
+          data_mode: string | null
+          holiday_mode: boolean | null
+          holiday_snow: boolean | null
           id: string
           key: string
           updated_at: string | null
@@ -176,6 +182,9 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          data_mode?: string | null
+          holiday_mode?: boolean | null
+          holiday_snow?: boolean | null
           id?: string
           key: string
           updated_at?: string | null
@@ -183,6 +192,9 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          data_mode?: string | null
+          holiday_mode?: boolean | null
+          holiday_snow?: boolean | null
           id?: string
           key?: string
           updated_at?: string | null
@@ -192,39 +204,62 @@ export type Database = {
       }
       audio_ads: {
         Row: {
+          ad_type: string | null
+          advertiser_id: string | null
           audio_url: string | null
+          campaign_id: string | null
           campaign_name: string
           created_at: string | null
           duration_seconds: number | null
           id: string
+          phone_number: string | null
           script: string | null
           status: string | null
           updated_at: string | null
           user_id: string | null
+          voice_name: string | null
         }
         Insert: {
+          ad_type?: string | null
+          advertiser_id?: string | null
           audio_url?: string | null
+          campaign_id?: string | null
           campaign_name: string
           created_at?: string | null
           duration_seconds?: number | null
           id?: string
+          phone_number?: string | null
           script?: string | null
           status?: string | null
           updated_at?: string | null
           user_id?: string | null
+          voice_name?: string | null
         }
         Update: {
+          ad_type?: string | null
+          advertiser_id?: string | null
           audio_url?: string | null
+          campaign_id?: string | null
           campaign_name?: string
           created_at?: string | null
           duration_seconds?: number | null
           id?: string
+          phone_number?: string | null
           script?: string | null
           status?: string | null
           updated_at?: string | null
           user_id?: string | null
+          voice_name?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "audio_ads_advertiser_id_fkey"
+            columns: ["advertiser_id"]
+            isOneToOne: false
+            referencedRelation: "advertisers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       custom_packages: {
         Row: {
@@ -375,12 +410,14 @@ export type Database = {
           active_account_type:
             | Database["public"]["Enums"]["account_type"]
             | null
+          advertiser_onboarding_completed: boolean | null
           avatar_url: string | null
           created_at: string | null
           full_name: string | null
           id: string
           is_advertiser: boolean | null
           is_creator: boolean | null
+          my_page_ad_id: string | null
           my_page_video_id: string | null
           my_page_video_loop: boolean | null
           my_page_video_type: string | null
@@ -397,12 +434,14 @@ export type Database = {
           active_account_type?:
             | Database["public"]["Enums"]["account_type"]
             | null
+          advertiser_onboarding_completed?: boolean | null
           avatar_url?: string | null
           created_at?: string | null
           full_name?: string | null
           id: string
           is_advertiser?: boolean | null
           is_creator?: boolean | null
+          my_page_ad_id?: string | null
           my_page_video_id?: string | null
           my_page_video_loop?: boolean | null
           my_page_video_type?: string | null
@@ -419,12 +458,14 @@ export type Database = {
           active_account_type?:
             | Database["public"]["Enums"]["account_type"]
             | null
+          advertiser_onboarding_completed?: boolean | null
           avatar_url?: string | null
           created_at?: string | null
           full_name?: string | null
           id?: string
           is_advertiser?: boolean | null
           is_creator?: boolean | null
+          my_page_ad_id?: string | null
           my_page_video_id?: string | null
           my_page_video_loop?: boolean | null
           my_page_video_type?: string | null
