@@ -14,36 +14,32 @@ export function SmartSuggestionsPanel({ userId, onAddSuggestion }: SmartSuggesti
   const { data: meetingTypes = [] } = useQuery({
     queryKey: ["meeting-types", userId],
     queryFn: async (): Promise<Array<{ id: string; name: string; description: string | null }>> => {
-      // @ts-ignore - Bypass deep Supabase type inference
-      const result = await supabase.from("meeting_types").select("id, name, description").eq("user_id", userId).eq("active", true).limit(3);
-      return result.data || [];
+      const result = await (supabase as any).from("meeting_types").select("id, name, description").eq("user_id", userId).eq("active", true).limit(3);
+      return (result.data as any[]) || [];
     },
   });
 
   const { data: events = [] } = useQuery({
     queryKey: ["upcoming-events", userId],
     queryFn: async (): Promise<Array<{ id: string; title: string; event_date: string }>> => {
-      // @ts-ignore - Bypass deep Supabase type inference
-      const result = await supabase.from("events").select("id, title, event_date").eq("creator_id", userId).gte("event_date", new Date().toISOString()).order("event_date", { ascending: true }).limit(3);
-      return result.data || [];
+      const result = await (supabase as any).from("events").select("id, title, event_date").eq("creator_id", userId).gte("event_date", new Date().toISOString()).order("event_date", { ascending: true }).limit(3);
+      return (result.data as any[]) || [];
     },
   });
 
   const { data: signupSheets = [] } = useQuery({
     queryKey: ["signup-sheets", userId],
     queryFn: async (): Promise<Array<{ id: string; title: string }>> => {
-      // @ts-ignore - Bypass deep Supabase type inference
-      const result = await supabase.from("signup_sheets").select("id, title").eq("creator_id", userId).eq("is_active", true).limit(3);
-      return result.data || [];
+      const result = await (supabase as any).from("signup_sheets").select("id, title").eq("creator_id", userId).eq("is_active", true).limit(3);
+      return (result.data as any[]) || [];
     },
   });
 
   const { data: studioSessions = [] } = useQuery({
     queryKey: ["studio-sessions", userId],
     queryFn: async (): Promise<Array<{ id: string; created_at: string }>> => {
-      // @ts-ignore - Bypass deep Supabase type inference
-      const result = await supabase.from("studio_sessions").select("id, created_at").eq("host_user_id", userId).order("created_at", { ascending: false }).limit(5);
-      return result.data || [];
+      const result = await (supabase as any).from("studio_sessions").select("id, created_at").eq("host_user_id", userId).order("created_at", { ascending: false }).limit(5);
+      return (result.data as any[]) || [];
     },
   });
 

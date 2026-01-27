@@ -31,13 +31,13 @@ export function SpreadsheetList({ onViewSpreadsheet, showAdminActions = false }:
   const { data: spreadsheets, isLoading } = useQuery({
     queryKey: ['investor-spreadsheets'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('investor_spreadsheets')
         .select('*')
         .order('uploaded_at', { ascending: false });
 
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any[];
     },
   });
 
@@ -51,12 +51,12 @@ export function SpreadsheetList({ onViewSpreadsheet, showAdminActions = false }:
       if (storageError) throw storageError;
 
       // Delete from database
-      const { error: dbError } = await supabase
+      const result = await (supabase as any)
         .from('investor_spreadsheets')
         .delete()
         .eq('id', spreadsheet.id);
 
-      if (dbError) throw dbError;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['investor-spreadsheets'] });

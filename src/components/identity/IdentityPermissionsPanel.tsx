@@ -43,7 +43,7 @@ export function IdentityPermissionsPanel({ assets }: IdentityPermissionsPanelPro
             ...asset.permissions,
             [permission]: enabled,
           };
-          return supabase
+          return (supabase as any)
             .from("identity_assets")
             .update({ permissions: newPermissions })
             .eq("id", asset.id);
@@ -56,7 +56,7 @@ export function IdentityPermissionsPanel({ assets }: IdentityPermissionsPanelPro
         assets
           .filter(asset => asset?.id)
           .map(asset =>
-            supabase.from("identity_access_logs").insert({
+            (supabase as any).from("identity_access_logs").insert({
               identity_asset_id: asset.id,
               action: "permission_changed",
               actor_id: user.id,

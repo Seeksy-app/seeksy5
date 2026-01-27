@@ -29,14 +29,15 @@ export function TermsAcceptanceModal({ open, onAccept, userId }: TermsAcceptance
 
   const loadDocuments = async () => {
     try {
-      const { data: templates } = await supabase
+      const result = await (supabase as any)
         .from("legal_templates")
         .select("slug, body_text")
         .in("slug", ["platform-terms", "privacy-policy"]);
       
+      const templates = result.data as any[];
       if (templates) {
-        const terms = templates.find(t => t.slug === "platform-terms");
-        const privacy = templates.find(t => t.slug === "privacy-policy");
+        const terms = templates.find((t: any) => t.slug === "platform-terms");
+        const privacy = templates.find((t: any) => t.slug === "privacy-policy");
         if (terms) setTermsContent(terms.body_text);
         if (privacy) setPrivacyContent(privacy.body_text);
       }
@@ -71,9 +72,9 @@ export function TermsAcceptanceModal({ open, onAccept, userId }: TermsAcceptance
         },
       ];
 
-      const { error } = await supabase.from("legal_acceptances").insert(acceptances);
+      const result = await (supabase as any).from("legal_acceptances").insert(acceptances);
       
-      if (error) throw error;
+      if (result.error) throw result.error;
       
       toast.success("Terms accepted successfully");
       onAccept();

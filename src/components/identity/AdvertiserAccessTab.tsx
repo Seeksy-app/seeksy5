@@ -36,21 +36,21 @@ export function AdvertiserAccessTab({ assets, username }: AdvertiserAccessTabPro
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("identity_requests")
         .select("*")
         .eq("creator_id", user.id)
         .is("deleted_at", null)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
-      return data || [];
+      if (result.error) throw result.error;
+      return (result.data as any[]) || [];
     },
   });
 
   const updateRequestMutation = useMutation({
     mutationFn: async ({ requestId, status, message }: { requestId: string; status: string; message?: string }) => {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("identity_requests")
         .update({
           status,
@@ -59,12 +59,12 @@ export function AdvertiserAccessTab({ assets, username }: AdvertiserAccessTabPro
         })
         .eq("id", requestId);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
 
       // Log the action to identity_access_logs
       const { data: { user } } = await supabase.auth.getUser();
       if (user && assets.length > 0) {
-        await supabase.from("identity_access_logs").insert({
+        await (supabase as any).from("identity_access_logs").insert({
           identity_asset_id: assets[0].id,
           action: status === "approved" ? "access_granted" : "access_denied",
           actor_id: user.id,
@@ -261,12 +261,12 @@ export function AdvertiserAccessTab({ assets, username }: AdvertiserAccessTabPro
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {requests.map((request) => (
+                {requests.map((request: any) => (
                   <TableRow key={request.id}>
                     <TableCell>
                       <div>
-                        <p className="font-medium">{request.advertiser_company}</p>
-                        <p className="text-xs text-muted-foreground">{request.advertiser_email}</p>
+                        <p className="font-medium">{request.advertiser_company || "Unknown"}</p>
+                        <p className="text-xs text-muted-foreground">{request.advertiser_email || "—"}</p>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -279,7 +279,7 @@ export function AdvertiserAccessTab({ assets, username }: AdvertiserAccessTabPro
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-wrap gap-1">
-                        {(request.rights_requested as string[]).map((right, idx) => (
+                        {((request.rights_requested as string[]) || []).map((right: string, idx: number) => (
                           <Badge key={idx} variant="outline" className="text-xs">
                             {right}
                           </Badge>
@@ -290,9 +290,9 @@ export function AdvertiserAccessTab({ assets, username }: AdvertiserAccessTabPro
                       {request.duration_days ? `${request.duration_days} days` : "—"}
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className={getStatusColor(request.status)}>
-                        {getStatusIcon(request.status)}
-                        <span className="ml-1 capitalize">{request.status}</span>
+                      <Badge variant="outline" className={getStatusColor(request.status || "pending")}>
+                        {getStatusIcon(request.status || "pending")}
+                        <span className="ml-1 capitalize">{request.status || "pending"}</span>
                       </Badge>
                     </TableCell>
                     <TableCell>

@@ -60,13 +60,13 @@ export function ImpersonationScanner() {
   const { data: scans = [] } = useQuery({
     queryKey: ['profile-scans'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('profile_image_scans')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(10);
-      if (error) throw error;
-      return data as Scan[];
+      if (result.error) throw result.error;
+      return (result.data as any[]) as Scan[];
     },
   });
 
@@ -74,12 +74,12 @@ export function ImpersonationScanner() {
   const { data: matches = [], isLoading: matchesLoading } = useQuery({
     queryKey: ['profile-matches'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('profile_image_matches')
         .select('*')
         .order('detected_at', { ascending: false });
-      if (error) throw error;
-      return data as ProfileMatch[];
+      if (result.error) throw result.error;
+      return (result.data as any[]) as ProfileMatch[];
     },
   });
 
@@ -188,11 +188,11 @@ export function ImpersonationScanner() {
   // Update match status
   const updateMatchMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('profile_image_matches')
         .update({ status, reviewed_at: new Date().toISOString() })
         .eq('id', id);
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       toast({ title: 'Match updated' });

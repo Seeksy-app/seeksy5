@@ -75,15 +75,16 @@ export function ScheduleDemoDialog({ open, onOpenChange }: ScheduleDemoDialogPro
 
     try {
       // Insert into CRM sales leads
-      const { data, error } = await supabase.from("crm_sales_leads").insert({
-        title: `Demo Request: ${formData.name}`,
+      const result = await (supabase as any).from("crm_sales_leads").insert({
+        contact_name: formData.name,
         email: formData.email,
-        company: formData.company || null,
+        company_name: formData.company || null,
         phone: formData.phone || null,
         source: "website_demo_request",
         notes: `Role: ${formData.role || "Not specified"}\nTeam Size: ${formData.teamSize || "Not specified"}\n\nMessage: ${formData.message || "No message provided"}`,
         status: "qualified",
       }).select("id").single();
+      const { data, error } = result as { data: any; error: any };
 
       if (error) throw error;
 

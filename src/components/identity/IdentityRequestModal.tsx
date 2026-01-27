@@ -43,7 +43,7 @@ export function IdentityRequestModal({ open, onOpenChange, creatorId, creatorUse
         throw new Error("Please select at least one right to request");
       }
 
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("identity_requests")
         .insert({
           creator_id: creatorId,
@@ -58,7 +58,7 @@ export function IdentityRequestModal({ open, onOpenChange, creatorId, creatorUse
           rights_requested: formData.rightsRequested,
         });
 
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       toast.success("Request submitted successfully");

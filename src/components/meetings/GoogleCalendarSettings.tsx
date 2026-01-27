@@ -22,18 +22,19 @@ export function GoogleCalendarSettings() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('calendar_connections')
         .select('*')
         .eq('user_id', user.id)
         .eq('provider', 'google')
         .maybeSingle();
 
-      if (error) {
-        console.error('Error fetching calendar connection:', error);
+      if (result.error) {
+        console.error('Error fetching calendar connection:', result.error);
         return null;
       }
       
+      const data = result.data as any;
       if (data) {
         setGoogleOverride(data.google_override_seeksy ?? true);
       }
@@ -74,13 +75,13 @@ export function GoogleCalendarSettings() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('calendar_connections')
         .update({ google_override_seeksy: override })
         .eq('user_id', user.id)
         .eq('provider', 'google');
 
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['google-calendar-connection'] });
@@ -95,7 +96,7 @@ export function GoogleCalendarSettings() {
       if (!session) throw new Error('Not authenticated');
 
       // Update last_sync_at
-      await supabase
+      await (supabase as any)
         .from('calendar_connections')
         .update({ last_sync_at: new Date().toISOString() })
         .eq('user_id', session.user.id)
@@ -115,13 +116,13 @@ export function GoogleCalendarSettings() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('calendar_connections')
         .delete()
         .eq('user_id', user.id)
         .eq('provider', 'google');
 
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['google-calendar-connection'] });

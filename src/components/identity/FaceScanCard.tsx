@@ -33,13 +33,13 @@ export function FaceScanCard({ userId, isFaceCertified, onScanComplete }: FaceSc
   const { data: instagramConnection } = useQuery({
     queryKey: ['instagram-connection-face', userId],
     queryFn: async () => {
-      const { data } = await supabase
+      const result = await (supabase as any)
         .from('social_media_profiles')
         .select('*')
         .eq('user_id', userId)
         .eq('platform', 'instagram')
         .maybeSingle();
-      return data;
+      return result.data as any;
     },
   });
 

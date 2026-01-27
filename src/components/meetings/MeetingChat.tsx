@@ -35,13 +35,13 @@ const MeetingChat: React.FC<MeetingChatProps> = ({ meetingId, onClose }) => {
   // Fetch initial messages
   useEffect(() => {
     const fetchMessages = async () => {
-      const { data } = await supabase
+      const result = await (supabase as any)
         .from('meeting_chat_messages')
         .select('*')
         .eq('meeting_id', meetingId)
         .order('created_at', { ascending: true });
       
-      setMessages(data || []);
+      setMessages((result.data as any[]) || []);
     };
 
     fetchMessages();
@@ -76,7 +76,7 @@ const MeetingChat: React.FC<MeetingChatProps> = ({ meetingId, onClose }) => {
 
     const { data: { user } } = await supabase.auth.getUser();
     
-    await supabase.from('meeting_chat_messages').insert({
+    await (supabase as any).from('meeting_chat_messages').insert({
       meeting_id: meetingId,
       user_id: user?.id,
       sender_name: user?.email?.split('@')[0] || 'Guest',
