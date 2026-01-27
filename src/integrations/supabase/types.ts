@@ -41,6 +41,240 @@ export type Database = {
         }
         Relationships: []
       }
+      ad_campaigns: {
+        Row: {
+          advertiser_id: string | null
+          cpm_bid: number | null
+          created_at: string | null
+          end_date: string | null
+          id: string
+          name: string
+          start_date: string | null
+          status: string | null
+          targeting: Json | null
+          total_budget: number | null
+          total_impressions: number | null
+          total_spent: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          advertiser_id?: string | null
+          cpm_bid?: number | null
+          created_at?: string | null
+          end_date?: string | null
+          id?: string
+          name: string
+          start_date?: string | null
+          status?: string | null
+          targeting?: Json | null
+          total_budget?: number | null
+          total_impressions?: number | null
+          total_spent?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          advertiser_id?: string | null
+          cpm_bid?: number | null
+          created_at?: string | null
+          end_date?: string | null
+          id?: string
+          name?: string
+          start_date?: string | null
+          status?: string | null
+          targeting?: Json | null
+          total_budget?: number | null
+          total_impressions?: number | null
+          total_spent?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_campaigns_advertiser_id_fkey"
+            columns: ["advertiser_id"]
+            isOneToOne: false
+            referencedRelation: "advertisers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ad_creatives: {
+        Row: {
+          audio_ad_id: string | null
+          campaign_id: string | null
+          created_at: string | null
+          creative_type: string | null
+          id: string
+          name: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          audio_ad_id?: string | null
+          campaign_id?: string | null
+          created_at?: string | null
+          creative_type?: string | null
+          id?: string
+          name?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          audio_ad_id?: string | null
+          campaign_id?: string | null
+          created_at?: string | null
+          creative_type?: string | null
+          id?: string
+          name?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_creatives_audio_ad_id_fkey"
+            columns: ["audio_ad_id"]
+            isOneToOne: false
+            referencedRelation: "audio_ads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ad_creatives_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "ad_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ad_impressions: {
+        Row: {
+          ad_slot_id: string | null
+          campaign_id: string | null
+          completed: boolean | null
+          created_at: string | null
+          creator_id: string | null
+          duration_listened: number | null
+          episode_id: string | null
+          id: string
+          impression_type: string | null
+          listener_id: string | null
+          podcast_id: string | null
+        }
+        Insert: {
+          ad_slot_id?: string | null
+          campaign_id?: string | null
+          completed?: boolean | null
+          created_at?: string | null
+          creator_id?: string | null
+          duration_listened?: number | null
+          episode_id?: string | null
+          id?: string
+          impression_type?: string | null
+          listener_id?: string | null
+          podcast_id?: string | null
+        }
+        Update: {
+          ad_slot_id?: string | null
+          campaign_id?: string | null
+          completed?: boolean | null
+          created_at?: string | null
+          creator_id?: string | null
+          duration_listened?: number | null
+          episode_id?: string | null
+          id?: string
+          impression_type?: string | null
+          listener_id?: string | null
+          podcast_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_impressions_ad_slot_id_fkey"
+            columns: ["ad_slot_id"]
+            isOneToOne: false
+            referencedRelation: "ad_slots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ad_impressions_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "ad_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ad_slots: {
+        Row: {
+          assigned_campaign_id: string | null
+          created_at: string | null
+          cta_text: string | null
+          cta_url: string | null
+          end_time: number | null
+          episode_id: string | null
+          id: string
+          manual_audio_url: string | null
+          podcast_id: string | null
+          position_seconds: number | null
+          slot_type: string
+          start_time: number | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_campaign_id?: string | null
+          created_at?: string | null
+          cta_text?: string | null
+          cta_url?: string | null
+          end_time?: number | null
+          episode_id?: string | null
+          id?: string
+          manual_audio_url?: string | null
+          podcast_id?: string | null
+          position_seconds?: number | null
+          slot_type: string
+          start_time?: number | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_campaign_id?: string | null
+          created_at?: string | null
+          cta_text?: string | null
+          cta_url?: string | null
+          end_time?: number | null
+          episode_id?: string | null
+          id?: string
+          manual_audio_url?: string | null
+          podcast_id?: string | null
+          position_seconds?: number | null
+          slot_type?: string
+          start_time?: number | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_slots_assigned_campaign_id_fkey"
+            columns: ["assigned_campaign_id"]
+            isOneToOne: false
+            referencedRelation: "ad_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ad_slots_episode_id_fkey"
+            columns: ["episode_id"]
+            isOneToOne: false
+            referencedRelation: "episodes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ad_slots_podcast_id_fkey"
+            columns: ["podcast_id"]
+            isOneToOne: false
+            referencedRelation: "podcasts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       advertiser_transactions: {
         Row: {
           advertiser_id: string | null
@@ -90,6 +324,7 @@ export type Database = {
           id: string
           industry: string | null
           notes: string | null
+          owner_profile_id: string | null
           status: string | null
           updated_at: string | null
           user_id: string | null
@@ -105,6 +340,7 @@ export type Database = {
           id?: string
           industry?: string | null
           notes?: string | null
+          owner_profile_id?: string | null
           status?: string | null
           updated_at?: string | null
           user_id?: string | null
@@ -120,12 +356,83 @@ export type Database = {
           id?: string
           industry?: string | null
           notes?: string | null
+          owner_profile_id?: string | null
           status?: string | null
           updated_at?: string | null
           user_id?: string | null
           website?: string | null
         }
         Relationships: []
+      }
+      ai_edit_events: {
+        Row: {
+          created_at: string | null
+          event_type: string
+          id: string
+          job_id: string | null
+          metadata: Json | null
+          timestamp_seconds: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_type: string
+          id?: string
+          job_id?: string | null
+          metadata?: Json | null
+          timestamp_seconds?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          event_type?: string
+          id?: string
+          job_id?: string | null
+          metadata?: Json | null
+          timestamp_seconds?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_edit_events_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "ai_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_edited_assets: {
+        Row: {
+          created_at: string | null
+          id: string
+          job_id: string | null
+          metadata: Json | null
+          output_type: string | null
+          storage_path: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          job_id?: string | null
+          metadata?: Json | null
+          output_type?: string | null
+          storage_path?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          job_id?: string | null
+          metadata?: Json | null
+          output_type?: string | null
+          storage_path?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_edited_assets_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "ai_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ai_jobs: {
         Row: {
@@ -136,6 +443,7 @@ export type Database = {
           input_data: Json | null
           job_type: string
           output_data: Json | null
+          source_media_id: string | null
           started_at: string | null
           status: string | null
           updated_at: string | null
@@ -149,6 +457,7 @@ export type Database = {
           input_data?: Json | null
           job_type: string
           output_data?: Json | null
+          source_media_id?: string | null
           started_at?: string | null
           status?: string | null
           updated_at?: string | null
@@ -162,10 +471,47 @@ export type Database = {
           input_data?: Json | null
           job_type?: string
           output_data?: Json | null
+          source_media_id?: string | null
           started_at?: string | null
           status?: string | null
           updated_at?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      app_audio_descriptions: {
+        Row: {
+          app_id: string
+          app_name: string
+          audio_url: string | null
+          avatar_url: string | null
+          created_at: string | null
+          id: string
+          script: string | null
+          updated_at: string | null
+          voice_id: string | null
+        }
+        Insert: {
+          app_id: string
+          app_name: string
+          audio_url?: string | null
+          avatar_url?: string | null
+          created_at?: string | null
+          id?: string
+          script?: string | null
+          updated_at?: string | null
+          voice_id?: string | null
+        }
+        Update: {
+          app_id?: string
+          app_name?: string
+          audio_url?: string | null
+          avatar_url?: string | null
+          created_at?: string | null
+          id?: string
+          script?: string | null
+          updated_at?: string | null
+          voice_id?: string | null
         }
         Relationships: []
       }
@@ -209,14 +555,18 @@ export type Database = {
           audio_url: string | null
           campaign_id: string | null
           campaign_name: string
+          conversation_config: Json | null
           created_at: string | null
           duration_seconds: number | null
+          elevenlabs_agent_id: string | null
           id: string
           phone_number: string | null
+          phone_number_type: string | null
           script: string | null
           status: string | null
           updated_at: string | null
           user_id: string | null
+          voice_id: string | null
           voice_name: string | null
         }
         Insert: {
@@ -225,14 +575,18 @@ export type Database = {
           audio_url?: string | null
           campaign_id?: string | null
           campaign_name: string
+          conversation_config?: Json | null
           created_at?: string | null
           duration_seconds?: number | null
+          elevenlabs_agent_id?: string | null
           id?: string
           phone_number?: string | null
+          phone_number_type?: string | null
           script?: string | null
           status?: string | null
           updated_at?: string | null
           user_id?: string | null
+          voice_id?: string | null
           voice_name?: string | null
         }
         Update: {
@@ -241,14 +595,18 @@ export type Database = {
           audio_url?: string | null
           campaign_id?: string | null
           campaign_name?: string
+          conversation_config?: Json | null
           created_at?: string | null
           duration_seconds?: number | null
+          elevenlabs_agent_id?: string | null
           id?: string
           phone_number?: string | null
+          phone_number_type?: string | null
           script?: string | null
           status?: string | null
           updated_at?: string | null
           user_id?: string | null
+          voice_id?: string | null
           voice_name?: string | null
         }
         Relationships: [
@@ -321,6 +679,30 @@ export type Database = {
         }
         Relationships: []
       }
+      email_template_folders: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          id: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          id?: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          id?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       email_templates: {
         Row: {
           created_at: string | null
@@ -358,6 +740,53 @@ export type Database = {
             columns: ["folder_id"]
             isOneToOne: false
             referencedRelation: "email_folders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      episodes: {
+        Row: {
+          audio_url: string | null
+          created_at: string | null
+          description: string | null
+          duration_seconds: number | null
+          id: string
+          is_published: boolean | null
+          podcast_id: string | null
+          publish_date: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          audio_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          duration_seconds?: number | null
+          id?: string
+          is_published?: boolean | null
+          podcast_id?: string | null
+          publish_date?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          audio_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          duration_seconds?: number | null
+          id?: string
+          is_published?: boolean | null
+          podcast_id?: string | null
+          publish_date?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "episodes_podcast_id_fkey"
+            columns: ["podcast_id"]
+            isOneToOne: false
+            referencedRelation: "podcasts"
             referencedColumns: ["id"]
           },
         ]
@@ -401,6 +830,45 @@ export type Database = {
         }
         Relationships: []
       }
+      podcasts: {
+        Row: {
+          category: string | null
+          cover_image_url: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_published: boolean | null
+          rss_feed_url: string | null
+          title: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          category?: string | null
+          cover_image_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_published?: boolean | null
+          rss_feed_url?: string | null
+          title: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          category?: string | null
+          cover_image_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_published?: boolean | null
+          rss_feed_url?: string | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           account_avatar_url: string | null
@@ -418,6 +886,9 @@ export type Database = {
           is_advertiser: boolean | null
           is_creator: boolean | null
           my_page_ad_id: string | null
+          my_page_cta_button_text: string | null
+          my_page_cta_phone_number: string | null
+          my_page_cta_text_keyword: string | null
           my_page_video_id: string | null
           my_page_video_loop: boolean | null
           my_page_video_type: string | null
@@ -425,6 +896,7 @@ export type Database = {
           onboarding_data: Json | null
           preferred_role: string | null
           updated_at: string | null
+          username: string | null
         }
         Insert: {
           account_avatar_url?: string | null
@@ -442,6 +914,9 @@ export type Database = {
           is_advertiser?: boolean | null
           is_creator?: boolean | null
           my_page_ad_id?: string | null
+          my_page_cta_button_text?: string | null
+          my_page_cta_phone_number?: string | null
+          my_page_cta_text_keyword?: string | null
           my_page_video_id?: string | null
           my_page_video_loop?: boolean | null
           my_page_video_type?: string | null
@@ -449,6 +924,7 @@ export type Database = {
           onboarding_data?: Json | null
           preferred_role?: string | null
           updated_at?: string | null
+          username?: string | null
         }
         Update: {
           account_avatar_url?: string | null
@@ -466,6 +942,9 @@ export type Database = {
           is_advertiser?: boolean | null
           is_creator?: boolean | null
           my_page_ad_id?: string | null
+          my_page_cta_button_text?: string | null
+          my_page_cta_phone_number?: string | null
+          my_page_cta_text_keyword?: string | null
           my_page_video_id?: string | null
           my_page_video_loop?: boolean | null
           my_page_video_type?: string | null
@@ -473,6 +952,93 @@ export type Database = {
           onboarding_data?: Json | null
           preferred_role?: string | null
           updated_at?: string | null
+          username?: string | null
+        }
+        Relationships: []
+      }
+      saved_email_templates: {
+        Row: {
+          created_at: string | null
+          customization_data: Json | null
+          customized_html: string | null
+          folder_id: string | null
+          id: string
+          name: string
+          template_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          customization_data?: Json | null
+          customized_html?: string | null
+          folder_id?: string | null
+          id?: string
+          name: string
+          template_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          customization_data?: Json | null
+          customized_html?: string | null
+          folder_id?: string | null
+          id?: string
+          name?: string
+          template_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_email_templates_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "email_template_folders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscriptions: {
+        Row: {
+          cancel_at_period_end: boolean | null
+          created_at: string | null
+          current_period_end: string | null
+          current_period_start: string | null
+          id: string
+          plan_name: string | null
+          status: string | null
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          cancel_at_period_end?: boolean | null
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          plan_name?: string | null
+          status?: string | null
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          cancel_at_period_end?: boolean | null
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          plan_name?: string | null
+          status?: string | null
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -518,6 +1084,39 @@ export type Database = {
           title?: string
           updated_at?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_credits: {
+        Row: {
+          balance: number | null
+          created_at: string | null
+          id: string
+          total_earned: number | null
+          total_purchased: number | null
+          total_spent: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          balance?: number | null
+          created_at?: string | null
+          id?: string
+          total_earned?: number | null
+          total_purchased?: number | null
+          total_spent?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          balance?: number | null
+          created_at?: string | null
+          id?: string
+          total_earned?: number | null
+          total_purchased?: number | null
+          total_spent?: number | null
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -643,6 +1242,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      increment_usage: {
+        Args: { _feature_type: string; _increment: number; _user_id: string }
+        Returns: undefined
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
     }

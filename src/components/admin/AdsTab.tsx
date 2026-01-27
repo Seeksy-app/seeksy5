@@ -13,15 +13,11 @@ export default function AdsTab() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("audio_ads")
-        .select(`
-          *,
-          advertiser:advertiser_id(company_name),
-          campaign:campaign_id(name, status)
-        `)
+        .select(`*`)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data;
+      return data as any[];
     },
   });
 
