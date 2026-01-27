@@ -26,11 +26,11 @@ const baseChecklist: ChecklistItem[] = [
     description: "Link Instagram, YouTube, or TikTok",
     route: "/integrations",
     checkFn: async (userId) => {
-      const { count } = await supabase
+      const result = await (supabase as any)
         .from("social_media_profiles")
         .select("*", { count: "exact", head: true })
         .eq("user_id", userId);
-      return (count || 0) > 0;
+      return (result.count || 0) > 0;
     },
   },
   {
@@ -146,11 +146,11 @@ const typeSpecificChecklist: Record<string, ChecklistItem[]> = {
       description: "Create a booking link",
       route: "/meetings/types/create",
       checkFn: async (userId) => {
-        const { count } = await supabase
+        const result = await (supabase as any)
           .from("meeting_types")
           .select("*", { count: "exact", head: true })
           .eq("user_id", userId);
-        return (count || 0) > 0;
+        return (result.count || 0) > 0;
       },
     },
   ],

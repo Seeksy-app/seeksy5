@@ -17,14 +17,14 @@ export function CreditBalance() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("user_credits")
-        .select("balance, credit_goal, total_spent")
+        .select("balance, total_spent")
         .eq("user_id", user.id)
         .single();
 
-      if (error) return null;
-      return data;
+      if (result.error) return null;
+      return result.data as any;
     },
     refetchInterval: 30000, // Refetch every 30 seconds
   });

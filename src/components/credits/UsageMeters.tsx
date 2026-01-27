@@ -61,16 +61,16 @@ export function UsageMeters() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return null;
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('user_usage_limits')
         .select('*')
         .eq('user_id', session.user.id)
         .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') throw error;
+      if (result.error && result.error.code !== 'PGRST116') throw result.error;
       
       // Return defaults if no record exists
-      return data || {
+      return (result.data as any) || {
         storage_used_gb: 0,
         free_storage_gb: 25,
         recording_minutes_used: 0,
@@ -87,14 +87,14 @@ export function UsageMeters() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return null;
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('user_credits')
         .select('balance')
         .eq('user_id', session.user.id)
         .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') throw error;
-      return data;
+      if (result.error && result.error.code !== 'PGRST116') throw result.error;
+      return result.data as any;
     },
   });
 

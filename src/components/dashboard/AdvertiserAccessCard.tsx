@@ -15,14 +15,14 @@ export const AdvertiserAccessCard = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
-      const { data } = await supabase
+      const result = await (supabase as any)
         .from('identity_requests')
         .select('*')
         .eq('creator_id', user.id)
         .eq('status', 'pending')
         .order('created_at', { ascending: false });
 
-      return data || [];
+      return (result.data as any[]) || [];
     },
   });
 

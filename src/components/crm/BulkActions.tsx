@@ -41,11 +41,11 @@ export function BulkActions({ selectedContacts, onClearSelection, lists, tags }:
         contact_id: contactId,
       }));
 
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("contact_list_members")
         .insert(insertData);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["contact_lists"] });
@@ -70,11 +70,11 @@ export function BulkActions({ selectedContacts, onClearSelection, lists, tags }:
         tag_id: tagId,
       }));
 
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("contact_tag_assignments")
         .insert(insertData);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["contacts"] });

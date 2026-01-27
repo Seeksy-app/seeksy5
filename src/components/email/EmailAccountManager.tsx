@@ -25,7 +25,7 @@ export const EmailAccountManager = () => {
     queryKey: ["email-accounts", user?.id],
     queryFn: async () => {
       if (!user) return [];
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("email_accounts")
         .select("*")
         .eq("user_id", user.id)
@@ -33,8 +33,8 @@ export const EmailAccountManager = () => {
         .order("is_default", { ascending: false })
         .order("created_at", { ascending: false });
       
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any[];
     },
     enabled: !!user,
   });
@@ -101,18 +101,18 @@ export const EmailAccountManager = () => {
       if (!user) throw new Error("Not authenticated");
       
       // Unset all defaults first
-      await supabase
+      await (supabase as any)
         .from("email_accounts")
         .update({ is_default: false })
         .eq("user_id", user.id);
       
       // Set new default
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("email_accounts")
         .update({ is_default: true })
         .eq("id", accountId);
       
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["email-accounts"] });
@@ -125,12 +125,12 @@ export const EmailAccountManager = () => {
 
   const disconnectAccount = useMutation({
     mutationFn: async (accountId: string) => {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("email_accounts")
         .delete()
         .eq("id", accountId);
       
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["email-accounts"] });

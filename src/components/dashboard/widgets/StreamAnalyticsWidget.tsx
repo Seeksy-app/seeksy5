@@ -12,28 +12,30 @@ export function StreamAnalyticsWidget() {
       if (!user) throw new Error('Not authenticated');
 
       // Check if stream is currently live
-      const { data: profile } = await supabase
+      const profileResult = await (supabase as any)
         .from('profiles')
         .select('is_live')
         .eq('id', user.id)
         .single();
 
       // Get total stream views
-      const { count: totalViews } = await supabase
+      const viewsResult = await (supabase as any)
         .from('stream_impressions')
         .select('*', { count: 'exact', head: true })
         .eq('creator_id', user.id);
 
       // Get total watch time
-      const { data: watchTimeData } = await supabase
+      const watchTimeResult = await (supabase as any)
         .from('stream_impressions')
         .select('watch_duration_seconds')
         .eq('creator_id', user.id);
 
-      const totalWatchSeconds = watchTimeData?.reduce((sum, record) => 
-        sum + (record.watch_duration_seconds || 0), 0) || 0;
+      const totalViews = viewsResult.count || 0;
+      const watchTimeData = watchTimeResult.data as any[] || [];
+      const totalWatchSeconds = watchTimeData.reduce((sum: number, record: any) => 
+        sum + (record.watch_duration_seconds || 0), 0);
       
-      const avgWatchTimeSeconds = totalViews && totalViews > 0 
+      const avgWatchTimeSeconds = totalViews > 0 
         ? totalWatchSeconds / totalViews 
         : 0;
 
@@ -41,16 +43,16 @@ export function StreamAnalyticsWidget() {
       const fiveMinutesAgo = new Date();
       fiveMinutesAgo.setMinutes(fiveMinutesAgo.getMinutes() - 5);
 
-      const { count: liveViewers } = await supabase
+      const liveViewersResult = await (supabase as any)
         .from('stream_impressions')
         .select('*', { count: 'exact', head: true })
         .eq('creator_id', user.id)
         .gte('started_at', fiveMinutesAgo.toISOString());
 
       return {
-        isLive: profile?.is_live || false,
-        totalViews: totalViews || 0,
-        liveViewers: liveViewers || 0,
+        isLive: (profileResult.data as any)?.is_live || false,
+        totalViews: totalViews,
+        liveViewers: liveViewersResult.count || 0,
         totalWatchTimeHours: Math.round(totalWatchSeconds / 3600),
         avgWatchTimeMinutes: Math.round(avgWatchTimeSeconds / 60),
       };

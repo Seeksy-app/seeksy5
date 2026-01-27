@@ -45,14 +45,14 @@ export const PipelineStagesManager = () => {
     queryKey: ["pipeline-stages", user?.id],
     queryFn: async () => {
       if (!user) return [];
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("pipeline_stages")
         .select("*")
         .eq("user_id", user.id)
         .order("display_order", { ascending: true });
       
-      if (error) throw error;
-      return data as PipelineStage[];
+      if (result.error) throw result.error;
+      return result.data as PipelineStage[];
     },
     enabled: !!user,
   });
@@ -63,7 +63,7 @@ export const PipelineStagesManager = () => {
 
       const maxOrder = Math.max(...(stages?.map(s => s.display_order) || [0]));
       
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("pipeline_stages")
         .insert({
           user_id: user.id,
@@ -73,7 +73,7 @@ export const PipelineStagesManager = () => {
           is_system: false,
         });
 
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       toast({
@@ -96,12 +96,12 @@ export const PipelineStagesManager = () => {
 
   const updateStageMutation = useMutation({
     mutationFn: async ({ id, name, color }: { id: string; name: string; color: string }) => {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("pipeline_stages")
         .update({ name, color })
         .eq("id", id);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       toast({
@@ -124,12 +124,12 @@ export const PipelineStagesManager = () => {
 
   const deleteStageMutation = useMutation({
     mutationFn: async (stageId: string) => {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("pipeline_stages")
         .delete()
         .eq("id", stageId);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       toast({

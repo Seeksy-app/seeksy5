@@ -33,7 +33,7 @@ export function TagManager({ tags }: TagManagerProps) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      const { error } = await supabase.from("contact_tags").insert([
+      const result = await (supabase as any).from("contact_tags").insert([
         {
           user_id: user.id,
           name: newTagName,
@@ -41,7 +41,7 @@ export function TagManager({ tags }: TagManagerProps) {
         },
       ]);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["contact_tags"] });
@@ -55,12 +55,12 @@ export function TagManager({ tags }: TagManagerProps) {
 
   const deleteTag = useMutation({
     mutationFn: async (tagId: string) => {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("contact_tags")
         .delete()
         .eq("id", tagId);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["contact_tags"] });
