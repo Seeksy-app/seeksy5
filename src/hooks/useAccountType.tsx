@@ -53,7 +53,7 @@ export function useAccountType() {
           .from('profiles')
           .select('account_type, active_account_type, account_types_enabled, onboarding_completed, onboarding_data')
           .eq('id', user.id)
-          .single();
+          .maybeSingle();
 
         if (profileError) {
           console.error('[useAccountType] Profile fetch error:', profileError);

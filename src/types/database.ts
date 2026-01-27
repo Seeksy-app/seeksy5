@@ -384,31 +384,43 @@ export interface Database {
       tickets: {
         Row: {
           id: string
-          user_id: string
+          user_id: string | null
+          ticket_number: string
           title: string
           description: string | null
           status: string
-          priority: string | null
+          priority: string
+          category: string | null
+          assigned_to: string | null
+          resolved_at: string | null
           created_at: string
           updated_at: string
         }
         Insert: {
           id?: string
-          user_id: string
+          user_id?: string | null
+          ticket_number?: string
           title: string
           description?: string | null
           status?: string
-          priority?: string | null
+          priority?: string
+          category?: string | null
+          assigned_to?: string | null
+          resolved_at?: string | null
           created_at?: string
           updated_at?: string
         }
         Update: {
           id?: string
-          user_id?: string
+          user_id?: string | null
+          ticket_number?: string
           title?: string
           description?: string | null
           status?: string
-          priority?: string | null
+          priority?: string
+          category?: string | null
+          assigned_to?: string | null
+          resolved_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -630,36 +642,72 @@ export interface Database {
       profiles: {
         Row: {
           id: string
-          user_id: string
-          username: string | null
-          first_name: string | null
-          last_name: string | null
+          full_name: string | null
           avatar_url: string | null
+          account_type: string | null
+          active_account_type: string | null
+          account_types_enabled: string[] | null
+          onboarding_completed: boolean | null
+          onboarding_data: Json | null
+          is_creator: boolean | null
+          is_advertiser: boolean | null
+          preferred_role: string | null
+          my_page_video_type: string | null
+          my_page_video_id: string | null
+          my_page_video_loop: boolean | null
+          account_full_name: string | null
+          account_avatar_url: string | null
+          advertiser_onboarding_completed: boolean | null
+          username: string | null
           bio: string | null
-          created_at: string
-          updated_at: string
+          created_at: string | null
+          updated_at: string | null
         }
         Insert: {
-          id?: string
-          user_id: string
-          username?: string | null
-          first_name?: string | null
-          last_name?: string | null
+          id: string
+          full_name?: string | null
           avatar_url?: string | null
+          account_type?: string | null
+          active_account_type?: string | null
+          account_types_enabled?: string[] | null
+          onboarding_completed?: boolean | null
+          onboarding_data?: Json | null
+          is_creator?: boolean | null
+          is_advertiser?: boolean | null
+          preferred_role?: string | null
+          my_page_video_type?: string | null
+          my_page_video_id?: string | null
+          my_page_video_loop?: boolean | null
+          account_full_name?: string | null
+          account_avatar_url?: string | null
+          advertiser_onboarding_completed?: boolean | null
+          username?: string | null
           bio?: string | null
-          created_at?: string
-          updated_at?: string
+          created_at?: string | null
+          updated_at?: string | null
         }
         Update: {
           id?: string
-          user_id?: string
-          username?: string | null
-          first_name?: string | null
-          last_name?: string | null
+          full_name?: string | null
           avatar_url?: string | null
+          account_type?: string | null
+          active_account_type?: string | null
+          account_types_enabled?: string[] | null
+          onboarding_completed?: boolean | null
+          onboarding_data?: Json | null
+          is_creator?: boolean | null
+          is_advertiser?: boolean | null
+          preferred_role?: string | null
+          my_page_video_type?: string | null
+          my_page_video_id?: string | null
+          my_page_video_loop?: boolean | null
+          account_full_name?: string | null
+          account_avatar_url?: string | null
+          advertiser_onboarding_completed?: boolean | null
+          username?: string | null
           bio?: string | null
-          created_at?: string
-          updated_at?: string
+          created_at?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -687,21 +735,33 @@ export interface Database {
       app_settings: {
         Row: {
           id: string
+          key: string
+          value: Json | null
           data_mode: string | null
-          created_at: string
-          updated_at: string
+          holiday_mode: boolean | null
+          holiday_snow: boolean | null
+          created_at: string | null
+          updated_at: string | null
         }
         Insert: {
           id?: string
+          key: string
+          value?: Json | null
           data_mode?: string | null
-          created_at?: string
-          updated_at?: string
+          holiday_mode?: boolean | null
+          holiday_snow?: boolean | null
+          created_at?: string | null
+          updated_at?: string | null
         }
         Update: {
           id?: string
+          key?: string
+          value?: Json | null
           data_mode?: string | null
-          created_at?: string
-          updated_at?: string
+          holiday_mode?: boolean | null
+          holiday_snow?: boolean | null
+          created_at?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -840,6 +900,351 @@ export interface Database {
           expires_at?: string | null
           created_at?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      media_files: {
+        Row: {
+          id: string
+          user_id: string | null
+          file_name: string
+          file_url: string
+          file_type: string | null
+          file_size: number | null
+          duration_seconds: number | null
+          thumbnail_url: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          file_name: string
+          file_url: string
+          file_type?: string | null
+          file_size?: number | null
+          duration_seconds?: number | null
+          thumbnail_url?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          file_name?: string
+          file_url?: string
+          file_type?: string | null
+          file_size?: number | null
+          duration_seconds?: number | null
+          thumbnail_url?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      ai_jobs: {
+        Row: {
+          id: string
+          user_id: string | null
+          job_type: string
+          status: string
+          input_data: Json | null
+          output_data: Json | null
+          error_message: string | null
+          started_at: string | null
+          completed_at: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          job_type: string
+          status?: string
+          input_data?: Json | null
+          output_data?: Json | null
+          error_message?: string | null
+          started_at?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          job_type?: string
+          status?: string
+          input_data?: Json | null
+          output_data?: Json | null
+          error_message?: string | null
+          started_at?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      advertisers: {
+        Row: {
+          id: string
+          user_id: string | null
+          company_name: string
+          contact_email: string | null
+          contact_phone: string | null
+          website: string | null
+          website_url: string | null
+          industry: string | null
+          budget: number | null
+          status: string | null
+          notes: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          company_name: string
+          contact_email?: string | null
+          contact_phone?: string | null
+          website?: string | null
+          website_url?: string | null
+          industry?: string | null
+          budget?: number | null
+          status?: string | null
+          notes?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          company_name?: string
+          contact_email?: string | null
+          contact_phone?: string | null
+          website?: string | null
+          website_url?: string | null
+          industry?: string | null
+          budget?: number | null
+          status?: string | null
+          notes?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      advertiser_transactions: {
+        Row: {
+          id: string
+          advertiser_id: string | null
+          amount: number
+          transaction_type: string
+          description: string | null
+          reference_id: string | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          advertiser_id?: string | null
+          amount: number
+          transaction_type: string
+          description?: string | null
+          reference_id?: string | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          advertiser_id?: string | null
+          amount?: number
+          transaction_type?: string
+          description?: string | null
+          reference_id?: string | null
+          created_at?: string | null
+        }
+        Relationships: []
+      }
+      audio_ads: {
+        Row: {
+          id: string
+          user_id: string | null
+          campaign_name: string
+          script: string | null
+          audio_url: string | null
+          duration_seconds: number | null
+          status: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          campaign_name: string
+          script?: string | null
+          audio_url?: string | null
+          duration_seconds?: number | null
+          status?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          campaign_name?: string
+          script?: string | null
+          audio_url?: string | null
+          duration_seconds?: number | null
+          status?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      aar_media: {
+        Row: {
+          id: string
+          user_id: string | null
+          file_url: string
+          file_type: string | null
+          caption: string | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          file_url: string
+          file_type?: string | null
+          caption?: string | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          file_url?: string
+          file_type?: string | null
+          caption?: string | null
+          created_at?: string | null
+        }
+        Relationships: []
+      }
+      email_folders: {
+        Row: {
+          id: string
+          user_id: string
+          name: string
+          color: string | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          name: string
+          color?: string | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          name?: string
+          color?: string | null
+          created_at?: string | null
+        }
+        Relationships: []
+      }
+      email_templates: {
+        Row: {
+          id: string
+          user_id: string
+          folder_id: string | null
+          name: string
+          subject: string
+          html_content: string
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          folder_id?: string | null
+          name: string
+          subject: string
+          html_content: string
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          folder_id?: string | null
+          name?: string
+          subject?: string
+          html_content?: string
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      custom_packages: {
+        Row: {
+          id: string
+          user_id: string | null
+          name: string
+          description: string | null
+          price: number | null
+          features: Json | null
+          is_active: boolean | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          name: string
+          description?: string | null
+          price?: number | null
+          features?: Json | null
+          is_active?: boolean | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          name?: string
+          description?: string | null
+          price?: number | null
+          features?: Json | null
+          is_active?: boolean | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      user_modules: {
+        Row: {
+          id: string
+          user_id: string
+          module_name: string
+          is_enabled: boolean | null
+          settings: Json | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          module_name: string
+          is_enabled?: boolean | null
+          settings?: Json | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          module_name?: string
+          is_enabled?: boolean | null
+          settings?: Json | null
+          created_at?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
