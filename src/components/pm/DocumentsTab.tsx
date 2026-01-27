@@ -20,21 +20,21 @@ export const DocumentsTab = ({ userId }: DocumentsTabProps) => {
   const { data: templates, refetch: refetchTemplates } = useQuery({
     queryKey: ["document-templates", userId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("document_templates")
         .select("*")
         .eq("user_id", userId)
         .order("created_at", { ascending: false });
       
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return (result.data || []) as any[];
     },
   });
 
   const { data: documents, refetch: refetchDocuments } = useQuery({
     queryKey: ["signature-documents", userId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("signature_documents")
         .select(`
           *,
@@ -43,8 +43,8 @@ export const DocumentsTab = ({ userId }: DocumentsTabProps) => {
         .eq("user_id", userId)
         .order("sent_at", { ascending: false });
       
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return (result.data || []) as any[];
     },
   });
 

@@ -35,7 +35,7 @@ export const CreateClientDialog = ({ open, onOpenChange, onSuccess, userId }: Cr
 
     setLoading(true);
     try {
-      const { error } = await supabase.from("clients").insert({
+      const { error } = await (supabase as any).from("clients").insert({
         ...formData,
         user_id: userId,
       });

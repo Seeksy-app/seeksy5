@@ -34,43 +34,43 @@ export function RevenuesDashboard() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("newsletter_revenue")
         .select("*")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
-      return data || [];
+      if (result.error) throw result.error;
+      return (result.data || []) as any[];
     },
   });
 
   const { data: campaigns } = useQuery({
     queryKey: ["newsletter-campaigns-with-revenue"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("newsletter_campaigns")
         .select("id, title, recipient_count, sent_at")
         .eq("status", "sent")
         .order("sent_at", { ascending: false })
         .limit(10);
 
-      if (error) throw error;
-      return data || [];
+      if (result.error) throw result.error;
+      return (result.data || []) as any[];
     },
   });
 
   // Calculate stats
   const stats: RevenueStats = {
-    totalGross: revenueData?.reduce((sum, r) => sum + Number(r.gross_amount), 0) || 0,
-    totalCreatorShare: revenueData?.reduce((sum, r) => sum + Number(r.creator_share), 0) || 0,
-    totalPlatformFee: revenueData?.reduce((sum, r) => sum + Number(r.platform_fee), 0) || 0,
-    totalImpressions: revenueData?.reduce((sum, r) => sum + (r.impressions || 0), 0) || 0,
-    totalClicks: revenueData?.reduce((sum, r) => sum + (r.clicks || 0), 0) || 0,
+    totalGross: revenueData?.reduce((sum: number, r: any) => sum + Number(r.gross_amount), 0) || 0,
+    totalCreatorShare: revenueData?.reduce((sum: number, r: any) => sum + Number(r.creator_share), 0) || 0,
+    totalPlatformFee: revenueData?.reduce((sum: number, r: any) => sum + Number(r.platform_fee), 0) || 0,
+    totalImpressions: revenueData?.reduce((sum: number, r: any) => sum + (r.impressions || 0), 0) || 0,
+    totalClicks: revenueData?.reduce((sum: number, r: any) => sum + (r.clicks || 0), 0) || 0,
     byType: {
-      cpm: revenueData?.filter(r => r.revenue_type === 'cpm').reduce((sum, r) => sum + Number(r.creator_share), 0) || 0,
-      cpc: revenueData?.filter(r => r.revenue_type === 'cpc').reduce((sum, r) => sum + Number(r.creator_share), 0) || 0,
-      flat_rate: revenueData?.filter(r => r.revenue_type === 'flat_rate').reduce((sum, r) => sum + Number(r.creator_share), 0) || 0,
+      cpm: revenueData?.filter((r: any) => r.revenue_type === 'cpm').reduce((sum: number, r: any) => sum + Number(r.creator_share), 0) || 0,
+      cpc: revenueData?.filter((r: any) => r.revenue_type === 'cpc').reduce((sum: number, r: any) => sum + Number(r.creator_share), 0) || 0,
+      flat_rate: revenueData?.filter((r: any) => r.revenue_type === 'flat_rate').reduce((sum: number, r: any) => sum + Number(r.creator_share), 0) || 0,
     },
   };
 

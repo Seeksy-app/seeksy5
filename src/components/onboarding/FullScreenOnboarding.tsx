@@ -369,7 +369,7 @@ export function FullScreenOnboarding() {
           position: index,
         }));
 
-        const { error: modulesError } = await supabase
+        const { error: modulesError } = await (supabase as any)
           .from('workspace_modules')
           .insert(moduleInserts);
 

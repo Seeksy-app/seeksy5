@@ -30,7 +30,7 @@ export const CreateDocumentDialog = ({ open, onOpenChange, onSuccess, userId }: 
 
     setLoading(true);
     try {
-      const { error } = await supabase.from("document_templates").insert({
+      const { error } = await (supabase as any).from("document_templates").insert({
         ...formData,
         user_id: userId,
         signature_fields: [],

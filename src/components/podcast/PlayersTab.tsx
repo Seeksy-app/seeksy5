@@ -33,12 +33,12 @@ export const PlayersTab = ({ podcastId }: PlayersTabProps) => {
   const { data: directories } = useQuery({
     queryKey: ["podcast-directories", podcastId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("podcast_directories")
         .select("*")
         .eq("podcast_id", podcastId);
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return (result.data || []) as any[];
     },
   });
 
@@ -64,9 +64,9 @@ export const PlayersTab = ({ podcastId }: PlayersTabProps) => {
     toast.success("Link copied to clipboard");
   };
 
-  const appleUrl = directories?.find(d => d.directory_name === "Apple Podcasts")?.directory_specific_url;
-  const spotifyUrl = directories?.find(d => d.directory_name === "Spotify")?.directory_specific_url;
-  const amazonUrl = directories?.find(d => d.directory_name === "Amazon Music")?.directory_specific_url;
+  const appleUrl = directories?.find((d: any) => d.directory_name === "Apple Podcasts")?.directory_specific_url;
+  const spotifyUrl = directories?.find((d: any) => d.directory_name === "Spotify")?.directory_specific_url;
+  const amazonUrl = directories?.find((d: any) => d.directory_name === "Amazon Music")?.directory_specific_url;
 
   return (
     <div className="space-y-6">

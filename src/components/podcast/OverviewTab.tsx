@@ -75,12 +75,12 @@ export const OverviewTab = ({ podcastId, userId }: OverviewTabProps) => {
   const { data: directories } = useQuery({
     queryKey: ["podcast-directories", podcastId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("podcast_directories")
         .select("*")
         .eq("podcast_id", podcastId);
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return (result.data || []) as any[];
     },
   });
 
@@ -90,8 +90,9 @@ export const OverviewTab = ({ podcastId, userId }: OverviewTabProps) => {
   });
 
   const handleShare = () => {
-    if (!podcast?.rss_feed_url) return;
-    navigator.clipboard.writeText(podcast.rss_feed_url);
+    const rssUrl = (podcast as any)?.rss_feed_url || (podcast as any)?.rss_url;
+    if (!rssUrl) return;
+    navigator.clipboard.writeText(rssUrl);
   };
 
   if (podcastLoading) {
@@ -105,9 +106,9 @@ export const OverviewTab = ({ podcastId, userId }: OverviewTabProps) => {
     );
   }
 
-  const appleStatus = directories?.find(d => d.directory_name === "Apple Podcasts");
-  const spotifyStatus = directories?.find(d => d.directory_name === "Spotify");
-  const amazonStatus = directories?.find(d => d.directory_name === "Amazon Music");
+  const appleStatus = directories?.find((d: any) => d.directory_name === "Apple Podcasts");
+  const spotifyStatus = directories?.find((d: any) => d.directory_name === "Spotify");
+  const amazonStatus = directories?.find((d: any) => d.directory_name === "Amazon Music");
 
   return (
     <div className="space-y-6">
@@ -129,7 +130,7 @@ export const OverviewTab = ({ podcastId, userId }: OverviewTabProps) => {
               </div>
               <h2 className="text-3xl font-bold mb-1">{podcast?.title}</h2>
               <p className="text-muted-foreground mb-4">
-                Hosted by {podcast?.author || "Not specified"}
+                Hosted by {(podcast as any)?.author || "Not specified"}
               </p>
               <div className="flex flex-wrap gap-2">
                 <Button onClick={() => setShowCreationModal(true)} size="lg" className="gap-2">
@@ -140,9 +141,9 @@ export const OverviewTab = ({ podcastId, userId }: OverviewTabProps) => {
                   <Share2 className="w-4 h-4" />
                   Share
                 </Button>
-                {podcast?.rss_feed_url && (
+                {((podcast as any)?.rss_feed_url || (podcast as any)?.rss_url) && (
                   <Button variant="ghost" asChild size="lg" className="gap-2">
-                    <a href={podcast.rss_feed_url} target="_blank" rel="noopener noreferrer">
+                    <a href={(podcast as any).rss_feed_url || (podcast as any).rss_url} target="_blank" rel="noopener noreferrer">
                       <ExternalLink className="w-4 h-4" />
                       RSS Feed
                     </a>

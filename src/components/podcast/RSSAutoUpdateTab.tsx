@@ -37,14 +37,14 @@ export const RSSAutoUpdateTab = ({ userId }: RSSAutoUpdateTabProps) => {
     queryKey: ["rss-auto-updates", selectedPodcast],
     queryFn: async () => {
       if (!selectedPodcast) return null;
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("podcast_rss_auto_updates")
         .select("*")
         .eq("podcast_id", selectedPodcast)
         .single();
       
-      if (error && error.code !== 'PGRST116') throw error;
-      return data;
+      if (result.error && result.error.code !== 'PGRST116') throw result.error;
+      return result.data as any;
     },
     enabled: !!selectedPodcast,
   });
@@ -53,7 +53,7 @@ export const RSSAutoUpdateTab = ({ userId }: RSSAutoUpdateTabProps) => {
     mutationFn: async (settings: any) => {
       if (!selectedPodcast) return;
       
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("podcast_rss_auto_updates")
         .upsert({
           podcast_id: selectedPodcast,
@@ -63,8 +63,8 @@ export const RSSAutoUpdateTab = ({ userId }: RSSAutoUpdateTabProps) => {
         .select()
         .single();
 
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["rss-auto-updates", selectedPodcast] });

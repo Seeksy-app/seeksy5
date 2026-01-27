@@ -37,17 +37,17 @@ export function MyPagePreview({ theme, mode }: MyPagePreviewProps) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("my_page_sections")
         .select("*")
         .eq("user_id", user.id)
         .order("display_order");
       
-      if (error) {
-        console.error("Error fetching sections:", error);
+      if (result.error) {
+        console.error("Error fetching sections:", result.error);
         return [];
       }
-      return data as MyPageSection[];
+      return (result.data || []) as MyPageSection[];
     },
     refetchInterval: 1000, // Poll every second for real-time updates
   });

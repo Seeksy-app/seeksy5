@@ -26,7 +26,7 @@ export function AdminPayoutQueue({ payments, loading }: AdminPayoutQueueProps) {
 
   const processPayment = useMutation({
     mutationFn: async (paymentId: string) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('creator_payments')
         .update({ 
           status: 'paid',

@@ -28,7 +28,7 @@ export const TicketsTab = ({ userId }: TicketsTabProps) => {
   const { data: tickets, refetch } = useQuery({
     queryKey: ["tickets", userId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("client_tickets")
         .select(`
           *,
@@ -37,8 +37,8 @@ export const TicketsTab = ({ userId }: TicketsTabProps) => {
         .or(`user_id.eq.${userId},assigned_to.eq.${userId}`)
         .order("created_at", { ascending: false });
       
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return (result.data || []) as any[];
     },
   });
 

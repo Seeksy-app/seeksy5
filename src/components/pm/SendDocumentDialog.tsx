@@ -28,14 +28,14 @@ export const SendDocumentDialog = ({ open, onOpenChange, templateId, userId, onS
     queryKey: ["document-template", templateId],
     queryFn: async () => {
       if (!templateId) return null;
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("document_templates")
         .select("*")
         .eq("id", templateId)
         .single();
       
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any;
     },
     enabled: !!templateId,
   });
@@ -43,13 +43,13 @@ export const SendDocumentDialog = ({ open, onOpenChange, templateId, userId, onS
   const { data: clients } = useQuery({
     queryKey: ["clients", userId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("clients")
         .select("*")
         .eq("user_id", userId);
       
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return (result.data || []) as any[];
     },
   });
 
@@ -65,7 +65,7 @@ export const SendDocumentDialog = ({ open, onOpenChange, templateId, userId, onS
       // Generate unique access token
       const accessToken = crypto.randomUUID();
 
-      const { error } = await supabase.from("signature_documents").insert({
+      const { error } = await (supabase as any).from("signature_documents").insert({
         user_id: userId,
         template_id: templateId,
         client_id: formData.client_id || null,

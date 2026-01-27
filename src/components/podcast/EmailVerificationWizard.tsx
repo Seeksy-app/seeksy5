@@ -50,7 +50,7 @@ export function EmailVerificationWizard({
         expiresAt = fortyEightHours.toISOString();
       }
 
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("podcasts")
         .update({
           verification_email: email || null,

@@ -76,7 +76,7 @@ export function OnboardingWelcomeScreen({
         
         // Insert enabled modules
         for (const moduleId of enabledApps) {
-          await supabase.from('user_modules').upsert({
+          await (supabase as any).from('user_modules').upsert({
             user_id: user.id,
             module_id: moduleId,
             is_active: true,

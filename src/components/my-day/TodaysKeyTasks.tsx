@@ -76,7 +76,7 @@ export function TodaysKeyTasks() {
                   <p className="text-sm font-medium">{task.title}</p>
                   <div className="flex items-center gap-2">
                     <Badge variant="outline" className="text-xs">
-                      {task.category}
+                      {(task as any).category || task.priority}
                     </Badge>
                     <span className="text-xs text-muted-foreground flex items-center gap-1">
                       <Clock className="h-3 w-3" />

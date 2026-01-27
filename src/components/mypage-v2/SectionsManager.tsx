@@ -95,14 +95,14 @@ export function SectionsManager({ userId }: SectionsManagerProps) {
   const { data: sections = [], isLoading } = useQuery({
     queryKey: ["my-page-sections", userId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("my_page_sections")
         .select("*")
         .eq("user_id", userId)
         .order("display_order");
       
-      if (error) throw error;
-      return data as MyPageSection[];
+      if (result.error) throw result.error;
+      return (result.data || []) as MyPageSection[];
     },
   });
 
@@ -114,7 +114,7 @@ export function SectionsManager({ userId }: SectionsManagerProps) {
       }));
 
       for (const update of updates) {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from("my_page_sections")
           .update({ display_order: update.display_order })
           .eq("id", update.id);
@@ -130,7 +130,7 @@ export function SectionsManager({ userId }: SectionsManagerProps) {
 
   const toggleMutation = useMutation({
     mutationFn: async ({ id, enabled }: { id: string; enabled: boolean }) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("my_page_sections")
         .update({ is_enabled: enabled })
         .eq("id", id);

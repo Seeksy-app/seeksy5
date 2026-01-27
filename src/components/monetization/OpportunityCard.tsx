@@ -44,7 +44,7 @@ export function OpportunityCard({ opportunity, compact = false, showProgress = f
         updates.accepted_at = new Date().toISOString();
       }
       
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('creator_opportunities')
         .update(updates)
         .eq('id', opportunity.id);
