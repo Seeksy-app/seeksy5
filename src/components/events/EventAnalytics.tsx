@@ -31,39 +31,42 @@ export function EventAnalytics({ eventId }: EventAnalyticsProps) {
   const loadAnalytics = async () => {
     try {
       // Get registrations
-      const { data: registrations, error: regError } = await supabase
+      const regResult = await (supabase as any)
         .from("event_registrations")
         .select("*")
         .eq("event_id", eventId);
 
-      if (regError) throw regError;
+      if (regResult.error) throw regResult.error;
+      const registrations = (regResult.data || []) as any[];
 
       // Get tickets with tiers
-      const { data: tickets, error: ticketError } = await supabase
+      const ticketResult = await (supabase as any)
         .from("event_tickets")
         .select("*, event_ticket_tiers(*)")
         .eq("event_id", eventId);
 
-      if (ticketError) throw ticketError;
+      if (ticketResult.error) throw ticketResult.error;
+      const tickets = (ticketResult.data || []) as any[];
 
       // Get ticket tiers
-      const { data: tiers, error: tierError } = await supabase
+      const tierResult = await (supabase as any)
         .from("event_ticket_tiers")
         .select("*")
         .eq("event_id", eventId);
 
-      if (tierError) throw tierError;
+      if (tierResult.error) throw tierResult.error;
+      const tiers = (tierResult.data || []) as any[];
 
       // Calculate analytics
-      const totalRegistrations = registrations?.length || 0;
-      const checkedIn = registrations?.filter(r => r.checked_in).length || 0;
+      const totalRegistrations = registrations.length;
+      const checkedIn = registrations.filter((r: any) => r.checked_in).length;
       const checkInRate = totalRegistrations > 0 ? (checkedIn / totalRegistrations) * 100 : 0;
 
       // Calculate revenue
       let revenue = 0;
       const ticketsByTier: Record<string, { count: number; revenue: number; name: string }> = {};
 
-      tiers?.forEach(tier => {
+      tiers.forEach((tier: any) => {
         ticketsByTier[tier.id] = {
           name: tier.name,
           count: tier.quantity_sold || 0,
@@ -74,7 +77,7 @@ export function EventAnalytics({ eventId }: EventAnalyticsProps) {
 
       // Registrations by day
       const regByDay: Record<string, number> = {};
-      registrations?.forEach(reg => {
+      registrations.forEach((reg: any) => {
         const date = new Date(reg.registered_at).toLocaleDateString();
         regByDay[date] = (regByDay[date] || 0) + 1;
       });
@@ -86,7 +89,7 @@ export function EventAnalytics({ eventId }: EventAnalyticsProps) {
       setData({
         totalRegistrations,
         checkedIn,
-        ticketsSold: tickets?.length || 0,
+        ticketsSold: tickets.length,
         revenue,
         registrationsByDay,
         ticketsByTier: Object.values(ticketsByTier),

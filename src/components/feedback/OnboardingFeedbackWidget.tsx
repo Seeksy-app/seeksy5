@@ -31,7 +31,7 @@ export function OnboardingFeedbackWidget() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("onboarding_feedback")
         .insert({
           user_id: user?.id || null,
@@ -41,7 +41,7 @@ export function OnboardingFeedbackWidget() {
           session_id: sessionId,
         });
 
-      if (error) throw error;
+      if (result.error) throw result.error;
 
       setHasSubmitted(true);
       setIsOpen(false);

@@ -30,7 +30,7 @@ export function EventSponsorshipPackageManager({ eventId }: EventSponsorshipPack
   const { data: packages } = useQuery({
     queryKey: ["event-sponsorship-packages", eventId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("event_sponsorship_packages")
         .select(`
           *,
@@ -42,8 +42,8 @@ export function EventSponsorshipPackageManager({ eventId }: EventSponsorshipPack
         .eq("event_id", eventId)
         .order("display_order", { ascending: true });
 
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return (result.data || []) as any[];
     },
   });
 
@@ -69,7 +69,7 @@ export function EventSponsorshipPackageManager({ eventId }: EventSponsorshipPack
         return;
       }
 
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("event_sponsorship_packages")
         .insert({
           event_id: eventId,
@@ -80,7 +80,7 @@ export function EventSponsorshipPackageManager({ eventId }: EventSponsorshipPack
           benefits: filteredBenefits,
         });
 
-      if (error) throw error;
+      if (result.error) throw result.error;
 
       toast.success("Sponsorship package created successfully!");
       queryClient.invalidateQueries({ queryKey: ["event-sponsorship-packages", eventId] });
@@ -209,7 +209,7 @@ export function EventSponsorshipPackageManager({ eventId }: EventSponsorshipPack
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {packages?.map((pkg) => {
+        {packages?.map((pkg: any) => {
           const paidSponsors = pkg.event_sponsorships?.filter((s: any) => s.status === 'paid').length || 0;
           return (
             <Card key={pkg.id}>

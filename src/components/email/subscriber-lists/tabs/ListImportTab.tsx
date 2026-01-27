@@ -75,19 +75,19 @@ export function ListImportTab({ listId }: ListImportTabProps) {
           }
 
           // Check if contact exists
-          let { data: existingContact } = await supabase
+          const existingResult = await (supabase as any)
             .from("contacts")
             .select("id")
             .eq("email", row.email)
             .eq("user_id", user.id)
             .single();
 
-          let contactId = existingContact?.id;
+          let contactId = existingResult.data?.id;
 
           // Create contact if doesn't exist
           if (!contactId) {
             const name = row.name || `${row.first_name || ""} ${row.last_name || ""}`.trim() || row.email;
-            const { data: newContact, error: contactError } = await supabase
+            const newContactResult = await (supabase as any)
               .from("contacts")
               .insert({
                 name,
@@ -97,40 +97,40 @@ export function ListImportTab({ listId }: ListImportTabProps) {
               .select("id")
               .single();
 
-            if (contactError) {
+            if (newContactResult.error) {
               errorCount++;
               continue;
             }
-            contactId = newContact.id;
+            contactId = newContactResult.data.id;
           }
 
           // Check if already in list
-          const { data: existingMember } = await supabase
+          const existingMemberResult = await (supabase as any)
             .from("contact_list_members")
             .select("id")
             .eq("list_id", listId)
             .eq("contact_id", contactId)
             .single();
 
-          if (existingMember) {
+          if (existingMemberResult.data) {
             continue; // Skip duplicates
           }
 
           // Add to list
-          const { error: memberError } = await supabase
+          const memberResult = await (supabase as any)
             .from("contact_list_members")
             .insert({
               list_id: listId,
               contact_id: contactId,
             });
 
-          if (memberError) {
+          if (memberResult.error) {
             errorCount++;
             continue;
           }
 
           // Create/update preferences
-          await supabase
+          await (supabase as any)
             .from("contact_preferences")
             .upsert({
               contact_id: contactId,
