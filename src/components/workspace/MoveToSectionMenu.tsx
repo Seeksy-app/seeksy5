@@ -47,7 +47,7 @@ export function MoveToSectionMenu({
       }
 
       // Add module to the target group as associated
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('module_group_modules')
         .upsert({
           group_id: targetGroup.id,
@@ -58,7 +58,7 @@ export function MoveToSectionMenu({
           onConflict: 'group_id,module_key,relationship_type'
         });
 
-      if (error) throw error;
+      if (result.error) throw result.error;
 
       toast.success(`Moved ${moduleName} to ${groupLabel}`);
       onMoved?.();

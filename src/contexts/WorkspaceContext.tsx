@@ -77,17 +77,17 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('custom_packages')
         .select('*')
         .eq('user_id', session.user.id)
         .order('created_at', { ascending: true });
 
-      console.log('[WorkspaceContext] Fetched workspaces:', data?.length, 'error:', error);
+      console.log('[WorkspaceContext] Fetched workspaces:', result.data?.length, 'error:', result.error);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
 
-      const mapped: Workspace[] = (data || []).map(pkg => ({
+      const mapped: Workspace[] = ((result.data as any[]) || []).map((pkg: any) => ({
         id: pkg.id,
         name: pkg.name,
         slug: pkg.slug,
@@ -134,15 +134,15 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
 
   const fetchWorkspaceModules = async (workspaceId: string) => {
     try {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('workspace_modules')
         .select('*')
         .eq('workspace_id', workspaceId)
         .order('position', { ascending: true });
 
-      if (error) throw error;
+      if (result.error) throw result.error;
 
-      setWorkspaceModules((data || []).map(m => ({
+      setWorkspaceModules(((result.data as any[]) || []).map((m: any) => ({
         id: m.id,
         workspace_id: m.workspace_id,
         module_id: m.module_id,
@@ -150,7 +150,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         settings: (m.settings as Record<string, unknown>) || {},
         is_pinned: m.is_pinned || false,
         is_standalone: m.is_standalone || false,
-        added_via_collection: (m as any).added_via_collection || null,
+        added_via_collection: m.added_via_collection || null,
       })));
     } catch (err) {
       console.error('Error fetching workspace modules:', err);
@@ -209,7 +209,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
           position: index,
         }));
 
-        await supabase.from('workspace_modules').insert(moduleInserts);
+        await (supabase as any).from('workspace_modules').insert(moduleInserts);
       }
 
       await fetchWorkspaces();
@@ -217,11 +217,11 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       const newWorkspace: Workspace = {
         id: data.id,
         name: data.name,
-        slug: data.slug,
+        slug: (data as any).slug,
         description: data.description,
-        icon_color: data.icon_color || '#2C6BED',
-        is_default: data.is_default || false,
-        modules: (data.modules as string[]) || [],
+        icon_color: (data as any).icon_color || '#2C6BED',
+        is_default: (data as any).is_default || false,
+        modules: ((data as any).modules as string[]) || [],
         created_at: data.created_at,
         updated_at: data.updated_at,
       };
@@ -295,9 +295,9 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         const createdWorkspace: Workspace = {
           id: newPkg.id,
           name: newPkg.name,
-          slug: newPkg.slug,
+          slug: (newPkg as any).slug,
           description: newPkg.description,
-          icon_color: newPkg.icon_color || '#2C6BED',
+          icon_color: (newPkg as any).icon_color || '#2C6BED',
           is_default: true,
           modules: [],
           created_at: newPkg.created_at,
@@ -327,7 +327,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       }
 
       // First check module_bundle_relations for bundled integrations
-      const { data: bundleRelations } = await supabase
+      const bundleResult = await (supabase as any)
         .from('module_bundle_relations')
         .select('related_module_id')
         .eq('bundle_module_id', moduleId);
@@ -335,34 +335,34 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       let modulesToAdd = [moduleId];
 
       // If this is a bundle root, also add its related modules
-      if (bundleRelations && bundleRelations.length > 0) {
+      if (bundleResult.data && bundleResult.data.length > 0) {
         const existingIds = new Set(workspaceModules.map(wm => wm.module_id));
-        const relatedModules = bundleRelations
-          .map(r => r.related_module_id)
-          .filter(id => !existingIds.has(id));
+        const relatedModules = (bundleResult.data as any[])
+          .map((r: any) => r.related_module_id)
+          .filter((id: string) => !existingIds.has(id));
         modulesToAdd = [moduleId, ...relatedModules];
       } else {
         // Fallback: Check if this module belongs to a group as a primary module
-        const { data: groupData } = await supabase
+        const groupResult = await (supabase as any)
           .from('module_group_modules')
           .select('group_id, relationship_type')
           .eq('module_key', moduleId)
           .eq('relationship_type', 'primary')
           .maybeSingle();
 
-        if (groupData?.group_id) {
-          const { data: groupModules } = await supabase
+        if (groupResult.data?.group_id) {
+          const groupModulesResult = await (supabase as any)
             .from('module_group_modules')
             .select('module_key')
-            .eq('group_id', groupData.group_id)
+            .eq('group_id', groupResult.data.group_id)
             .eq('relationship_type', 'primary')
             .order('sort_order');
 
-          if (groupModules) {
+          if (groupModulesResult.data) {
             const existingIds = new Set(workspaceModules.map(wm => wm.module_id));
-            modulesToAdd = groupModules
-              .map(gm => gm.module_key)
-              .filter(key => !existingIds.has(key));
+            modulesToAdd = (groupModulesResult.data as any[])
+              .map((gm: any) => gm.module_key)
+              .filter((key: string) => !existingIds.has(key));
           }
         }
       }
@@ -371,7 +371,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       const insertedModules: WorkspaceModule[] = [];
       for (let i = 0; i < modulesToAdd.length; i++) {
         const modId = modulesToAdd[i];
-        const { data: insertedModule, error: moduleError } = await supabase
+        const insertResult = await (supabase as any)
           .from('workspace_modules')
           .insert({
             workspace_id: currentWorkspace.id,
@@ -381,9 +381,10 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
           .select()
           .single();
 
-        if (moduleError) {
-          if (moduleError.code !== '23505') throw moduleError;
-        } else if (insertedModule) {
+        if (insertResult.error) {
+          if (insertResult.error.code !== '23505') throw insertResult.error;
+        } else if (insertResult.data) {
+          const insertedModule = insertResult.data as any;
           insertedModules.push({
             id: insertedModule.id,
             workspace_id: insertedModule.workspace_id,
@@ -392,7 +393,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
             settings: (insertedModule.settings as Record<string, unknown>) || {},
             is_pinned: insertedModule.is_pinned || false,
             is_standalone: insertedModule.is_standalone || false,
-            added_via_collection: (insertedModule as any).added_via_collection || null,
+            added_via_collection: insertedModule.added_via_collection || null,
           });
         }
       }
@@ -423,7 +424,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       setWorkspaceModules(prev => prev.filter(wm => wm.module_id !== moduleId));
 
       // Remove from workspace_modules table
-      await supabase
+      await (supabase as any)
         .from('workspace_modules')
         .delete()
         .eq('workspace_id', currentWorkspace.id)
@@ -453,7 +454,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     try {
       // Update positions in workspace_modules
       const updates = moduleIds.map((moduleId, index) => 
-        supabase
+        (supabase as any)
           .from('workspace_modules')
           .update({ position: index })
           .eq('workspace_id', currentWorkspace.id)
@@ -484,7 +485,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       const newStandaloneValue = !existingModule.is_standalone;
 
       // Update in database
-      await supabase
+      await (supabase as any)
         .from('workspace_modules')
         .update({ is_standalone: newStandaloneValue })
         .eq('id', existingModule.id);
@@ -511,7 +512,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       const newPinnedValue = !existingModule.is_pinned;
 
       // Update in database
-      await supabase
+      await (supabase as any)
         .from('workspace_modules')
         .update({ is_pinned: newPinnedValue })
         .eq('id', existingModule.id);

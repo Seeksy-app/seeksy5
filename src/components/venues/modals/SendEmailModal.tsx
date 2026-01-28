@@ -49,11 +49,11 @@ export function SendEmailModal({ open, onOpenChange, venueId, isDemoMode = true,
 
   const loadClients = async () => {
     if (!venueId) return;
-    const { data } = await supabase
+    const result = await (supabase as any)
       .from('venue_clients')
       .select('id, first_name, last_name, email')
       .eq('venue_id', venueId);
-    if (data) setClients(data);
+    if (result.data) setClients(result.data as Client[]);
   };
 
   const toggleClient = (clientId: string) => {

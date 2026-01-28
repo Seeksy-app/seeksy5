@@ -63,7 +63,7 @@ export function VenueAuthModal({ open, onOpenChange }: VenueAuthModalProps) {
 
         // Create the venue record
         if (data.user) {
-          await supabase.from('venues').insert({
+          await (supabase as any).from('venues').insert({
             owner_user_id: data.user.id,
             name: formData.venueName,
             slug: formData.venueName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),

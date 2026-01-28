@@ -55,11 +55,11 @@ export function CreateProposalModal({ open, onOpenChange, venueId, isDemoMode = 
   const loadData = async () => {
     if (!venueId) return;
     const [clientsRes, spacesRes] = await Promise.all([
-      supabase.from('venue_clients').select('id, first_name, last_name, email').eq('venue_id', venueId),
-      supabase.from('venue_spaces').select('id, name').eq('venue_id', venueId)
+      (supabase as any).from('venue_clients').select('id, first_name, last_name, email').eq('venue_id', venueId),
+      (supabase as any).from('venue_spaces').select('id, name').eq('venue_id', venueId)
     ]);
-    if (clientsRes.data) setClients(clientsRes.data);
-    if (spacesRes.data) setSpaces(spacesRes.data);
+    if (clientsRes.data) setClients(clientsRes.data as Client[]);
+    if (spacesRes.data) setSpaces(spacesRes.data as Space[]);
   };
 
   const calculateTotal = () => {
@@ -85,7 +85,7 @@ export function CreateProposalModal({ open, onOpenChange, venueId, isDemoMode = 
     setLoading(true);
     try {
       const selectedAddOnData = addOns.filter(a => selectedAddOns.includes(a.id));
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('venue_proposals')
         .insert({
           venue_id: venueId,
@@ -102,7 +102,7 @@ export function CreateProposalModal({ open, onOpenChange, venueId, isDemoMode = 
           is_demo: isDemoMode
         });
 
-      if (error) throw error;
+      if (result.error) throw result.error;
 
       toast.success("Proposal created!");
       setFormData({ clientId: "", eventType: "", eventDate: "", spaceId: "", basePrice: "", guestCount: "", notes: "" });

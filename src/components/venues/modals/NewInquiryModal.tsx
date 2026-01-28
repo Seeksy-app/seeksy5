@@ -55,7 +55,7 @@ export function NewInquiryModal({ open, onOpenChange, venueId, isDemoMode = true
       const firstName = nameParts[0] || '';
       const lastName = nameParts.slice(1).join(' ') || '';
       
-      const { data: client, error: clientError } = await supabase
+      const clientResult = await (supabase as any)
         .from('venue_clients')
         .insert({
           venue_id: venueId,
@@ -69,10 +69,11 @@ export function NewInquiryModal({ open, onOpenChange, venueId, isDemoMode = true
         .select()
         .single();
 
-      if (clientError) throw clientError;
+      if (clientResult.error) throw clientResult.error;
+      const client = clientResult.data as any;
 
       // Create booking inquiry
-      const { error: bookingError } = await supabase
+      const bookingResult = await (supabase as any)
         .from('venue_bookings')
         .insert({
           venue_id: venueId,
@@ -84,7 +85,7 @@ export function NewInquiryModal({ open, onOpenChange, venueId, isDemoMode = true
           is_demo: isDemoMode
         });
 
-      if (bookingError) throw bookingError;
+      if (bookingResult.error) throw bookingResult.error;
 
       toast.success("Inquiry added successfully!");
       setFormData({ name: "", email: "", phone: "", eventType: "", dateFlexibility: "", guestCount: "", notes: "" });

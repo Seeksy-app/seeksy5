@@ -72,7 +72,7 @@ export function IntentToFileForm() {
       const { data: { user } } = await supabase.auth.getUser();
 
       // Create the veteran lead
-      const { data: lead, error: leadError } = await supabase
+      const leadResult = await (supabase as any)
         .from("veteran_leads")
         .insert({
           user_id: user?.id || null,
@@ -93,7 +93,8 @@ export function IntentToFileForm() {
         .select("id")
         .single();
 
-      if (leadError) throw leadError;
+      if (leadResult.error) throw leadResult.error;
+      const lead = leadResult.data as any;
 
       setLeadId(lead.id);
 
@@ -107,17 +108,17 @@ export function IntentToFileForm() {
       }));
 
       if (claimIntentsToInsert.length > 0) {
-        const { error: intentsError } = await supabase
+        const intentsResult = await (supabase as any)
           .from("claim_intents")
           .insert(claimIntentsToInsert);
 
-        if (intentsError) {
-          console.error("Error saving claim intents:", intentsError);
+        if (intentsResult.error) {
+          console.error("Error saving claim intents:", intentsResult.error);
         }
       }
 
       // Create rep assignment
-      const { error: repError } = await supabase
+      const repResult = await (supabase as any)
         .from("rep_assignments")
         .insert({
           veteran_lead_id: lead.id,
@@ -129,8 +130,8 @@ export function IntentToFileForm() {
           assignment_method: formData.repChoice === "later" ? "manual" : "user_selected",
         });
 
-      if (repError) {
-        console.error("Error saving rep assignment:", repError);
+      if (repResult.error) {
+        console.error("Error saving rep assignment:", repResult.error);
       }
 
       toast.success("Your Intent to File has been prepared!");

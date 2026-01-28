@@ -31,7 +31,7 @@ export const personaConfig: Record<string, PersonaConfig> = {
 // Fetch lead magnets from database
 export async function fetchLeadMagnetsFromDB(audienceRole?: string): Promise<LeadMagnetOffer[]> {
   try {
-    let query = supabase
+    let query = (supabase as any)
       .from("lead_magnets")
       .select("*")
       .eq("is_active", true)
@@ -41,14 +41,14 @@ export async function fetchLeadMagnetsFromDB(audienceRole?: string): Promise<Lea
       query = query.contains("audience_roles", [audienceRole]);
     }
 
-    const { data, error } = await query;
+    const result = await query;
     
-    if (error) {
-      console.error("Error fetching lead magnets:", error);
+    if (result.error) {
+      console.error("Error fetching lead magnets:", result.error);
       return [];
     }
 
-    return (data || []).map((item: any) => ({
+    return (result.data || []).map((item: any) => ({
       id: item.slug,
       title: item.title,
       description: item.description || "",

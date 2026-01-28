@@ -55,7 +55,7 @@ export function FindRepForm({ onRepSelected, onClose }: FindRepFormProps) {
         any: null,
       };
 
-      let query = supabase
+      let query = (supabase as any)
         .from("vso_representatives")
         .select("id, full_name, organization_name, city, state, phone, email, accreditation_type")
         .eq("is_active", true)
@@ -69,7 +69,7 @@ export function FindRepForm({ onRepSelected, onClose }: FindRepFormProps) {
 
       if (error) throw error;
 
-      setResults(data || []);
+      setResults((data || []) as Representative[]);
       setStep("results");
 
       if (!data || data.length === 0) {
@@ -97,7 +97,7 @@ export function FindRepForm({ onRepSelected, onClose }: FindRepFormProps) {
 
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.from("veteran_leads").insert({
+      const result = await (supabase as any).from("veteran_leads").insert({
         full_name: contactForm.name,
         email: contactForm.email,
         phone: contactForm.phone || null,
@@ -107,7 +107,7 @@ export function FindRepForm({ onRepSelected, onClose }: FindRepFormProps) {
         notes: `Requested contact with: ${selectedRep?.full_name} (${selectedRep?.organization_name || selectedRep?.accreditation_type}). Message: ${contactForm.message || "No message"}`,
       });
 
-      if (error) throw error;
+      if (result.error) throw result.error;
 
       toast.success("Request submitted! A representative will contact you soon.");
       onClose?.();
