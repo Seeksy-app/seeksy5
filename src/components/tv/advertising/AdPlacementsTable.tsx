@@ -38,12 +38,12 @@ export function AdPlacementsTable({ placements, isLoading, onRefresh }: AdPlacem
   const updatePlacementStatus = async (placementId: string, newStatus: string) => {
     setUpdating(placementId);
     try {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('seeksy_tv_ad_placements')
         .update({ status: newStatus })
         .eq('id', placementId);
       
-      if (error) throw error;
+      if (result.error) throw result.error;
       toast.success(`Placement ${newStatus === 'active' ? 'activated' : newStatus === 'paused' ? 'paused' : 'archived'}`);
       onRefresh();
     } catch (error: any) {
@@ -57,12 +57,12 @@ export function AdPlacementsTable({ placements, isLoading, onRefresh }: AdPlacem
     if (!confirm('Are you sure you want to delete this placement?')) return;
     
     try {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('seeksy_tv_ad_placements')
         .delete()
         .eq('id', placementId);
       
-      if (error) throw error;
+      if (result.error) throw result.error;
       toast.success('Placement deleted');
       onRefresh();
     } catch (error: any) {

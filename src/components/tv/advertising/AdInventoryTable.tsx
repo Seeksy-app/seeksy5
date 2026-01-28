@@ -32,12 +32,12 @@ export function AdInventoryTable({ ads, isLoading, onRefresh }: AdInventoryTable
   const updateAdStatus = async (adId: string, newStatus: string) => {
     setUpdating(adId);
     try {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('seeksy_tv_ads')
         .update({ status: newStatus })
         .eq('id', adId);
       
-      if (error) throw error;
+      if (result.error) throw result.error;
       toast.success(`Ad ${newStatus === 'active' ? 'activated' : newStatus === 'paused' ? 'paused' : 'archived'}`);
       onRefresh();
     } catch (error: any) {
@@ -51,12 +51,12 @@ export function AdInventoryTable({ ads, isLoading, onRefresh }: AdInventoryTable
     if (!confirm('Are you sure you want to delete this ad? This will also remove all placements using it.')) return;
     
     try {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('seeksy_tv_ads')
         .delete()
         .eq('id', adId);
       
-      if (error) throw error;
+      if (result.error) throw result.error;
       toast.success('Ad deleted');
       onRefresh();
     } catch (error: any) {
