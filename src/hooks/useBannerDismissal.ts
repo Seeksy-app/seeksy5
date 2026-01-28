@@ -18,15 +18,15 @@ export const useBannerDismissal = (bannerKey: string) => {
       }
 
       try {
-        const { data, error } = await supabase
+        const result = await (supabase as any)
           .from("user_banner_dismissals")
           .select("id")
           .eq("user_id", user.id)
           .eq("banner_key", bannerKey)
           .maybeSingle();
 
-        if (error) throw error;
-        setIsDismissed(!!data);
+        if (result.error) throw result.error;
+        setIsDismissed(!!result.data);
       } catch (err) {
         console.error("Error checking banner dismissal:", err);
         // Fall back to localStorage on error
@@ -51,7 +51,7 @@ export const useBannerDismissal = (bannerKey: string) => {
     if (!user?.id) return;
 
     try {
-      await supabase.from("user_banner_dismissals").upsert({
+      await (supabase as any).from("user_banner_dismissals").upsert({
         user_id: user.id,
         banner_key: bannerKey,
       }, {

@@ -32,7 +32,7 @@ export function useAgencyDiscovery(filters: DiscoveryFilters = {}) {
   return useQuery({
     queryKey: ['agency-discovery', filters],
     queryFn: async () => {
-      let query = supabase
+      let query = (supabase as any)
         .from('agency_discovery_profiles')
         .select('*')
         .order('followers', { ascending: false });
@@ -62,10 +62,10 @@ export function useAgencyDiscovery(filters: DiscoveryFilters = {}) {
         query = query.overlaps('niche_tags', filters.nicheTags);
       }
 
-      const { data, error } = await query.limit(100);
-      if (error) throw error;
+      const result = await query.limit(100);
+      if (result.error) throw result.error;
 
-      return data as AgencyDiscoveryProfile[];
+      return result.data as AgencyDiscoveryProfile[];
     },
   });
 }
@@ -74,19 +74,21 @@ export function useDiscoveryStats() {
   return useQuery({
     queryKey: ['agency-discovery-stats'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('agency_discovery_profiles')
         .select('id, followers, engagement_rate, source');
 
-      if (error) throw error;
+      if (result.error) throw result.error;
+      
+      const data = result.data as any[];
 
       const totalProfiles = data?.length || 0;
-      const connectedCreators = data?.filter(p => p.source === 'connected_creator').length || 0;
+      const connectedCreators = data?.filter((p: any) => p.source === 'connected_creator').length || 0;
       const avgFollowers = data?.length 
-        ? Math.round(data.reduce((sum, p) => sum + p.followers, 0) / data.length) 
+        ? Math.round(data.reduce((sum: number, p: any) => sum + p.followers, 0) / data.length) 
         : 0;
       const avgEngagement = data?.length
-        ? (data.reduce((sum, p) => sum + p.engagement_rate, 0) / data.length).toFixed(2)
+        ? (data.reduce((sum: number, p: any) => sum + p.engagement_rate, 0) / data.length).toFixed(2)
         : '0';
 
       return {

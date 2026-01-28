@@ -33,33 +33,36 @@ export function useBoardMemberAnalytics() {
     queryKey: ["board-member-analytics"],
     queryFn: async (): Promise<BoardMemberStats[]> => {
       // Get all board members
-      const { data: boardMembers, error: membersError } = await supabase
+      const rolesResult = await (supabase as any)
         .from("user_roles")
         .select("user_id")
         .eq("role", "board_member");
 
-      if (membersError) throw membersError;
+      if (rolesResult.error) throw rolesResult.error;
+      const boardMembers = rolesResult.data as any[];
 
       // Get profiles for board members
-      const userIds = boardMembers?.map(m => m.user_id) || [];
-      const { data: profiles } = await supabase
+      const userIds = boardMembers?.map((m: any) => m.user_id) || [];
+      const profilesResult = await (supabase as any)
         .from("profiles")
-        .select("id, full_name, admin_email")
+        .select("id, full_name")
         .in("id", userIds);
+      
+      const profiles = profilesResult.data as any[];
 
       // Get all board activity
-      const { data: activities, error: activityError } = await supabase
+      const activitiesResult = await (supabase as any)
         .from("board_member_activity")
         .select("*")
         .order("created_at", { ascending: false });
 
-      if (activityError) throw activityError;
+      if (activitiesResult.error) throw activitiesResult.error;
 
-      const activitiesTyped = (activities || []) as ActivityRecord[];
+      const activitiesTyped = (activitiesResult.data || []) as ActivityRecord[];
 
       // Process data for each board member
-      const stats: BoardMemberStats[] = (boardMembers || []).map((member) => {
-        const profile = profiles?.find(p => p.id === member.user_id);
+      const stats: BoardMemberStats[] = (boardMembers || []).map((member: any) => {
+        const profile = profiles?.find((p: any) => p.id === member.user_id);
         const userActivities = activitiesTyped.filter(a => a.user_id === member.user_id);
 
         // Login stats
@@ -110,7 +113,7 @@ export function useBoardMemberAnalytics() {
         return {
           userId: member.user_id,
           displayName: profile?.full_name || "Unknown",
-          email: profile?.admin_email || "",
+          email: "",
           totalLogins: logins.length,
           lastLogin,
           totalVideoWatches: videoWatches.length,
@@ -131,7 +134,7 @@ export function useBoardMemberActivityLog(userId?: string) {
   return useQuery({
     queryKey: ["board-member-activity-log", userId],
     queryFn: async () => {
-      let query = supabase
+      let query = (supabase as any)
         .from("board_member_activity")
         .select("*")
         .order("created_at", { ascending: false })
@@ -141,9 +144,9 @@ export function useBoardMemberActivityLog(userId?: string) {
         query = query.eq("user_id", userId);
       }
 
-      const { data, error } = await query;
-      if (error) throw error;
-      return data as ActivityRecord[];
+      const result = await query;
+      if (result.error) throw result.error;
+      return result.data as ActivityRecord[];
     },
   });
 }
