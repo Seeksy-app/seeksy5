@@ -325,7 +325,7 @@ export const useDailyMeeting = (meetingId: string) => {
     // Update participant record
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-      await supabase
+      await (supabase as any)
         .from('meeting_participants')
         .update({ left_at: new Date().toISOString() })
         .eq('meeting_id', meetingId)

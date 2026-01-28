@@ -11,6 +11,25 @@ export interface IdentityStatus {
   voiceProfileId: string | null;
 }
 
+interface FaceAsset {
+  id: string;
+  cert_status: string;
+  cert_explorer_url: string | null;
+}
+
+interface VoiceCert {
+  id: string;
+  certification_status: string;
+  is_active: boolean;
+  cert_explorer_url: string | null;
+  voice_profile_id: string | null;
+}
+
+interface VoiceProfile {
+  id: string;
+  is_verified: boolean;
+}
+
 export const useIdentityStatus = () => {
   return useQuery({
     queryKey: ['identity-status'],
@@ -39,7 +58,7 @@ export const useIdentityStatus = () => {
       console.log('[useIdentityStatus] User ID:', user.id);
 
       // Check face identity from identity_assets
-      const { data: faceAsset, error: faceError } = await supabase
+      const faceResult = await (supabase as any)
         .from('identity_assets')
         .select('id, cert_status, cert_explorer_url')
         .eq('user_id', user.id)
@@ -48,10 +67,11 @@ export const useIdentityStatus = () => {
         .is('revoked_at', null)
         .maybeSingle();
 
-      console.log('[useIdentityStatus] Face asset:', faceAsset, 'Error:', faceError);
+      const faceAsset = faceResult.data as FaceAsset | null;
+      console.log('[useIdentityStatus] Face asset:', faceAsset, 'Error:', faceResult.error);
 
       // Check voice blockchain certificate (primary source for voice verification)
-      const { data: voiceCert, error: certError } = await supabase
+      const certResult = await (supabase as any)
         .from('voice_blockchain_certificates')
         .select('id, certification_status, is_active, cert_explorer_url, voice_profile_id')
         .eq('creator_id', user.id)
@@ -59,17 +79,19 @@ export const useIdentityStatus = () => {
         .eq('is_active', true)
         .maybeSingle();
 
-      console.log('[useIdentityStatus] Voice cert:', voiceCert, 'Error:', certError);
+      const voiceCert = certResult.data as VoiceCert | null;
+      console.log('[useIdentityStatus] Voice cert:', voiceCert, 'Error:', certResult.error);
 
       // Also check creator_voice_profiles as fallback
-      const { data: voiceProfile, error: profileError } = await supabase
+      const profileResult = await (supabase as any)
         .from('creator_voice_profiles')
         .select('id, is_verified')
         .eq('user_id', user.id)
         .eq('is_verified', true)
         .maybeSingle();
 
-      console.log('[useIdentityStatus] Voice profile:', voiceProfile, 'Error:', profileError);
+      const voiceProfile = profileResult.data as VoiceProfile | null;
+      console.log('[useIdentityStatus] Voice profile:', voiceProfile, 'Error:', profileResult.error);
 
       const faceVerified = !!faceAsset;
       // Voice is verified if either blockchain certificate OR voice profile is verified

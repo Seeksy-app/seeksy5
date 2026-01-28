@@ -40,7 +40,7 @@ export function useCreatorValuation(profileId: string | null) {
     queryFn: async () => {
       if (!profileId) return null;
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('creator_valuations')
         .select('*')
         .eq('profile_id', profileId)
@@ -48,8 +48,8 @@ export function useCreatorValuation(profileId: string | null) {
         .limit(1)
         .maybeSingle();
 
-      if (error) throw error;
-      return data as CreatorValuation | null;
+      if (result.error) throw result.error;
+      return result.data as CreatorValuation | null;
     },
     enabled: !!profileId,
   });

@@ -16,14 +16,14 @@ export function useCFOLockStatus() {
   const { data: lockStatus, isLoading } = useQuery({
     queryKey: ['cfo-lock-status'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('cfo_lock_status')
         .select('*')
         .limit(1)
         .single();
       
-      if (error) throw error;
-      return data as CFOLockStatus;
+      if (result.error) throw result.error;
+      return result.data as CFOLockStatus;
     },
   });
 
@@ -31,7 +31,7 @@ export function useCFOLockStatus() {
     mutationFn: async (lock: boolean) => {
       const { data: user } = await supabase.auth.getUser();
       
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('cfo_lock_status')
         .update({
           is_locked: lock,
@@ -41,7 +41,7 @@ export function useCFOLockStatus() {
         })
         .not('id', 'is', null); // Update the only row
       
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: (_, lock) => {
       queryClient.invalidateQueries({ queryKey: ['cfo-lock-status'] });

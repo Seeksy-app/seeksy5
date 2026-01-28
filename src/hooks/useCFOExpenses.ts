@@ -31,13 +31,13 @@ export function useCFOExpenses() {
   const { data: expenses, isLoading } = useQuery({
     queryKey: ['cfo-expenses'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('cfo_expenses')
         .select('*')
         .order('category', { ascending: true });
 
-      if (error) throw error;
-      return data as CFOExpense[];
+      if (result.error) throw result.error;
+      return result.data as CFOExpense[];
     }
   });
 
@@ -114,7 +114,7 @@ export function useCFOExpenses() {
 
       if (!config) throw new Error(`Unknown expense key: ${expense_key}`);
 
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('cfo_expenses')
         .upsert({
           expense_key,
@@ -129,7 +129,7 @@ export function useCFOExpenses() {
           onConflict: 'expense_key'
         });
 
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cfo-expenses'] });
@@ -160,11 +160,11 @@ export function useCFOExpenses() {
         };
       });
 
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('cfo_expenses')
         .upsert(records, { onConflict: 'expense_key' });
 
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cfo-expenses'] });
@@ -178,12 +178,12 @@ export function useCFOExpenses() {
   // Reset expense to default
   const resetExpense = useMutation({
     mutationFn: async (expense_key: string) => {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('cfo_expenses')
         .delete()
         .eq('expense_key', expense_key);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cfo-expenses'] });

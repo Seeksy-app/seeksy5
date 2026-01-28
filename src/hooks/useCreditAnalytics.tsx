@@ -12,6 +12,17 @@ export interface CreditAnalytics {
   avgCreditsPerUser: number;
 }
 
+interface CreditTransaction {
+  amount: number;
+  user_id: string;
+  transaction_type: string;
+  description?: string;
+}
+
+interface AutoRenewSetting {
+  enabled: boolean;
+}
+
 export function useCreditAnalytics() {
   return useQuery({
     queryKey: ['cfo-credit-analytics'],
@@ -21,26 +32,27 @@ export function useCreditAnalytics() {
       startOfMonth.setDate(1);
       startOfMonth.setHours(0, 0, 0, 0);
 
-      const { data: transactions, error: txError } = await supabase
+      const txResult = await (supabase as any)
         .from('credit_transactions')
         .select('amount, user_id, transaction_type')
         .gte('created_at', startOfMonth.toISOString());
 
-      if (txError) throw txError;
+      if (txResult.error) throw txResult.error;
+      const transactions = txResult.data as CreditTransaction[];
 
       // Get auto-renew settings
-      const { data: autoRenewData, error: arError } = await supabase
+      const arResult = await (supabase as any)
         .from('user_auto_renew_settings')
         .select('enabled');
 
-      if (arError && arError.code !== 'PGRST116') throw arError;
+      const autoRenewData = arResult.error?.code === 'PGRST116' ? [] : (arResult.data as AutoRenewSetting[] || []);
 
       // Get total users
-      const { data: totalUsersData, error: usersError } = await supabase
+      const usersResult = await (supabase as any)
         .from('user_credits')
         .select('user_id', { count: 'exact' });
 
-      if (usersError) throw usersError;
+      if (usersResult.error) throw usersResult.error;
 
       // Calculate metrics
       const creditsConsumed = transactions
@@ -52,7 +64,7 @@ export function useCreditAnalytics() {
         .reduce((sum, t) => sum + t.amount, 0) || 0;
 
       const uniqueUsers = new Set(transactions?.map(t => t.user_id) || []).size;
-      const totalUsers = totalUsersData?.length || 1;
+      const totalUsers = usersResult.data?.length || 1;
 
       const enabledAutoRenew = autoRenewData?.filter(a => a.enabled).length || 0;
       const totalAutoRenewUsers = autoRenewData?.length || 1;
@@ -86,13 +98,14 @@ export function useCreditUsageByActivity() {
       startOfMonth.setDate(1);
       startOfMonth.setHours(0, 0, 0, 0);
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('credit_transactions')
         .select('description, amount')
         .lt('amount', 0)
         .gte('created_at', startOfMonth.toISOString());
 
-      if (error) throw error;
+      if (result.error) throw result.error;
+      const data = result.data as CreditTransaction[];
 
       // Group by activity type
       const byActivity: Record<string, number> = {};

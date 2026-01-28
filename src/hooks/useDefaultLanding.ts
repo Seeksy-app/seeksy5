@@ -25,10 +25,12 @@ export function useDefaultLanding() {
         }
 
         // Check user role FIRST - admin/board users have fixed landing routes
-        const { data: roles } = await supabase
+        const rolesResult = await (supabase as any)
           .from('user_roles')
           .select('role')
           .eq('user_id', user.id);
+
+        const roles = rolesResult.data as { role: string }[] || [];
 
         const isAdmin = roles?.some(r => r.role === 'admin' || r.role === 'super_admin') || false;
         const isBoardMember = roles?.some(r => r.role === 'board_member') || false;
@@ -56,13 +58,13 @@ export function useDefaultLanding() {
         }
 
         // For creators/regular users, use their preference
-        const { data } = await supabase
+        const prefResult = await (supabase as any)
           .from('user_preferences')
           .select('default_landing_route')
           .eq('user_id', user.id)
           .single();
 
-        const defaultRoute = data?.default_landing_route || '/my-day';
+        const defaultRoute = prefResult.data?.default_landing_route || '/my-day';
         
         // Navigate to the default landing route
         if (location.pathname !== defaultRoute) {

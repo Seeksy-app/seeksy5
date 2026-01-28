@@ -31,14 +31,14 @@ export function useCollectionInstallation() {
     if (!currentWorkspace) return [];
 
     try {
-      const { data, error } = await supabase
-        .from('custom_packages')
+      const result = await (supabase as any)
+        .from('workspaces')
         .select('installed_collections')
         .eq('id', currentWorkspace.id)
         .single();
 
-      if (error) throw error;
-      return (data?.installed_collections as string[]) || [];
+      if (result.error) throw result.error;
+      return (result.data?.installed_collections as string[]) || [];
     } catch (err) {
       console.error('Error fetching installed collections:', err);
       return [];
@@ -90,7 +90,7 @@ export function useCollectionInstallation() {
       for (let i = 0; i < newModuleIds.length; i++) {
         const moduleId = newModuleIds[i];
         
-        await supabase
+        await (supabase as any)
           .from('workspace_modules')
           .insert({
             workspace_id: currentWorkspace.id,
@@ -103,8 +103,8 @@ export function useCollectionInstallation() {
       // Update the workspace's installed_collections array
       const updatedCollections = [...currentCollections, collectionId];
       
-      await supabase
-        .from('custom_packages')
+      await (supabase as any)
+        .from('workspaces')
         .update({ 
           installed_collections: updatedCollections,
           updated_at: new Date().toISOString(),
@@ -117,8 +117,8 @@ export function useCollectionInstallation() {
         ...newModuleIds,
       ])];
       
-      await supabase
-        .from('custom_packages')
+      await (supabase as any)
+        .from('workspaces')
         .update({ 
           modules: allModuleIds,
           updated_at: new Date().toISOString(),
@@ -166,7 +166,7 @@ export function useCollectionInstallation() {
       }
 
       // Remove modules that were added via this collection
-      await supabase
+      await (supabase as any)
         .from('workspace_modules')
         .delete()
         .eq('workspace_id', currentWorkspace.id)
@@ -175,8 +175,8 @@ export function useCollectionInstallation() {
       // Update the workspace's installed_collections array
       const updatedCollections = currentCollections.filter(c => c !== collectionId);
       
-      await supabase
-        .from('custom_packages')
+      await (supabase as any)
+        .from('workspaces')
         .update({ 
           installed_collections: updatedCollections,
           updated_at: new Date().toISOString(),

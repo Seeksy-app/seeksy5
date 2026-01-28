@@ -28,6 +28,13 @@ interface CombinedYearlySummary {
   grossMargin: number;
 }
 
+interface AdProjection {
+  month_index: number;
+  constrained_gross_revenue: number;
+  creator_payout: number;
+  [key: string]: any;
+}
+
 export function useCombinedFinancialData(scenarioId?: string) {
   // Fetch subscription/platform overview
   const { data: financialOverview, isLoading: loadingOverview } = useQuery({
@@ -41,32 +48,32 @@ export function useCombinedFinancialData(scenarioId?: string) {
     queryFn: async () => {
       if (!scenarioId) {
         // Fetch base scenario if no scenario specified
-        const { data: scenarios } = await supabase
+        const scenarioResult = await (supabase as any)
           .from("ad_financial_scenarios")
           .select("id")
           .eq("name", "Base Case")
           .single();
         
-        if (!scenarios) return [];
+        if (scenarioResult.error || !scenarioResult.data) return [];
         
-        const { data, error } = await supabase
+        const result = await (supabase as any)
           .from("ad_financial_projections")
           .select("*")
-          .eq("scenario_id", scenarios.id)
+          .eq("scenario_id", scenarioResult.data.id)
           .order("month_index", { ascending: true });
         
-        if (error) throw error;
-        return data;
+        if (result.error) throw result.error;
+        return result.data as AdProjection[];
       }
       
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("ad_financial_projections")
         .select("*")
         .eq("scenario_id", scenarioId)
         .order("month_index", { ascending: true });
       
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as AdProjection[];
     },
   });
 
@@ -74,11 +81,11 @@ export function useCombinedFinancialData(scenarioId?: string) {
   const { data: adSummaries, isLoading: loadingSummaries } = useQuery({
     queryKey: ["ad-financial-model-summaries"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("ad_financial_model_summaries")
         .select("*");
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any[];
     },
   });
 
@@ -86,12 +93,12 @@ export function useCombinedFinancialData(scenarioId?: string) {
   const { data: scenarios } = useQuery({
     queryKey: ["ad-financial-scenarios"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("ad_financial_scenarios")
         .select("*")
         .order("created_at", { ascending: true });
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any[];
     },
   });
 
@@ -104,7 +111,7 @@ export function useCombinedFinancialData(scenarioId?: string) {
     const monthlyGrowth = 0.15; // 15% monthly growth
     const subscriptionMargin = 0.75; // 25% platform fee
     
-    return adProjections.map((adProj, index) => {
+    return adProjections.map((adProj: AdProjection, index: number) => {
       // Calculate subscription revenue with growth
       const subscriptionRevenue = baseSubscriptionMRR * Math.pow(1 + monthlyGrowth, index);
       const subscriptionPayouts = subscriptionRevenue * subscriptionMargin;
