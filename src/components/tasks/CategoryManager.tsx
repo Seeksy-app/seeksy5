@@ -11,7 +11,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Edit, Trash2, Plus } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -60,29 +59,29 @@ export function CategoryManager({ open, onOpenChange, onCategoryChange }: Catego
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { data, error } = await supabase
+    const result = await (supabase as any)
       .from('task_categories')
       .select('*')
       .eq('user_id', user.id)
       .order('name');
 
-    if (error) {
+    if (result.error) {
       toast({
         title: "Error loading categories",
-        description: error.message,
+        description: result.error.message,
         variant: "destructive",
       });
       return;
     }
 
     // If no categories exist, create defaults
-    if (!data || data.length === 0) {
+    if (!result.data || result.data.length === 0) {
       await createDefaultCategories(user.id);
       loadCategories();
       return;
     }
 
-    setCategories(data);
+    setCategories(result.data as Category[]);
   };
 
   const createDefaultCategories = async (userId: string) => {
@@ -101,7 +100,7 @@ export function CategoryManager({ open, onOpenChange, onCategoryChange }: Catego
       { name: 'Blog', color: '#F97316' },
     ];
 
-    const { error } = await supabase
+    const result = await (supabase as any)
       .from('task_categories')
       .insert(
         defaultCategories.map(cat => ({
@@ -111,8 +110,8 @@ export function CategoryManager({ open, onOpenChange, onCategoryChange }: Catego
         }))
       );
 
-    if (error) {
-      console.error('Error creating default categories:', error);
+    if (result.error) {
+      console.error('Error creating default categories:', result.error);
     }
   };
 
@@ -129,7 +128,7 @@ export function CategoryManager({ open, onOpenChange, onCategoryChange }: Catego
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { error } = await supabase
+    const result = await (supabase as any)
       .from('task_categories')
       .insert({
         user_id: user.id,
@@ -137,10 +136,10 @@ export function CategoryManager({ open, onOpenChange, onCategoryChange }: Catego
         color: selectedColor,
       });
 
-    if (error) {
+    if (result.error) {
       toast({
         title: "Error creating category",
-        description: error.message,
+        description: result.error.message,
         variant: "destructive",
       });
       return;
@@ -161,7 +160,7 @@ export function CategoryManager({ open, onOpenChange, onCategoryChange }: Catego
   const handleUpdateCategory = async () => {
     if (!editingCategory || !newCategoryName.trim()) return;
 
-    const { error } = await supabase
+    const result = await (supabase as any)
       .from('task_categories')
       .update({
         name: newCategoryName.trim(),
@@ -169,10 +168,10 @@ export function CategoryManager({ open, onOpenChange, onCategoryChange }: Catego
       })
       .eq('id', editingCategory.id);
 
-    if (error) {
+    if (result.error) {
       toast({
         title: "Error updating category",
-        description: error.message,
+        description: result.error.message,
         variant: "destructive",
       });
       return;
@@ -191,15 +190,15 @@ export function CategoryManager({ open, onOpenChange, onCategoryChange }: Catego
   };
 
   const handleDeleteCategory = async (category: Category) => {
-    const { error } = await supabase
+    const result = await (supabase as any)
       .from('task_categories')
       .delete()
       .eq('id', category.id);
 
-    if (error) {
+    if (result.error) {
       toast({
         title: "Error deleting category",
-        description: error.message,
+        description: result.error.message,
         variant: "destructive",
       });
       return;

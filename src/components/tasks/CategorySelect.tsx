@@ -33,14 +33,14 @@ export function CategorySelect({ value, onValueChange, onManageCategories }: Cat
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { data } = await supabase
+    const result = await (supabase as any)
       .from('task_categories')
       .select('*')
       .eq('user_id', user.id)
       .order('name');
 
-    if (data) {
-      setCategories(data);
+    if (result.data) {
+      setCategories(result.data as Category[]);
     }
   };
 
