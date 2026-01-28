@@ -45,29 +45,37 @@ export function TaskComments({ taskId, teamMembers }: TaskCommentsProps) {
   }, [taskId]);
 
   const fetchComments = async () => {
-    const { data, error } = await supabase
+    const result = await (supabase as any)
       .from("task_comments")
       .select("*")
       .eq("task_id", taskId)
       .order("created_at", { ascending: true });
 
-    if (error) {
-      console.error("Error fetching comments:", error);
+    if (result.error) {
+      console.error("Error fetching comments:", result.error);
       return;
     }
 
+    const data = result.data as any[];
+
     // Fetch user profiles for comments
     if (data && data.length > 0) {
-      const userIds = [...new Set(data.map(c => c.user_id))];
-      const { data: profiles } = await supabase
+      const userIds = [...new Set(data.map((c: any) => c.user_id))];
+      const profileResult = await (supabase as any)
         .from("profiles")
         .select("id, full_name, avatar_url")
         .in("id", userIds);
 
-      const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
+      const profiles = profileResult.data as any[] || [];
+      const profileMap = new Map(profiles.map((p: any) => [p.id, p]));
       
-      const commentsWithUsers = data.map(comment => ({
-        ...comment,
+      const commentsWithUsers: Comment[] = data.map((comment: any) => ({
+        id: comment.id,
+        task_id: comment.task_id,
+        user_id: comment.user_id,
+        comment_text: comment.comment_text || '',
+        mentioned_user_ids: comment.mentioned_user_ids || [],
+        created_at: comment.created_at,
         user: profileMap.get(comment.user_id) || null,
       }));
 
@@ -130,7 +138,7 @@ export function TaskComments({ taskId, teamMembers }: TaskCommentsProps) {
     if (!user) return;
 
     for (const userId of mentionedIds) {
-      await supabase.from("notifications").insert({
+      await (supabase as any).from("notifications").insert({
         user_id: userId,
         title: "You were mentioned in a task",
         message: `${user.email} mentioned you in a task comment`,
@@ -149,12 +157,13 @@ export function TaskComments({ taskId, teamMembers }: TaskCommentsProps) {
 
     const mentionedIds = extractMentionedUserIds(newComment);
 
-    const { error } = await supabase.from("task_comments").insert({
+    const insertResult = await (supabase as any).from("task_comments").insert({
       task_id: taskId,
       user_id: user.id,
       comment_text: newComment.trim(),
       mentioned_user_ids: mentionedIds,
     });
+    const error = insertResult.error;
 
     if (error) {
       toast({

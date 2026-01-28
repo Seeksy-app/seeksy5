@@ -59,12 +59,13 @@ export function TaskBulkActions({
     setIsUpdating(true);
     
     try {
-      const { error } = await supabase
+      // Use category field instead of section (section doesn't exist in schema)
+      const result = await (supabase as any)
         .from("tasks")
-        .update({ section: sectionName })
+        .update({ category: sectionName })
         .in("id", selectedIds);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
 
       toast({
         title: "Success",
