@@ -40,7 +40,7 @@ export function VeteransLayout({ children }: VeteransLayoutProps) {
         setUserId(session.user.id);
         
         // Load conversations
-        const { data: convos } = await supabase
+        const convosResult = await (supabase as any)
           .from('veteran_conversations')
           .select('*')
           .eq('user_id', session.user.id)
@@ -48,7 +48,7 @@ export function VeteransLayout({ children }: VeteransLayoutProps) {
           .order('last_message_at', { ascending: false })
           .limit(20);
         
-        if (convos) setConversations(convos);
+        if (convosResult.data) setConversations(convosResult.data as Conversation[]);
       }
     };
     checkAuth();
@@ -77,7 +77,7 @@ export function VeteransLayout({ children }: VeteransLayoutProps) {
   const handleDeleteConversation = async (id: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    await supabase.from('veteran_conversations').delete().eq('id', id);
+    await (supabase as any).from('veteran_conversations').delete().eq('id', id);
     setConversations(prev => prev.filter(c => c.id !== id));
   };
 

@@ -61,7 +61,7 @@ export function PlanCampaignModal({ open, onOpenChange, venueId, isDemoMode = tr
       // Use venue_events_marketing for campaigns
       const goalText = formData.goal === "Other" ? formData.customGoal : formData.goal;
       
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('venue_events_marketing')
         .insert({
           venue_id: venueId,
@@ -72,7 +72,7 @@ export function PlanCampaignModal({ open, onOpenChange, venueId, isDemoMode = tr
           channel_mix: { channels: selectedChannels }
         });
 
-      if (error) throw error;
+      if (result.error) throw result.error;
 
       toast.success("Campaign created!");
       setFormData({ name: "", goal: "", customGoal: "", startDate: "", endDate: "", budget: "", description: "" });

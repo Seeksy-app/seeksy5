@@ -55,12 +55,12 @@ export function ScheduleTourModal({ open, onOpenChange, venueId, isDemoMode = tr
     if (!venueId) return;
 
     const [clientsRes, spacesRes] = await Promise.all([
-      supabase.from('venue_clients').select('id, first_name, last_name, email').eq('venue_id', venueId),
-      supabase.from('venue_spaces').select('id, name').eq('venue_id', venueId)
+      (supabase as any).from('venue_clients').select('id, first_name, last_name, email').eq('venue_id', venueId),
+      (supabase as any).from('venue_spaces').select('id, name').eq('venue_id', venueId)
     ]);
 
-    if (clientsRes.data) setClients(clientsRes.data);
-    if (spacesRes.data) setSpaces(spacesRes.data);
+    if (clientsRes.data) setClients(clientsRes.data as Client[]);
+    if (spacesRes.data) setSpaces(spacesRes.data as Space[]);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -80,7 +80,7 @@ export function ScheduleTourModal({ open, onOpenChange, venueId, isDemoMode = tr
         const firstName = nameParts[0] || '';
         const lastName = nameParts.slice(1).join(' ') || '';
         
-        const { data: newClient, error: clientError } = await supabase
+        const clientResult = await (supabase as any)
           .from('venue_clients')
           .insert({
             venue_id: venueId,
@@ -94,13 +94,13 @@ export function ScheduleTourModal({ open, onOpenChange, venueId, isDemoMode = tr
           .select()
           .single();
 
-        if (clientError) throw clientError;
-        clientId = newClient.id;
+        if (clientResult.error) throw clientResult.error;
+        clientId = (clientResult.data as any).id;
       }
 
       // Create tour booking
       const tourDate = new Date(`${formData.date}T${formData.time}`);
-      const { error: bookingError } = await supabase
+      const bookingResult = await (supabase as any)
         .from('venue_bookings')
         .insert({
           venue_id: venueId,
@@ -115,7 +115,7 @@ export function ScheduleTourModal({ open, onOpenChange, venueId, isDemoMode = tr
           is_demo: isDemoMode
         });
 
-      if (bookingError) throw bookingError;
+      if (bookingResult.error) throw bookingResult.error;
 
       toast.success("Tour scheduled successfully!");
       setFormData({ clientId: "", newClientName: "", newClientEmail: "", newClientPhone: "", date: "", time: "", spaceId: "", notes: "" });

@@ -50,27 +50,28 @@ export function EmailAccessGate({ pageSlug, onAccessGranted }: EmailAccessGatePr
       const { supabase } = await import("@/integrations/supabase/client");
       
       // Get the page ID first
-      const { data: page } = await supabase
+      const pageResult = await (supabase as any)
         .from("video_pages")
         .select("id")
         .eq("slug", pageSlug)
         .single();
 
-      if (!page) {
+      if (!pageResult.data) {
         setError("This page doesn't exist.");
         setIsLoading(false);
         return;
       }
+      const page = pageResult.data as any;
 
       // Check if email is in allowlist
-      const { data: access } = await supabase
+      const accessResult = await (supabase as any)
         .from("video_page_access")
         .select("id")
         .eq("page_id", page.id)
         .eq("email", email.toLowerCase().trim())
         .maybeSingle();
 
-      if (access) {
+      if (accessResult.data) {
         storeAccess(pageSlug, email.toLowerCase().trim());
         onAccessGranted();
       } else {

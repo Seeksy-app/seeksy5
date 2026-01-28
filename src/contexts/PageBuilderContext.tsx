@@ -43,16 +43,16 @@ export const PageBuilderProvider: React.FC<{ children: React.ReactNode; userId: 
   useEffect(() => {
     const loadLayout = async () => {
       try {
-        const { data, error } = await supabase
+        const result = await (supabase as any)
           .from('my_page_layouts')
           .select('*')
           .eq('user_id', userId)
           .order('position_order', { ascending: true });
 
-        if (error) throw error;
+        if (result.error) throw result.error;
 
-        if (data && data.length > 0) {
-          setLayoutElements(data as LayoutElement[]);
+        if (result.data && result.data.length > 0) {
+          setLayoutElements(result.data as LayoutElement[]);
         } else {
           // Initialize default layout with all elements hidden except essentials
           const defaultElements: LayoutElement[] = [
@@ -102,10 +102,10 @@ export const PageBuilderProvider: React.FC<{ children: React.ReactNode; userId: 
   const saveLayout = async () => {
     try {
       // Delete existing layout
-      await supabase.from('my_page_layouts').delete().eq('user_id', userId);
+      await (supabase as any).from('my_page_layouts').delete().eq('user_id', userId);
 
       // Insert new layout
-      const { error } = await supabase.from('my_page_layouts').insert(
+      const result = await (supabase as any).from('my_page_layouts').insert(
         layoutElements.map((el) => ({
           user_id: userId,
           element_type: el.element_type,
@@ -115,7 +115,7 @@ export const PageBuilderProvider: React.FC<{ children: React.ReactNode; userId: 
         }))
       );
 
-      if (error) throw error;
+      if (result.error) throw result.error;
 
       toast({
         title: 'Layout saved',

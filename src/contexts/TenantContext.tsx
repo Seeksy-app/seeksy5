@@ -76,7 +76,7 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('tenant_memberships')
         .select(`
           id,
@@ -96,13 +96,13 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
         `)
         .eq('user_id', user.id);
 
-      if (error) {
-        console.error('[TenantContext] Failed to fetch memberships:', error);
-        throw error;
+      if (result.error) {
+        console.error('[TenantContext] Failed to fetch memberships:', result.error);
+        throw result.error;
       }
 
       // Transform the data to match our interface
-      return (data || []).map((m: any) => ({
+      return ((result.data as any[]) || []).map((m: any) => ({
         id: m.id,
         tenant_id: m.tenant_id,
         user_id: m.user_id,

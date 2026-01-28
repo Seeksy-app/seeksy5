@@ -196,14 +196,15 @@ export function WorkspaceSidebar() {
   useEffect(() => {
     const fetchModuleRegistry = async () => {
       try {
-        const { data, error } = await supabase
+        const result = await (supabase as any)
           .from('modules')
           .select('name, display_name, description, icon, route, is_active')
           .eq('is_active', true);
 
-        if (error) {
-          console.error('Error fetching module registry:', error);
+        if (result.error) {
+          console.error('Error fetching module registry:', result.error);
         }
+        const data = result.data as any[] | null;
 
         // Start with SEEKSY_MODULES as the comprehensive base
         const moduleDataRegistry: ModuleRegistryItem[] = SEEKSY_MODULES.map((m, idx) => ({
@@ -219,10 +220,10 @@ export function WorkspaceSidebar() {
 
         // Merge with DB data (DB takes precedence for name/description/route)
         if (data && data.length > 0) {
-          const dbModuleMap = new Map(data.map(m => [m.name, m]));
+          const dbModuleMap = new Map(data.map((m: any) => [m.name, m]));
           
           const mergedRegistry = moduleDataRegistry.map(module => {
-            const dbModule = dbModuleMap.get(module.id);
+            const dbModule = dbModuleMap.get(module.id) as any;
             if (dbModule) {
               return {
                 ...module,
@@ -236,7 +237,7 @@ export function WorkspaceSidebar() {
           });
 
           // Add any DB modules not in SEEKSY_MODULES
-          data.forEach(m => {
+          data.forEach((m: any) => {
             if (!mergedRegistry.find(mr => mr.id === m.name)) {
               mergedRegistry.push({
                 id: m.name,

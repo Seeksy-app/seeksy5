@@ -38,14 +38,14 @@ export function RepAssignmentStep({ formData, updateFormData }: Props) {
     
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("vso_representatives")
         .select("id, full_name, organization_name, city, state, phone, email, accreditation_type")
         .eq("state", formData.state)
         .limit(5);
 
-      if (error) throw error;
-      setReps(data || []);
+      if (result.error) throw result.error;
+      setReps((result.data || []) as VSORepresentative[]);
     } catch (error) {
       console.error("Error loading reps:", error);
     } finally {

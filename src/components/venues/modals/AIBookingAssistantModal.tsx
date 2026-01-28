@@ -83,7 +83,7 @@ export function AIBookingAssistantModal({ open, onOpenChange, venueId, isDemoMod
     setLoading(true);
     try {
       // Create a sample client
-      const { data: client, error: clientError } = await supabase
+      const clientResult = await (supabase as any)
         .from('venue_clients')
         .insert({
           venue_id: venueId,
@@ -96,10 +96,11 @@ export function AIBookingAssistantModal({ open, onOpenChange, venueId, isDemoMod
         .select()
         .single();
 
-      if (clientError) throw clientError;
+      if (clientResult.error) throw clientResult.error;
+      const client = clientResult.data as any;
 
       // Create booking
-      const { error: bookingError } = await supabase
+      const bookingResult = await (supabase as any)
         .from('venue_bookings')
         .insert({
           venue_id: venueId,
@@ -111,7 +112,7 @@ export function AIBookingAssistantModal({ open, onOpenChange, venueId, isDemoMod
           is_demo: isDemoMode
         });
 
-      if (bookingError) throw bookingError;
+      if (bookingResult.error) throw bookingResult.error;
 
       setBookingCreated(true);
       setMessages(prev => [...prev, { 

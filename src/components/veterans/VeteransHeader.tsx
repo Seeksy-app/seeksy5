@@ -46,13 +46,13 @@ export function VeteransHeader({ variant = "landing" }: VeteransHeaderProps) {
   };
 
   const loadProfile = async (userId: string) => {
-    const { data } = await supabase
+    const result = await (supabase as any)
       .from("veteran_profiles")
       .select("full_name, photo_url")
       .eq("user_id", userId)
       .single();
-    if (data) {
-      setProfile(data as { full_name?: string; photo_url?: string });
+    if (result.data) {
+      setProfile(result.data as { full_name?: string; photo_url?: string });
     }
   };
 
