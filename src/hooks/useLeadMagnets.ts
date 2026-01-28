@@ -31,13 +31,13 @@ export function useAllLeadMagnets() {
   return useQuery({
     queryKey: ["lead-magnets", "all"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("lead_magnets")
         .select("*")
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
-      return data as LeadMagnet[];
+      if (result.error) throw result.error;
+      return result.data as LeadMagnet[];
     },
   });
 }
@@ -47,7 +47,7 @@ export function useActiveLeadMagnets(audienceRole?: string) {
   return useQuery({
     queryKey: ["lead-magnets", "active", audienceRole],
     queryFn: async () => {
-      let query = supabase
+      let query = (supabase as any)
         .from("lead_magnets")
         .select("*")
         .eq("is_active", true)
@@ -57,9 +57,9 @@ export function useActiveLeadMagnets(audienceRole?: string) {
         query = query.contains("audience_roles", [audienceRole]);
       }
 
-      const { data, error } = await query;
-      if (error) throw error;
-      return data as LeadMagnet[];
+      const result = await query;
+      if (result.error) throw result.error;
+      return result.data as LeadMagnet[];
     },
   });
 }
@@ -69,15 +69,15 @@ export function useLeadMagnetBySlug(slug: string) {
   return useQuery({
     queryKey: ["lead-magnets", "slug", slug],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("lead_magnets")
         .select("*")
         .eq("slug", slug)
         .eq("is_active", true)
         .single();
 
-      if (error) throw error;
-      return data as LeadMagnet;
+      if (result.error) throw result.error;
+      return result.data as LeadMagnet;
     },
     enabled: !!slug,
   });
@@ -89,14 +89,14 @@ export function useCreateLeadMagnet() {
 
   return useMutation({
     mutationFn: async (input: LeadMagnetInput) => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("lead_magnets")
         .insert(input)
         .select()
         .single();
 
-      if (error) throw error;
-      return data as LeadMagnet;
+      if (result.error) throw result.error;
+      return result.data as LeadMagnet;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["lead-magnets"] });
@@ -115,15 +115,15 @@ export function useUpdateLeadMagnet() {
 
   return useMutation({
     mutationFn: async ({ id, ...input }: LeadMagnetInput & { id: string }) => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("lead_magnets")
         .update(input)
         .eq("id", id)
         .select()
         .single();
 
-      if (error) throw error;
-      return data as LeadMagnet;
+      if (result.error) throw result.error;
+      return result.data as LeadMagnet;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["lead-magnets"] });
@@ -142,15 +142,15 @@ export function useToggleLeadMagnetStatus() {
 
   return useMutation({
     mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("lead_magnets")
         .update({ is_active })
         .eq("id", id)
         .select()
         .single();
 
-      if (error) throw error;
-      return data as LeadMagnet;
+      if (result.error) throw result.error;
+      return result.data as LeadMagnet;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["lead-magnets"] });
@@ -169,12 +169,12 @@ export function useDeleteLeadMagnet() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("lead_magnets")
         .delete()
         .eq("id", id);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["lead-magnets"] });

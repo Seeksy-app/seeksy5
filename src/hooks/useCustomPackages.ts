@@ -29,14 +29,14 @@ export function useCustomPackages() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return [];
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('custom_packages')
         .select('*')
         .eq('user_id', session.user.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      return (data || []) as CustomPackage[];
+      if (result.error) throw result.error;
+      return (result.data || []) as CustomPackage[];
     },
   });
 
@@ -46,19 +46,19 @@ export function useCustomPackages() {
       if (!session) throw new Error("Not authenticated");
 
       // The trigger will handle unsetting other defaults
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('custom_packages')
         .update({ is_default: true })
         .eq('id', packageId)
         .eq('user_id', session.user.id);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['custom-packages'] });
       toast.success("Default workspace updated");
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast.error("Failed to update default", { description: error.message });
     },
   });
@@ -68,19 +68,19 @@ export function useCustomPackages() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error("Not authenticated");
 
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('custom_packages')
         .delete()
         .eq('id', packageId)
         .eq('user_id', session.user.id);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['custom-packages'] });
       toast.success("Workspace deleted");
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast.error("Failed to delete workspace", { description: error.message });
     },
   });

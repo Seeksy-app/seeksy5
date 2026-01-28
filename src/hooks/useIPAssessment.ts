@@ -33,14 +33,14 @@ export function useIPAssessment() {
   // Seed items to database if not already present
   const seedItems = useCallback(async () => {
     try {
-      const { data: existingItems, error: checkError } = await supabase
+      const result = await (supabase as any)
         .from('ip_items')
         .select('id')
         .limit(1);
 
-      if (checkError) throw checkError;
+      if (result.error) throw result.error;
 
-      if (!existingItems || existingItems.length === 0) {
+      if (!result.data || result.data.length === 0) {
         const itemsToInsert = IP_ITEM_BANK.map(item => ({
           riasec_code: item.riasec_code,
           prompt: item.prompt,
@@ -49,11 +49,11 @@ export function useIPAssessment() {
           is_active: true,
         }));
 
-        const { error: insertError } = await supabase
+        const insertResult = await (supabase as any)
           .from('ip_items')
           .insert(itemsToInsert);
 
-        if (insertError) throw insertError;
+        if (insertResult.error) throw insertResult.error;
         console.log('IP items seeded successfully');
       }
     } catch (error) {
@@ -73,7 +73,7 @@ export function useIPAssessment() {
     try {
       await seedItems();
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('ip_assessments')
         .insert({
           user_id: user.id,
@@ -83,7 +83,8 @@ export function useIPAssessment() {
         .select()
         .single();
 
-      if (error) throw error;
+      if (result.error) throw result.error;
+      const data = result.data as any;
 
       const assessment: IPAssessment = {
         id: data.id,
@@ -121,21 +122,23 @@ export function useIPAssessment() {
 
     try {
       // Get assessment
-      const { data: assessmentData, error: assessmentError } = await supabase
+      const assessmentResult = await (supabase as any)
         .from('ip_assessments')
         .select('*')
         .eq('id', assessmentId)
         .single();
 
-      if (assessmentError) throw assessmentError;
+      if (assessmentResult.error) throw assessmentResult.error;
+      const assessmentData = assessmentResult.data as any;
 
       // Get existing responses
-      const { data: responsesData, error: responsesError } = await supabase
+      const responsesResult = await (supabase as any)
         .from('ip_responses')
         .select('*, ip_items!inner(display_order)')
         .eq('assessment_id', assessmentId);
 
-      if (responsesError) throw responsesError;
+      if (responsesResult.error) throw responsesResult.error;
+      const responsesData = responsesResult.data as any[];
 
       const responses = new Map<number, number>();
       let maxIndex = 0;
@@ -192,28 +195,28 @@ export function useIPAssessment() {
 
     try {
       // Get the item ID from database
-      const { data: itemData, error: itemError } = await supabase
+      const itemResult = await (supabase as any)
         .from('ip_items')
         .select('id')
         .eq('display_order', displayOrder)
         .eq('is_active', true)
         .single();
 
-      if (itemError) throw itemError;
+      if (itemResult.error) throw itemResult.error;
 
       // Upsert the response
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('ip_responses')
         .upsert({
           assessment_id: state.assessment.id,
-          item_id: itemData.id,
+          item_id: itemResult.data.id,
           riasec_code: item.riasec_code,
           value,
         }, {
           onConflict: 'assessment_id,item_id',
         });
 
-      if (error) throw error;
+      if (result.error) throw result.error;
     } catch (error) {
       console.error('Error saving response:', error);
       // Revert on error
@@ -332,18 +335,18 @@ export function useIPAssessment() {
         normalized_score: s.normalizedScore,
       }));
 
-      const { error: scoresError } = await supabase
+      const scoresResult = await (supabase as any)
         .from('ip_scores')
         .insert(scoreInserts);
 
-      if (scoresError) throw scoresError;
+      if (scoresResult.error) throw scoresResult.error;
 
       // Update assessment
       const scoresJson = Object.fromEntries(
         scoreResult.scores.map(s => [s.code, s.rawScore])
       );
 
-      const { error: updateError } = await supabase
+      const updateResult = await (supabase as any)
         .from('ip_assessments')
         .update({
           status: 'completed',
@@ -353,7 +356,7 @@ export function useIPAssessment() {
         })
         .eq('id', state.assessment.id);
 
-      if (updateError) throw updateError;
+      if (updateResult.error) throw updateResult.error;
 
       setState(prev => ({
         ...prev,

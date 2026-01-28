@@ -49,15 +49,15 @@ export function useCFOCapital() {
   const { data: capitalEvents, isLoading: eventsLoading } = useQuery({
     queryKey: ['cfo-capital-events'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('cfo_capital_events')
         .select('*')
         .eq('is_active', true)
         .order('timing_year', { ascending: true })
         .order('timing_quarter', { ascending: true });
 
-      if (error) throw error;
-      return data as CapitalEvent[];
+      if (result.error) throw result.error;
+      return result.data as CapitalEvent[];
     }
   });
 
@@ -65,16 +65,16 @@ export function useCFOCapital() {
   const { data: cashPosition, isLoading: cashLoading } = useQuery({
     queryKey: ['cfo-cash-position'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('cfo_cash_position')
         .select('*')
         .limit(1)
         .maybeSingle();
 
-      if (error) throw error;
+      if (result.error) throw result.error;
       
       // Return default if none exists
-      if (!data) {
+      if (!result.data) {
         return {
           id: '',
           current_cash: 250000,
@@ -85,7 +85,7 @@ export function useCFOCapital() {
         } as CashPosition;
       }
       
-      return data as CashPosition;
+      return result.data as CashPosition;
     }
   });
 
@@ -94,7 +94,7 @@ export function useCFOCapital() {
     mutationFn: async (event: Omit<CapitalEvent, 'id' | 'created_at' | 'updated_at' | 'is_active'>) => {
       const { data: user } = await supabase.auth.getUser();
       
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('cfo_capital_events')
         .insert({
           ...event,
@@ -102,7 +102,7 @@ export function useCFOCapital() {
           is_active: true
         });
 
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cfo-capital-events'] });
@@ -116,7 +116,7 @@ export function useCFOCapital() {
   // Update capital event
   const updateCapitalEvent = useMutation({
     mutationFn: async ({ id, ...updates }: Partial<CapitalEvent> & { id: string }) => {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('cfo_capital_events')
         .update({
           ...updates,
@@ -124,7 +124,7 @@ export function useCFOCapital() {
         })
         .eq('id', id);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cfo-capital-events'] });
@@ -135,12 +135,12 @@ export function useCFOCapital() {
   // Delete capital event (soft delete)
   const deleteCapitalEvent = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('cfo_capital_events')
         .update({ is_active: false })
         .eq('id', id);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cfo-capital-events'] });
@@ -153,7 +153,7 @@ export function useCFOCapital() {
     mutationFn: async (updates: Partial<CashPosition>) => {
       const { data: user } = await supabase.auth.getUser();
       
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('cfo_cash_position')
         .upsert({
           ...updates,
@@ -162,7 +162,7 @@ export function useCFOCapital() {
           updated_at: new Date().toISOString()
         });
 
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cfo-cash-position'] });
@@ -183,8 +183,6 @@ export function useCFOCapital() {
     let breakEvenMonth: number | null = null;
     
     const currentDate = new Date();
-    const startYear = currentDate.getFullYear();
-    const startQuarter = Math.ceil((currentDate.getMonth() + 1) / 3);
 
     for (let month = 1; month <= 36; month++) {
       const projectedDate = new Date(currentDate);

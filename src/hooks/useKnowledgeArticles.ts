@@ -6,7 +6,7 @@ export function useKnowledgeArticles(portal: PortalType, section?: string | null
   return useQuery({
     queryKey: ['knowledge-articles', portal, section],
     queryFn: async () => {
-      let query = supabase
+      let query = (supabase as any)
         .from('knowledge_articles')
         .select('*')
         .eq('portal', portal)
@@ -17,9 +17,9 @@ export function useKnowledgeArticles(portal: PortalType, section?: string | null
         query = query.eq('section', section);
       }
 
-      const { data, error } = await query;
-      if (error) throw error;
-      return data as KnowledgeArticle[];
+      const result = await query;
+      if (result.error) throw result.error;
+      return result.data as KnowledgeArticle[];
     }
   });
 }
@@ -28,7 +28,7 @@ export function useKnowledgeArticle(portal: PortalType, slug: string) {
   return useQuery({
     queryKey: ['knowledge-article', portal, slug],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('knowledge_articles')
         .select('*')
         .eq('portal', portal)
@@ -36,15 +36,16 @@ export function useKnowledgeArticle(portal: PortalType, slug: string) {
         .eq('is_published', true)
         .single();
 
-      if (error) throw error;
+      if (result.error) throw result.error;
+      const data = result.data as KnowledgeArticle;
       
       // Increment view count
-      await supabase
+      await (supabase as any)
         .from('knowledge_articles')
         .update({ view_count: (data.view_count || 0) + 1 })
         .eq('id', data.id);
 
-      return data as KnowledgeArticle;
+      return data;
     },
     enabled: !!slug
   });
@@ -54,7 +55,7 @@ export function useSearchKnowledgeArticles(query: string, portal?: PortalType | 
   return useQuery({
     queryKey: ['knowledge-search', query, portal],
     queryFn: async () => {
-      let dbQuery = supabase
+      let dbQuery = (supabase as any)
         .from('knowledge_articles')
         .select('*')
         .eq('is_published', true)
@@ -66,9 +67,9 @@ export function useSearchKnowledgeArticles(query: string, portal?: PortalType | 
         dbQuery = dbQuery.eq('portal', portal);
       }
 
-      const { data, error } = await dbQuery;
-      if (error) throw error;
-      return data as KnowledgeArticle[];
+      const result = await dbQuery;
+      if (result.error) throw result.error;
+      return result.data as KnowledgeArticle[];
     },
     enabled: query.length > 2
   });

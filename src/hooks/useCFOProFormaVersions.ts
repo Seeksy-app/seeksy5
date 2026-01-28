@@ -21,13 +21,13 @@ export function useCFOProFormaVersions() {
   const { data: versions, isLoading } = useQuery({
     queryKey: ['cfo-proforma-versions'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('cfo_proforma_versions')
         .select('*')
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
-      return data as CFOProFormaVersion[];
+      if (result.error) throw result.error;
+      return result.data as CFOProFormaVersion[];
     },
   });
 
@@ -35,7 +35,7 @@ export function useCFOProFormaVersions() {
   const { data: latestVersion, isLoading: latestLoading } = useQuery({
     queryKey: ['cfo-proforma-versions', 'latest'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('cfo_proforma_versions')
         .select('*')
         .eq('is_published', true)
@@ -43,8 +43,8 @@ export function useCFOProFormaVersions() {
         .limit(1)
         .single();
       
-      if (error && error.code !== 'PGRST116') throw error; // Ignore not found
-      return data as CFOProFormaVersion | null;
+      if (result.error && result.error.code !== 'PGRST116') throw result.error; // Ignore not found
+      return result.data as CFOProFormaVersion | null;
     },
   });
 
@@ -65,7 +65,7 @@ export function useCFOProFormaVersions() {
         throw new Error('You must be logged in to save a version');
       }
       
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('cfo_proforma_versions')
         .insert({
           name,
@@ -77,8 +77,8 @@ export function useCFOProFormaVersions() {
         .select()
         .single();
       
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['cfo-proforma-versions'] });
@@ -93,12 +93,12 @@ export function useCFOProFormaVersions() {
   // Delete a version
   const deleteVersion = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('cfo_proforma_versions')
         .delete()
         .eq('id', id);
       
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cfo-proforma-versions'] });

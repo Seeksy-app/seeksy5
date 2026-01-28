@@ -120,29 +120,30 @@ export function useClipGeneration() {
     const pollJob = async () => {
       try {
         // Fetch job status
-        const { data: job, error: jobError } = await supabase
+        const result = await (supabase as any)
           .from("clip_jobs")
           .select("*")
           .eq("id", jobId)
           .single();
 
-        if (jobError) {
-          console.error("Error fetching job:", jobError);
+        if (result.error) {
+          console.error("Error fetching job:", result.error);
           return;
         }
 
-        setCurrentJob(job as unknown as ClipJob);
+        const job = result.data as ClipJob;
+        setCurrentJob(job);
 
         if (job.status === "completed") {
           // Fetch generated clips
-          const { data: clips } = await supabase
+          const clipsResult = await (supabase as any)
             .from("clips")
             .select("*")
             .eq("clip_job_id", jobId)
             .eq("status", "ready")
             .order("virality_score", { ascending: false });
 
-          setGeneratedClips((clips || []) as Clip[]);
+          setGeneratedClips((clipsResult.data || []) as Clip[]);
           setIsGenerating(false);
           
           if (pollingRef.current) {
@@ -185,7 +186,7 @@ export function useClipGeneration() {
   }, [queryClient, toast]);
 
   const fetchClipsForMedia = useCallback(async (sourceMediaId: string) => {
-    const { data: clips, error } = await supabase
+    const result = await (supabase as any)
       .from("clips")
       .select("*")
       .eq("source_media_id", sourceMediaId)
@@ -193,23 +194,23 @@ export function useClipGeneration() {
       .is("deleted_at", null)
       .order("virality_score", { ascending: false });
 
-    if (error) {
-      console.error("Error fetching clips:", error);
+    if (result.error) {
+      console.error("Error fetching clips:", result.error);
       return [];
     }
 
-    return (clips || []) as Clip[];
+    return (result.data || []) as Clip[];
   }, []);
 
   const getJobStatus = useCallback(async (jobId: string) => {
-    const { data, error } = await supabase
+    const result = await (supabase as any)
       .from("clip_jobs")
       .select("*")
       .eq("id", jobId)
       .single();
 
-    if (error) throw error;
-    return data as unknown as ClipJob;
+    if (result.error) throw result.error;
+    return result.data as ClipJob;
   }, []);
 
   const cancelPolling = useCallback(() => {

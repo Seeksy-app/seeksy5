@@ -13,14 +13,14 @@ export function useCFONotes(pageKey: string) {
 
   const fetchNotes = async () => {
     try {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('cfo_notes')
         .select('notes')
         .eq('page_key', pageKey)
         .maybeSingle();
 
-      if (error) throw error;
-      setNotes(data?.notes || '');
+      if (result.error) throw result.error;
+      setNotes(result.data?.notes || '');
     } catch (error) {
       console.error('Error fetching CFO notes:', error);
     } finally {
@@ -33,7 +33,7 @@ export function useCFONotes(pageKey: string) {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('cfo_notes')
         .upsert({
           page_key: pageKey,
@@ -42,7 +42,7 @@ export function useCFONotes(pageKey: string) {
           updated_by: user?.id
         }, { onConflict: 'page_key' });
 
-      if (error) throw error;
+      if (result.error) throw result.error;
       setNotes(newNotes);
       toast.success('Notes saved');
     } catch (error) {
