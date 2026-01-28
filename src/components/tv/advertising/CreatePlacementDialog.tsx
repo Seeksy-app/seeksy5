@@ -43,12 +43,12 @@ export function CreatePlacementDialog({ open, onOpenChange, ads, onSuccess }: Cr
   const { data: channels } = useQuery({
     queryKey: ['tv-channels-for-placement'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('tv_channels')
         .select('id, name')
         .order('name');
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as { id: string; name: string }[];
     }
   });
 
@@ -56,13 +56,13 @@ export function CreatePlacementDialog({ open, onOpenChange, ads, onSuccess }: Cr
   const { data: videos } = useQuery({
     queryKey: ['tv-content-for-placement'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('tv_content')
         .select('id, title')
         .eq('is_published', true)
         .order('title');
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as { id: string; title: string }[];
     }
   });
 
@@ -90,7 +90,7 @@ export function CreatePlacementDialog({ open, onOpenChange, ads, onSuccess }: Cr
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('seeksy_tv_ad_placements')
         .insert({
           ad_id: formData.ad_id,
@@ -106,7 +106,7 @@ export function CreatePlacementDialog({ open, onOpenChange, ads, onSuccess }: Cr
           created_by: user?.id
         });
 
-      if (error) throw error;
+      if (result.error) throw result.error;
 
       toast.success('Placement created successfully');
       setFormData({

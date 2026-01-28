@@ -238,7 +238,7 @@ export function CreateAdDialog({ open, onOpenChange, onSuccess }: CreateAdDialog
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('seeksy_tv_ads')
         .insert({
           title: formData.title,
@@ -252,7 +252,7 @@ export function CreateAdDialog({ open, onOpenChange, onSuccess }: CreateAdDialog
           created_by: user?.id
         });
 
-      if (error) throw error;
+      if (result.error) throw result.error;
 
       toast.success('Ad created successfully');
       resetForm();
