@@ -44,13 +44,13 @@ export function DropboxImportDialog({ open, onOpenChange, onImportComplete }: Dr
 
   const checkConnection = async () => {
     try {
-      const { data } = await (supabase
-        .from('social_media_profiles') as any)
+      const result = await (supabase as any)
+        .from('social_media_profiles')
         .select('id')
         .eq('platform', 'dropbox')
-        .single();
+        .maybeSingle();
       
-      if (data) {
+      if (result.data) {
         setIsConnected(true);
         setStep('browse');
         loadFiles('');
