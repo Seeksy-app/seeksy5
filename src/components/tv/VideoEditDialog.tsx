@@ -48,7 +48,7 @@ export function VideoEditDialog({ open, onOpenChange, video, onSuccess }: VideoE
     
     setSaving(true);
     try {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('tv_content')
         .update({
           title,
@@ -57,7 +57,7 @@ export function VideoEditDialog({ open, onOpenChange, video, onSuccess }: VideoE
         })
         .eq('id', video.id);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
 
       toast({
         title: "Video updated",

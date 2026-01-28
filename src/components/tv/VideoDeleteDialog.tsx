@@ -32,12 +32,13 @@ export function VideoDeleteDialog({ open, onOpenChange, video, onSuccess }: Vide
     
     setDeleting(true);
     try {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('tv_content')
         .delete()
         .eq('id', video.id);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
+
 
       toast({
         title: "Video deleted",

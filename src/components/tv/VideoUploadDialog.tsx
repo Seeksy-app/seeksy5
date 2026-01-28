@@ -147,7 +147,7 @@ export function VideoUploadDialog({ open, onOpenChange, onUploadComplete }: Vide
         .getPublicUrl(filePath);
 
       // Create tv_content record
-      const { error: dbError } = await supabase
+      const result = await (supabase as any)
         .from('tv_content')
         .insert({
           title: title.trim(),
@@ -159,7 +159,7 @@ export function VideoUploadDialog({ open, onOpenChange, onUploadComplete }: Vide
           content_type: 'video'
         });
 
-      if (dbError) throw dbError;
+      if (result.error) throw result.error;
 
       setUploadProgress(100);
 
