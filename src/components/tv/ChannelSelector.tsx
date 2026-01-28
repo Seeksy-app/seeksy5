@@ -24,6 +24,15 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Plus, Tv, Check } from "lucide-react";
 
+interface Channel {
+  id: string;
+  name: string;
+  slug?: string;
+  description?: string;
+  is_verified?: boolean;
+  user_id?: string;
+}
+
 interface ChannelSelectorProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -51,13 +60,13 @@ export function ChannelSelector({
   const { data: channels, isLoading } = useQuery({
     queryKey: ["tv-channels"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("tv_channels")
         .select("*")
         .order("name");
 
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as Channel[];
     },
   });
 
@@ -68,7 +77,7 @@ export function ChannelSelector({
 
       const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("tv_channels")
         .insert({
           name,
@@ -79,8 +88,8 @@ export function ChannelSelector({
         .select()
         .single();
 
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as Channel;
     },
     onSuccess: (data) => {
       toast.success("Channel created!");
@@ -103,12 +112,12 @@ export function ChannelSelector({
         updateData.published_at = new Date().toISOString();
       }
 
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("tv_content")
         .update(updateData)
         .eq("id", videoId);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       toast.success(publishAfterAssign ? "Video published to channel!" : "Video assigned to channel!");

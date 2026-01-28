@@ -28,7 +28,7 @@ export function InviteTeamMemberDialog({ open, onOpenChange }: InviteTeamMemberD
 
       // Store SMS consent if phone provided
       if (phone && smsConsent) {
-        await supabase.from('sms_consent_records').insert({
+        await (supabase as any).from('sms_consent_records').insert({
           user_id: null, // Guest user, not yet signed up
           phone_number: phone,
           consent_given: true,
