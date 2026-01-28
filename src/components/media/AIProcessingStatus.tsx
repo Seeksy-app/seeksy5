@@ -12,7 +12,7 @@ export const AIProcessingStatus = ({ mediaId }: AIProcessingStatusProps) => {
   const { data: latestJob, isLoading } = useQuery({
     queryKey: ["ai-job-status", mediaId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("ai_jobs")
         .select("id, status, error_message, created_at, completed_at")
         .eq("source_media_id", mediaId)
@@ -20,8 +20,8 @@ export const AIProcessingStatus = ({ mediaId }: AIProcessingStatusProps) => {
         .limit(1)
         .maybeSingle();
 
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any;
     },
     refetchInterval: (query) => {
       // Refetch every 5 seconds if processing

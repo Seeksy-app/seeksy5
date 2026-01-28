@@ -38,13 +38,13 @@ export function useCFOAssumptions() {
   const { data: cfoAssumptions, isLoading: cfoLoading } = useQuery({
     queryKey: ['cfo-assumptions'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('cfo_assumptions')
         .select('*')
         .order('category', { ascending: true });
       
-      if (error) throw error;
-      return data as CFOAssumption[];
+      if (result.error) throw result.error;
+      return result.data as CFOAssumption[];
     },
   });
 
@@ -52,13 +52,13 @@ export function useCFOAssumptions() {
   const { data: rdBenchmarks, isLoading: rdLoading } = useQuery({
     queryKey: ['rd-benchmarks'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('rd_benchmarks')
         .select('metric_key, value, unit, confidence, source_notes')
         .order('metric_key');
       
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any[];
     },
   });
 
@@ -80,7 +80,7 @@ export function useCFOAssumptions() {
   });
 
   // Apply R&D benchmarks (override schema defaults)
-  rdBenchmarks?.forEach((b) => {
+  rdBenchmarks?.forEach((b: any) => {
     const config = getAssumptionConfig(b.metric_key);
     if (effectiveAssumptions[b.metric_key]) {
       effectiveAssumptions[b.metric_key] = {
@@ -129,7 +129,7 @@ export function useCFOAssumptions() {
       const inferredCategory = category || getMetricCategory(metric_key) || 'general';
       const config = getAssumptionConfig(metric_key);
       
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('cfo_assumptions')
         .upsert({
           metric_key,
@@ -144,7 +144,7 @@ export function useCFOAssumptions() {
           onConflict: 'metric_key',
         });
       
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cfo-assumptions'] });
@@ -182,11 +182,11 @@ export function useCFOAssumptions() {
         };
       });
       
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('cfo_assumptions')
         .upsert(records, { onConflict: 'metric_key' });
       
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cfo-assumptions'] });
@@ -200,12 +200,12 @@ export function useCFOAssumptions() {
   // Delete a CFO assumption (revert to R&D default or schema default)
   const deleteAssumption = useMutation({
     mutationFn: async (metric_key: string) => {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('cfo_assumptions')
         .delete()
         .eq('metric_key', metric_key);
       
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cfo-assumptions'] });

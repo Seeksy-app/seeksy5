@@ -16,14 +16,14 @@ export function useBoardContent(pageSlug: string) {
   const { data: content, isLoading, error } = useQuery({
     queryKey: ['boardContent', pageSlug],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('board_content')
         .select('*')
         .eq('page_slug', pageSlug)
         .single();
 
-      if (error) throw error;
-      return data as BoardContent;
+      if (result.error) throw result.error;
+      return result.data as BoardContent;
     },
   });
 
@@ -38,12 +38,12 @@ export function useBoardContent(pageSlug: string) {
       
       if (title) updateData.title = title;
 
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('board_content')
         .update(updateData)
         .eq('page_slug', pageSlug);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['boardContent', pageSlug] });
@@ -63,13 +63,13 @@ export function useBoardMetrics() {
   const { data: metrics, isLoading } = useQuery({
     queryKey: ['boardMetrics'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('board_metrics')
         .select('*')
         .order('display_order');
 
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any[];
     },
   });
 
@@ -80,14 +80,14 @@ export function useBoardDocuments() {
   const { data: documents, isLoading } = useQuery({
     queryKey: ['boardDocuments'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('board_documents')
         .select('*')
         .eq('is_active', true)
         .order('display_order');
 
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any[];
     },
   });
 

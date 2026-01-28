@@ -33,13 +33,15 @@ export function useAAR(id?: string) {
   const fetchAAR = async (aarId: string) => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('aars')
         .select('*')
         .eq('id', aarId)
         .single();
 
-      if (error) throw error;
+      if (result.error) throw result.error;
+      
+      const data = result.data as any;
       
       // Parse JSONB fields properly with type casting
       const parsedData = {
@@ -47,25 +49,26 @@ export function useAAR(id?: string) {
         event_type: data.event_type as AAR['event_type'],
         status: data.status as AAR['status'],
         visibility: data.visibility as AAR['visibility'],
-        key_stakeholders: (data.key_stakeholders as unknown as Stakeholder[]) || [],
-        pull_quotes: (data.pull_quotes as unknown as PullQuote[]) || [],
-        financial_spend: (data.financial_spend as unknown as SpendItem[]) || [],
+        key_stakeholders: (data.key_stakeholders as Stakeholder[]) || [],
+        pull_quotes: (data.pull_quotes as PullQuote[]) || [],
+        financial_spend: (data.financial_spend as SpendItem[]) || [],
       };
       
       setAAR(parsedData as Partial<AAR>);
 
       // Fetch media
-      const { data: mediaData } = await supabase
+      const mediaResult = await (supabase as any)
         .from('aar_media')
         .select('*')
         .eq('aar_id', aarId)
         .order('display_order');
 
-      if (mediaData) {
+      if (mediaResult.data) {
+        const mediaData = mediaResult.data as any[];
         const parsedMedia = mediaData.map(m => ({
           ...m,
           media_type: m.media_type as AARMedia['media_type'],
-          timestamp_highlights: (m.timestamp_highlights as unknown as AARMedia['timestamp_highlights']) || [],
+          timestamp_highlights: (m.timestamp_highlights as AARMedia['timestamp_highlights']) || [],
         })) as AARMedia[];
         setMedia(parsedMedia);
       }
@@ -100,7 +103,7 @@ export function useAAR(id?: string) {
         ? totalSpend / aar.leads_generated 
         : null;
 
-      // Prepare data for Supabase - using any to bypass strict typing
+      // Prepare data for Supabase
       const saveData: any = {
         ...aar,
         owner_id: userData.user.id,
@@ -113,29 +116,29 @@ export function useAAR(id?: string) {
 
       let result;
       if (id && id !== 'new') {
-        const { data, error } = await supabase
+        const updateResult = await (supabase as any)
           .from('aars')
           .update(saveData)
           .eq('id', id)
           .select()
           .single();
         
-        if (error) throw error;
-        result = data;
+        if (updateResult.error) throw updateResult.error;
+        result = updateResult.data;
         toast.success('AAR saved');
       } else {
         // Generate share slug
         const shareSlug = `${aar.event_name?.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'aar'}-${Date.now().toString(36)}`;
         saveData.share_slug = shareSlug;
         
-        const { data, error } = await supabase
+        const insertResult = await (supabase as any)
           .from('aars')
           .insert(saveData)
           .select()
           .single();
         
-        if (error) throw error;
-        result = data;
+        if (insertResult.error) throw insertResult.error;
+        result = insertResult.data;
         toast.success('AAR created');
         navigate(`/aar/${result.id}`);
       }
@@ -155,12 +158,12 @@ export function useAAR(id?: string) {
     if (!id || id === 'new') return;
     
     try {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('aars')
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
       toast.success('AAR deleted');
       navigate('/aar');
     } catch (err) {
@@ -197,7 +200,7 @@ export function useAAR(id?: string) {
         : file.type.startsWith('audio/') ? 'audio'
         : 'document';
 
-      const { data: mediaRecord, error: insertError } = await supabase
+      const insertResult = await (supabase as any)
         .from('aar_media')
         .insert({
           aar_id: id,
@@ -212,12 +215,14 @@ export function useAAR(id?: string) {
         .select()
         .single();
 
-      if (insertError) throw insertError;
+      if (insertResult.error) throw insertResult.error;
+      
+      const mediaRecord = insertResult.data as any;
 
       const parsedRecord = {
         ...mediaRecord,
         media_type: mediaRecord.media_type as AARMedia['media_type'],
-        timestamp_highlights: (mediaRecord.timestamp_highlights as unknown as AARMedia['timestamp_highlights']) || [],
+        timestamp_highlights: (mediaRecord.timestamp_highlights as AARMedia['timestamp_highlights']) || [],
       } as AARMedia;
 
       setMedia(prev => [...prev, parsedRecord]);
@@ -232,12 +237,12 @@ export function useAAR(id?: string) {
 
   const deleteMedia = async (mediaId: string) => {
     try {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('aar_media')
         .delete()
         .eq('id', mediaId);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
       setMedia(prev => prev.filter(m => m.id !== mediaId));
       toast.success('Media deleted');
     } catch (err) {

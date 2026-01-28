@@ -13,17 +13,18 @@ export function useBoardViewMode() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return { viewAsBoard: false };
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('admin_view_mode')
         .select('view_as_board')
         .eq('user_id', user.id)
         .maybeSingle();
 
-      if (error) {
-        console.error('Error fetching view mode:', error);
+      if (result.error) {
+        console.error('Error fetching view mode:', result.error);
         return { viewAsBoard: false };
       }
 
+      const data = result.data as any;
       return { viewAsBoard: data?.view_as_board || false };
     },
     enabled: canToggleBoardView,
@@ -34,7 +35,7 @@ export function useBoardViewMode() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('admin_view_mode')
         .upsert({
           user_id: user.id,
@@ -43,7 +44,7 @@ export function useBoardViewMode() {
           onConflict: 'user_id'
         });
 
-      if (error) throw error;
+      if (result.error) throw result.error;
       return viewAsBoard;
     },
     onSuccess: () => {

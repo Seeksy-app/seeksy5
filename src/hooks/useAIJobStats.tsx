@@ -13,7 +13,7 @@ export const useAIJobStats = (mediaId: string) => {
     queryKey: ["ai-job-stats", mediaId],
     queryFn: async (): Promise<AIJobStats> => {
       // Get the most recent completed AI job for this media
-      const { data: jobs, error: jobsError } = await supabase
+      const jobsResult = await (supabase as any)
         .from("ai_jobs")
         .select("id, status, error_message")
         .eq("source_media_id", mediaId)
@@ -21,7 +21,9 @@ export const useAIJobStats = (mediaId: string) => {
         .order("completed_at", { ascending: false })
         .limit(1);
 
-      if (jobsError) throw jobsError;
+      if (jobsResult.error) throw jobsResult.error;
+      
+      const jobs = jobsResult.data as any[];
 
       if (!jobs || jobs.length === 0) {
         return {
@@ -35,15 +37,15 @@ export const useAIJobStats = (mediaId: string) => {
       const latestJob = jobs[0];
 
       // Count edit events for this job
-      const { count, error: countError } = await supabase
+      const countResult = await (supabase as any)
         .from("ai_edit_events")
         .select("*", { count: "exact", head: true })
         .eq("ai_job_id", latestJob.id);
 
-      if (countError) throw countError;
+      if (countResult.error) throw countResult.error;
 
       return {
-        totalEdits: count || 0,
+        totalEdits: countResult.count || 0,
         lastJobStatus: latestJob.status,
         lastJobError: latestJob.error_message,
         hasAIJob: true,

@@ -57,14 +57,14 @@ export function useBoardDecisions(meetingId: string | undefined) {
     queryKey: ["board-decisions", meetingId],
     queryFn: async () => {
       if (!meetingId) return [];
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("board_decisions")
         .select("*")
         .eq("meeting_id", meetingId)
         .order("created_at", { ascending: true });
-      if (error) throw error;
+      if (result.error) throw result.error;
       // Parse options_json for extended fields
-      return (data || []).map((d: any) => ({
+      return ((result.data as any[]) || []).map((d: any) => ({
         ...d,
         option_summary: d.options_json?.option_summary || '',
         upside: d.options_json?.upside || '',
@@ -85,7 +85,7 @@ export function useBoardDecisions(meetingId: string | undefined) {
         status: 'open',
         owner_name: input.owner_name || '',
       };
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("board_decisions")
         .insert({
           meeting_id: input.meeting_id,
@@ -97,8 +97,8 @@ export function useBoardDecisions(meetingId: string | undefined) {
         })
         .select()
         .single();
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["board-decisions", meetingId] });
@@ -113,13 +113,13 @@ export function useBoardDecisions(meetingId: string | undefined) {
   const updateDecision = useMutation({
     mutationFn: async (input: UpdateDecisionInput) => {
       // First get current record to merge options_json
-      const { data: current } = await supabase
+      const currentResult = await (supabase as any)
         .from("board_decisions")
         .select("options_json")
         .eq("id", input.id)
         .single();
       
-      const currentOptions = (current?.options_json as any) || {};
+      const currentOptions = (currentResult.data?.options_json as any) || {};
       const updatedOptions = { ...currentOptions };
       
       if (input.option_summary !== undefined) updatedOptions.option_summary = input.option_summary;
@@ -133,14 +133,14 @@ export function useBoardDecisions(meetingId: string | undefined) {
       if (input.decision !== undefined) updateData.decision = input.decision;
       if (input.due_date !== undefined) updateData.due_date = input.due_date;
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("board_decisions")
         .update(updateData)
         .eq("id", input.id)
         .select()
         .single();
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["board-decisions", meetingId] });
@@ -153,8 +153,8 @@ export function useBoardDecisions(meetingId: string | undefined) {
 
   const deleteDecision = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("board_decisions").delete().eq("id", id);
-      if (error) throw error;
+      const result = await (supabase as any).from("board_decisions").delete().eq("id", id);
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["board-decisions", meetingId] });
@@ -173,7 +173,7 @@ export function useBoardDecisions(meetingId: string | undefined) {
       );
       for (const dec of unresolved) {
         const currentOptions = (dec.options_json as any) || {};
-        await supabase
+        await (supabase as any)
           .from("board_decisions")
           .update({
             options_json: { ...currentOptions, status: 'deferred', deferred_note: note },

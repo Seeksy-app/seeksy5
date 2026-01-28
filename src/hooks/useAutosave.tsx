@@ -32,7 +32,7 @@ export function useAutosave<T extends Record<string, unknown>>({
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
-        const { data: draft } = await supabase
+        const result = await (supabase as any)
           .from("autosave_drafts")
           .select("draft_data, last_saved_at")
           .eq("user_id", user.id)
@@ -40,7 +40,8 @@ export function useAutosave<T extends Record<string, unknown>>({
           .eq("form_id", formId || "")
           .single();
 
-        if (draft) {
+        if (result.data) {
+          const draft = result.data as any;
           setData(draft.draft_data as T);
           setLastSaved(new Date(draft.last_saved_at));
         }
@@ -65,14 +66,14 @@ export function useAutosave<T extends Record<string, unknown>>({
       if (!user) return;
 
       // Delete existing and insert new (workaround for upsert typing)
-      await supabase
+      await (supabase as any)
         .from("autosave_drafts")
         .delete()
         .eq("user_id", user.id)
         .eq("form_type", formType)
         .eq("form_id", formId || "");
 
-      const { error } = await supabase
+      const insertResult = await (supabase as any)
         .from("autosave_drafts")
         .insert({
           user_id: user.id,
@@ -83,7 +84,7 @@ export function useAutosave<T extends Record<string, unknown>>({
           expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
         });
 
-      if (error) throw error;
+      if (insertResult.error) throw insertResult.error;
 
       previousDataRef.current = dataString;
       setLastSaved(new Date());
@@ -91,7 +92,7 @@ export function useAutosave<T extends Record<string, unknown>>({
     } catch (error) {
       console.error("Autosave failed:", error);
       // Log to system health
-      await supabase.from("system_health_log").insert({
+      await (supabase as any).from("system_health_log").insert({
         event_type: "write_failure",
         severity: "warning",
         table_name: "autosave_drafts",
@@ -125,7 +126,7 @@ export function useAutosave<T extends Record<string, unknown>>({
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      await supabase
+      await (supabase as any)
         .from("autosave_drafts")
         .delete()
         .eq("user_id", user.id)

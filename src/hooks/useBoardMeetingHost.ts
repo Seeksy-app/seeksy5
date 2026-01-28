@@ -38,13 +38,14 @@ export function useBoardMeetingHost({
           return;
         }
 
-        const { data: meeting } = await supabase
+        const result = await (supabase as any)
           .from('board_meeting_notes')
           .select('host_user_id, host_has_started, created_by')
           .eq('id', meetingId)
           .single();
 
-        if (meeting) {
+        if (result.data) {
+          const meeting = result.data as any;
           // Host is either the designated host_user_id or the creator
           const hostId = meeting.host_user_id || meeting.created_by;
           setIsHost(userData.user.id === hostId);
@@ -94,7 +95,7 @@ export function useBoardMeetingHost({
     }
 
     try {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('board_meeting_notes')
         .update({
           host_has_started: true,
@@ -103,7 +104,7 @@ export function useBoardMeetingHost({
         })
         .eq('id', meetingId);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
 
       setHostHasStarted(true);
       toast.success('Meeting started');
@@ -177,7 +178,7 @@ export function useBoardMeetingHost({
     }
 
     try {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('board_meeting_notes')
         .update({
           status: 'completed',
@@ -185,7 +186,7 @@ export function useBoardMeetingHost({
         })
         .eq('id', meetingId);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
 
       // Push GTM event
       if (typeof window !== 'undefined' && (window as any).dataLayer) {

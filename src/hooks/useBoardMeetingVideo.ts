@@ -40,12 +40,13 @@ export const useBoardMeetingVideo = (meetingNoteId: string) => {
     const checkActiveRoom = async () => {
       if (!meetingNoteId) return;
       
-      const { data } = await supabase
+      const result = await (supabase as any)
         .from('board_meeting_notes')
         .select('room_name, room_url')
         .eq('id', meetingNoteId)
         .single();
       
+      const data = result.data as any;
       setHasActiveRoom(!!(data?.room_name && data?.room_url));
     };
     
@@ -323,9 +324,6 @@ export const useBoardMeetingVideo = (meetingNoteId: string) => {
   // Toggle mute
   const toggleMute = useCallback(() => {
     if (!callObject) return;
-    // setLocalAudio(true) = unmuted, setLocalAudio(false) = muted
-    // When isMuted is true, we want to unmute, so pass true
-    // When isMuted is false, we want to mute, so pass false
     callObject.setLocalAudio(!isMuted);
     setIsMuted(!isMuted);
   }, [callObject, isMuted]);
@@ -333,9 +331,6 @@ export const useBoardMeetingVideo = (meetingNoteId: string) => {
   // Toggle video
   const toggleVideo = useCallback(() => {
     if (!callObject) return;
-    // setLocalVideo(true) = video on, setLocalVideo(false) = video off
-    // When isVideoOff is true, we want video on, so pass true
-    // When isVideoOff is false, we want video off, so pass false
     callObject.setLocalVideo(!isVideoOff);
     setIsVideoOff(!isVideoOff);
   }, [callObject, isVideoOff]);
@@ -348,7 +343,7 @@ export const useBoardMeetingVideo = (meetingNoteId: string) => {
       await callObject.startRecording();
       
       // Update database
-      await supabase
+      await (supabase as any)
         .from('board_meeting_notes')
         .update({ recording_status: 'recording' })
         .eq('id', meetingNoteId);
@@ -367,7 +362,7 @@ export const useBoardMeetingVideo = (meetingNoteId: string) => {
       await callObject.stopRecording();
       
       // Update database
-      await supabase
+      await (supabase as any)
         .from('board_meeting_notes')
         .update({ recording_status: 'processing' })
         .eq('id', meetingNoteId);
@@ -490,7 +485,7 @@ export const useBoardMeetingVideo = (meetingNoteId: string) => {
       }
       
       // Update meeting record with audio file URL
-      const { error: updateError } = await supabase
+      const updateResult = await (supabase as any)
         .from('board_meeting_notes')
         .update({ 
           audio_file_url: fileName,
@@ -498,8 +493,8 @@ export const useBoardMeetingVideo = (meetingNoteId: string) => {
         })
         .eq('id', meetingNoteId);
       
-      if (updateError) {
-        console.error('Update error:', updateError);
+      if (updateResult.error) {
+        console.error('Update error:', updateResult.error);
       }
       
       toast.success('Meeting audio saved');
@@ -528,21 +523,23 @@ export const useBoardMeetingVideo = (meetingNoteId: string) => {
       }
       
       // Get the saved audio file path
-      const { data: meetingData } = await supabase
+      const meetingResult = await (supabase as any)
         .from('board_meeting_notes')
         .select('audio_file_url')
         .eq('id', meetingNoteId)
         .single();
       
+      const meetingData = meetingResult.data as any;
       const audioFilePath = meetingData?.audio_file_url;
       
       if (!audioFilePath) {
-        const { data: existingData } = await supabase
+        const existingResult = await (supabase as any)
           .from('board_meeting_notes')
           .select('audio_transcript')
           .eq('id', meetingNoteId)
           .single();
         
+        const existingData = existingResult.data as any;
         if (!existingData?.audio_transcript) {
           toast.error('No audio recorded. Please start the timer first to begin recording.');
           setIsGeneratingNotes(false);
