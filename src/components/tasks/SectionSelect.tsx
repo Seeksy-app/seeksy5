@@ -8,7 +8,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Plus, Settings } from "lucide-react";
+import { Plus } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -53,24 +53,24 @@ export function SectionSelect({ value, onValueChange }: SectionSelectProps) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { data, error } = await supabase
+    const result = await (supabase as any)
       .from('task_sections')
       .select('*')
       .eq('user_id', user.id)
       .order('display_order');
 
-    if (error) {
-      console.error("Error loading sections:", error);
+    if (result.error) {
+      console.error("Error loading sections:", result.error);
       return;
     }
 
     // If no sections exist, create defaults
-    if (!data || data.length === 0) {
+    if (!result.data || result.data.length === 0) {
       await createDefaultSections(user.id);
       return;
     }
 
-    setSections(data);
+    setSections(result.data as Section[]);
   };
 
   const createDefaultSections = async (userId: string) => {
@@ -79,12 +79,12 @@ export function SectionSelect({ value, onValueChange }: SectionSelectProps) {
       user_id: userId,
     }));
 
-    const { error } = await supabase
+    const result = await (supabase as any)
       .from('task_sections')
       .insert(sectionsToInsert);
 
-    if (error) {
-      console.error("Error creating default sections:", error);
+    if (result.error) {
+      console.error("Error creating default sections:", result.error);
       return;
     }
 
@@ -97,7 +97,7 @@ export function SectionSelect({ value, onValueChange }: SectionSelectProps) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { error } = await supabase
+    const result = await (supabase as any)
       .from('task_sections')
       .insert({
         user_id: user.id,
@@ -106,7 +106,7 @@ export function SectionSelect({ value, onValueChange }: SectionSelectProps) {
         display_order: sections.length,
       });
 
-    if (error) {
+    if (result.error) {
       toast({
         title: "Error",
         description: "Failed to create section",
@@ -221,14 +221,14 @@ export function useSections() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { data } = await supabase
+    const result = await (supabase as any)
       .from('task_sections')
       .select('*')
       .eq('user_id', user.id)
       .order('display_order');
 
-    if (data) {
-      setSections(data);
+    if (result.data) {
+      setSections(result.data as Section[]);
     }
   };
 
