@@ -237,8 +237,8 @@ export async function getFinancialOverview() {
       // User metrics
       supabase.from('profiles').select('*', { count: 'exact', head: true }),
       supabase.from('subscriptions').select('plan_name').eq('status', 'active'),
-      supabase.from('ad_call_inquiries').select('*'),
-      supabase.from('award_sponsorships').select('amount_paid').eq('status', 'paid'),
+      (supabase as any).from('ad_call_inquiries').select('*'),
+      (supabase as any).from('award_sponsorships').select('amount_paid').eq('status', 'paid'),
     ]);
     
     // User counts

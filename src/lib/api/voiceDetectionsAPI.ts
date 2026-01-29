@@ -45,7 +45,7 @@ export async function getVoiceDetectionsForUser(
   userId: string,
   filters?: VoiceDetectionFilters
 ): Promise<VoiceDetection[]> {
-  let query = supabase
+  let query = (supabase as any)
     .from("voice_detections")
     .select("*")
     .eq("user_id", userId)
@@ -73,14 +73,14 @@ export async function getVoiceDetectionsForUser(
     query = query.in("usage_category", filters.usageCategory);
   }
 
-  const { data, error } = await query;
+  const result = await query;
 
-  if (error) {
-    console.error("Error fetching voice detections:", error);
-    throw error;
+  if (result.error) {
+    console.error("Error fetching voice detections:", result.error);
+    throw result.error;
   }
 
-  return (data as VoiceDetection[]) || [];
+  return (result.data as VoiceDetection[]) || [];
 }
 
 /**
@@ -109,14 +109,14 @@ export async function updateVoiceDetectionStatus(
     console.log("[Voice Detection] Status set to 'licensed' - revenue event integration pending");
   }
 
-  const { error } = await supabase
+  const result = await (supabase as any)
     .from("voice_detections")
     .update(updateData)
     .eq("id", detectionId);
 
-  if (error) {
-    console.error("Error updating voice detection status:", error);
-    throw error;
+  if (result.error) {
+    console.error("Error updating voice detection status:", result.error);
+    throw result.error;
   }
 }
 
@@ -126,18 +126,18 @@ export async function updateVoiceDetectionStatus(
 export async function getDetectionStatsByPlatform(
   userId: string
 ): Promise<Record<string, number>> {
-  const { data, error } = await supabase
+  const result = await (supabase as any)
     .from("voice_detections")
     .select("platform")
     .eq("user_id", userId);
 
-  if (error) {
-    console.error("Error fetching detection stats:", error);
+  if (result.error) {
+    console.error("Error fetching detection stats:", result.error);
     return {};
   }
 
   const stats: Record<string, number> = {};
-  (data || []).forEach((detection: any) => {
+  ((result.data as any[]) || []).forEach((detection: any) => {
     stats[detection.platform] = (stats[detection.platform] || 0) + 1;
   });
 
@@ -154,16 +154,16 @@ export async function getRecentDetectionCount(
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - days);
 
-  const { count, error } = await supabase
+  const result = await (supabase as any)
     .from("voice_detections")
     .select("*", { count: "exact", head: true })
     .eq("user_id", userId)
     .gte("detected_at", startDate.toISOString());
 
-  if (error) {
-    console.error("Error fetching recent detection count:", error);
+  if (result.error) {
+    console.error("Error fetching recent detection count:", result.error);
     return 0;
   }
 
-  return count || 0;
+  return result.count || 0;
 }

@@ -116,15 +116,17 @@ export class ExternalAdCsvImporter {
           }
 
           // Fetch content mapping to link to internal IDs
-          const { data: contentMapping } = await supabase
+          const mappingResult = await (supabase as any)
             .from('external_content_mapping')
             .select('*')
             .eq('platform', platform)
             .eq('external_content_id', transformed.externalContentId)
             .single();
+          
+          const contentMapping = mappingResult.data as any;
 
           // Insert into external_platform_ad_stats
-          const { error } = await supabase
+          const insertResult = await (supabase as any)
             .from('external_platform_ad_stats')
             .upsert([{
               platform,
@@ -144,8 +146,8 @@ export class ExternalAdCsvImporter {
               raw_payload: JSON.parse(JSON.stringify(row))
             }]);
 
-          if (error) {
-            errors.push(`Row ${rowsProcessed}: ${error.message}`);
+          if (insertResult.error) {
+            errors.push(`Row ${rowsProcessed}: ${insertResult.error.message}`);
           } else {
             rowsInserted++;
           }

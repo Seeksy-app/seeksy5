@@ -29,14 +29,15 @@ export function useWorkspaceModules(workspaceId: string | null) {
       if (!session) throw new Error("Not authenticated");
 
       // Get current workspace
-      const { data: workspace, error: fetchError } = await supabase
+      const result = await (supabase as any)
         .from('custom_packages')
         .select('modules')
         .eq('id', workspaceId)
         .eq('user_id', session.user.id)
         .single();
 
-      if (fetchError) throw fetchError;
+      if (result.error) throw result.error;
+      const workspace = result.data as { modules?: string[] } | null;
 
       const currentModules = (workspace?.modules as string[]) || [];
       
@@ -86,14 +87,15 @@ export function useWorkspaceModules(workspaceId: string | null) {
       if (!session) throw new Error("Not authenticated");
 
       // Get current workspace
-      const { data: workspace, error: fetchError } = await supabase
+      const result = await (supabase as any)
         .from('custom_packages')
         .select('modules')
         .eq('id', workspaceId)
         .eq('user_id', session.user.id)
         .single();
 
-      if (fetchError) throw fetchError;
+      if (result.error) throw result.error;
+      const workspace = result.data as { modules?: string[] } | null;
 
       const currentModules = (workspace?.modules as string[]) || [];
       const updatedModules = currentModules.filter(m => m !== moduleId);

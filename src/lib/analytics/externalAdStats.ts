@@ -44,7 +44,7 @@ export class ExternalAdStatsAnalytics {
     endDate?: string
   ): Promise<ExternalStatsAggregation> {
     try {
-      let query = supabase
+      let query = (supabase as any)
         .from('external_platform_ad_stats')
         .select('*')
         .eq('episode_id', episodeId);
@@ -56,11 +56,11 @@ export class ExternalAdStatsAnalytics {
         query = query.lte('date', endDate);
       }
 
-      const { data, error } = await query;
+      const result = await query;
 
-      if (error) throw error;
+      if (result.error) throw result.error;
 
-      return this.aggregateStats(data || []);
+      return this.aggregateStats((result.data as any[]) || []);
     } catch (error) {
       console.error('Failed to fetch external stats by episode:', error);
       return this.getEmptyAggregation();
@@ -76,7 +76,7 @@ export class ExternalAdStatsAnalytics {
     endDate?: string
   ): Promise<ExternalStatsAggregation> {
     try {
-      let query = supabase
+      let query = (supabase as any)
         .from('external_platform_ad_stats')
         .select('*')
         .eq('ad_campaign_id', campaignId);
@@ -88,11 +88,11 @@ export class ExternalAdStatsAnalytics {
         query = query.lte('date', endDate);
       }
 
-      const { data, error } = await query;
+      const result = await query;
 
-      if (error) throw error;
+      if (result.error) throw result.error;
 
-      return this.aggregateStats(data || []);
+      return this.aggregateStats((result.data as any[]) || []);
     } catch (error) {
       console.error('Failed to fetch external stats by campaign:', error);
       return this.getEmptyAggregation();
@@ -107,7 +107,7 @@ export class ExternalAdStatsAnalytics {
     endDate?: string
   ): Promise<ExternalStatsAggregation> {
     try {
-      let query = supabase
+      let query = (supabase as any)
         .from('external_platform_ad_stats')
         .select('*');
 
@@ -118,11 +118,11 @@ export class ExternalAdStatsAnalytics {
         query = query.lte('date', endDate);
       }
 
-      const { data, error } = await query;
+      const result = await query;
 
-      if (error) throw error;
+      if (result.error) throw result.error;
 
-      return this.aggregateStats(data || []);
+      return this.aggregateStats((result.data as any[]) || []);
     } catch (error) {
       console.error('Failed to fetch external stats summary:', error);
       return this.getEmptyAggregation();

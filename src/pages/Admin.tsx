@@ -70,7 +70,7 @@ export default function Admin() {
       .select("role")
       .eq("user_id", user.id);
 
-    const hasAdminRole = roles?.some(r => 
+    const hasAdminRole = roles?.some((r: any) => 
       r.role === "admin" || 
       r.role === "super_admin" || 
       r.role === "manager"

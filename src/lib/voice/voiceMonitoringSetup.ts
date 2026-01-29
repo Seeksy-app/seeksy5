@@ -25,18 +25,20 @@ export async function setupVoiceMonitoring(
 ): Promise<VoiceMonitoringSetupResult> {
   try {
     // Step 1: Check if fingerprint already exists
-    const { data: existingFingerprint } = await supabase
+    const existingResult = await (supabase as any)
       .from("voice_fingerprints")
       .select("id")
       .eq("user_id", userId)
       .eq("status", "active")
       .maybeSingle();
+    
+    const existingFingerprint = existingResult.data as any;
 
     let fingerprintId: string;
 
     if (existingFingerprint) {
       // Update existing fingerprint
-      const { data, error } = await supabase
+      const updateResult = await (supabase as any)
         .from("voice_fingerprints")
         .update({
           credential_id: voiceProfileId,
@@ -47,11 +49,11 @@ export async function setupVoiceMonitoring(
         .select()
         .single();
 
-      if (error) throw error;
-      fingerprintId = data.id;
+      if (updateResult.error) throw updateResult.error;
+      fingerprintId = (updateResult.data as any).id;
     } else {
       // Create new fingerprint
-      const { data, error } = await supabase
+      const insertResult = await (supabase as any)
         .from("voice_fingerprints")
         .insert({
           user_id: userId,
@@ -62,8 +64,8 @@ export async function setupVoiceMonitoring(
         .select()
         .single();
 
-      if (error) throw error;
-      fingerprintId = data.id;
+      if (insertResult.error) throw insertResult.error;
+      fingerprintId = (insertResult.data as any).id;
     }
 
     // Step 2: Auto-create monitoring sources for main platforms
@@ -77,13 +79,15 @@ export async function setupVoiceMonitoring(
     ];
 
     // Check existing sources
-    const { data: existingSources } = await supabase
+    const sourcesResult = await (supabase as any)
       .from("voice_monitoring_sources")
       .select("platform")
       .eq("user_id", userId);
+    
+    const existingSources = sourcesResult.data as any[] || [];
 
     const existingPlatforms = new Set(
-      (existingSources || []).map((s: any) => s.platform)
+      existingSources.map((s: any) => s.platform)
     );
 
     // Insert only missing platforms
@@ -98,12 +102,12 @@ export async function setupVoiceMonitoring(
 
     let sourcesCreated = 0;
     if (newSources.length > 0) {
-      const { error } = await supabase
+      const insertResult = await (supabase as any)
         .from("voice_monitoring_sources")
         .insert(newSources);
 
-      if (error) {
-        console.error("Error creating monitoring sources:", error);
+      if (insertResult.error) {
+        console.error("Error creating monitoring sources:", insertResult.error);
       } else {
         sourcesCreated = newSources.length;
       }
@@ -129,36 +133,36 @@ export async function setupVoiceMonitoring(
  * Check if user has voice fingerprint enabled
  */
 export async function hasVoiceFingerprint(userId: string): Promise<boolean> {
-  const { data, error } = await supabase
+  const result = await (supabase as any)
     .from("voice_fingerprints")
     .select("id")
     .eq("user_id", userId)
     .eq("status", "active")
     .maybeSingle();
 
-  if (error) {
-    console.error("Error checking voice fingerprint:", error);
+  if (result.error) {
+    console.error("Error checking voice fingerprint:", result.error);
     return false;
   }
 
-  return !!data;
+  return !!result.data;
 }
 
 /**
  * Check if user has active monitoring sources
  */
 export async function hasActiveMonitoring(userId: string): Promise<boolean> {
-  const { data, error } = await supabase
+  const result = await (supabase as any)
     .from("voice_monitoring_sources")
     .select("id")
     .eq("user_id", userId)
     .eq("is_active", true)
     .limit(1);
 
-  if (error) {
-    console.error("Error checking monitoring sources:", error);
+  if (result.error) {
+    console.error("Error checking monitoring sources:", result.error);
     return false;
   }
 
-  return (data || []).length > 0;
+  return ((result.data as any[]) || []).length > 0;
 }

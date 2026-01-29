@@ -52,15 +52,15 @@ export async function userHasAnyRole(checkRoles: UserRole[]): Promise<boolean> {
  * Add a role to a user (admin only)
  */
 export async function addRoleToUser(userId: string, role: UserRole): Promise<boolean> {
-  const { error } = await supabase
+  const result = await (supabase as any)
     .from('user_roles')
     .insert({
       user_id: userId,
       role: role
     });
 
-  if (error) {
-    console.error('Error adding role:', error);
+  if (result.error) {
+    console.error('Error adding role:', result.error);
     return false;
   }
 
@@ -71,14 +71,14 @@ export async function addRoleToUser(userId: string, role: UserRole): Promise<boo
  * Remove a role from a user (admin only)
  */
 export async function removeRoleFromUser(userId: string, role: UserRole): Promise<boolean> {
-  const { error } = await supabase
+  const result = await (supabase as any)
     .from('user_roles')
     .delete()
     .eq('user_id', userId)
-    .eq('role', role);
+    .eq('role', role as any);
 
-  if (error) {
-    console.error('Error removing role:', error);
+  if (result.error) {
+    console.error('Error removing role:', result.error);
     return false;
   }
 

@@ -27,7 +27,7 @@ export async function sendVenueEmail({
 }: SendEmailParams): Promise<{ success: boolean; error?: string }> {
   try {
     // Log the communication
-    const { error: logError } = await supabase
+    const logResult = await (supabase as any)
       .from('venue_communications')
       .insert({
         venue_id: venueId,
@@ -44,9 +44,9 @@ export async function sendVenueEmail({
         }
       });
 
-    if (logError) {
-      console.error('Failed to log email:', logError);
-      return { success: false, error: logError.message };
+    if (logResult.error) {
+      console.error('Failed to log email:', logResult.error);
+      return { success: false, error: logResult.error.message };
     }
 
     // Only send real email if not in demo mode
@@ -82,7 +82,7 @@ export async function sendVenueSMS({
 }: SendSMSParams): Promise<{ success: boolean; error?: string }> {
   try {
     // Log the communication
-    const { error: logError } = await supabase
+    const logResult = await (supabase as any)
       .from('venue_communications')
       .insert({
         venue_id: venueId,
@@ -98,9 +98,9 @@ export async function sendVenueSMS({
         }
       });
 
-    if (logError) {
-      console.error('Failed to log SMS:', logError);
-      return { success: false, error: logError.message };
+    if (logResult.error) {
+      console.error('Failed to log SMS:', logResult.error);
+      return { success: false, error: logResult.error.message };
     }
 
     // Only send real SMS if not in demo mode
@@ -136,7 +136,7 @@ export async function logVenueNote({
   note: string;
 }): Promise<{ success: boolean; error?: string }> {
   try {
-    const { error } = await supabase
+    const result = await (supabase as any)
       .from('venue_communications')
       .insert({
         venue_id: venueId,
@@ -147,8 +147,8 @@ export async function logVenueNote({
         is_demo: false
       });
 
-    if (error) {
-      return { success: false, error: error.message };
+    if (result.error) {
+      return { success: false, error: result.error.message };
     }
 
     return { success: true };

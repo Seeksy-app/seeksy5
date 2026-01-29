@@ -90,7 +90,7 @@ export default function AdminAds() {
         .getPublicUrl(fileName);
 
       // Create campaign
-      const { data: campaign, error: campaignError } = await supabase
+      const campaignResult = await (supabase as any)
         .from("ad_campaigns")
         .insert({
           advertiser_id: user.id,
@@ -105,7 +105,8 @@ export default function AdminAds() {
         .select()
         .single();
 
-      if (campaignError) throw campaignError;
+      if (campaignResult.error) throw campaignResult.error;
+      const campaign = campaignResult.data as any;
 
       // Create creative
       const { error: creativeError } = await supabase

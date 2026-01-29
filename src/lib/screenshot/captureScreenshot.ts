@@ -145,7 +145,7 @@ export async function captureScreenshot({
  * Fetch all screenshots from the database
  */
 export async function fetchScreenshots(category?: string) {
-  let query = supabase
+  let query = (supabase as any)
     .from('ui_screenshots')
     .select('*')
     .order('created_at', { ascending: false });
@@ -154,14 +154,14 @@ export async function fetchScreenshots(category?: string) {
     query = query.eq('category', category);
   }
 
-  const { data, error } = await query;
+  const result = await query;
 
-  if (error) {
-    console.error('Fetch screenshots error:', error);
-    throw new Error(error.message || 'Failed to fetch screenshots');
+  if (result.error) {
+    console.error('Fetch screenshots error:', result.error);
+    throw new Error(result.error.message || 'Failed to fetch screenshots');
   }
 
-  return data.map(screenshot => {
+  return ((result.data as any[]) || []).map((screenshot: any) => {
     const metadata = screenshot.metadata as { public_url?: string } | null;
     return {
       ...screenshot,
@@ -185,13 +185,13 @@ export async function deleteScreenshot(id: string, screenshotPath: string) {
   }
 
   // Delete from database
-  const { error: dbError } = await supabase
+  const dbResult = await (supabase as any)
     .from('ui_screenshots')
     .delete()
     .eq('id', id);
 
-  if (dbError) {
-    console.error('Database delete error:', dbError);
-    throw new Error(dbError.message || 'Failed to delete from database');
+  if (dbResult.error) {
+    console.error('Database delete error:', dbResult.error);
+    throw new Error(dbResult.error.message || 'Failed to delete from database');
   }
 }
