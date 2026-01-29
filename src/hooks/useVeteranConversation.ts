@@ -47,12 +47,13 @@ export function useVeteranConversation(user: User | null, conversationIdParam: s
     }
 
     const loadProfile = async () => {
-      const { data } = await supabase
+      const result = await (supabase as any)
         .from('veteran_profiles')
         .select('*')
         .eq('user_id', user.id)
         .single();
 
+      const data = result.data as VeteranProfile | null;
       if (data) {
         setProfile(data);
         if (data.service_status && data.branch_of_service) {
@@ -93,7 +94,7 @@ export function useVeteranConversation(user: User | null, conversationIdParam: s
         return;
       }
 
-      const { data: recentConvo } = await supabase
+      const recentResult = await (supabase as any)
         .from('veteran_conversations')
         .select('id')
         .eq('user_id', user.id)
@@ -101,6 +102,8 @@ export function useVeteranConversation(user: User | null, conversationIdParam: s
         .order('last_message_at', { ascending: false })
         .limit(1)
         .single();
+
+      const recentConvo = recentResult.data as { id: string } | null;
 
       if (recentConvo) {
         await loadConversation(recentConvo.id);
@@ -114,11 +117,13 @@ export function useVeteranConversation(user: User | null, conversationIdParam: s
 
   const loadConversation = async (id: string) => {
     try {
-      const { data: convo } = await supabase
+      const convoResult = await (supabase as any)
         .from('veteran_conversations')
         .select('*')
         .eq('id', id)
         .single();
+
+      const convo = convoResult.data as any;
 
       if (!convo) {
         setIsLoading(false);
@@ -141,11 +146,13 @@ export function useVeteranConversation(user: User | null, conversationIdParam: s
         }
       }
 
-      const { data: chatMessages } = await supabase
+      const messagesResult = await (supabase as any)
         .from('veteran_chat_messages')
         .select('*')
         .eq('conversation_id', id)
         .order('created_at', { ascending: true });
+
+      const chatMessages = messagesResult.data as any[] | null;
 
       if (chatMessages && chatMessages.length > 0) {
         const loadedMessages: Message[] = chatMessages.map((m) => ({
@@ -190,7 +197,7 @@ export function useVeteranConversation(user: User | null, conversationIdParam: s
         }
       };
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('veteran_conversations')
         .insert({
           user_id: user.id,
@@ -200,12 +207,13 @@ export function useVeteranConversation(user: User | null, conversationIdParam: s
         .select()
         .single();
 
-      if (error) throw error;
+      if (result.error) throw result.error;
+      const data = result.data as any;
 
       setConversationId(data.id);
       setIntakeData(intake);
 
-      await supabase.from('veteran_profiles').upsert({
+      await (supabase as any).from('veteran_profiles').upsert({
         user_id: user.id,
         service_status: intake.status,
         branch_of_service: intake.branch,
@@ -230,7 +238,7 @@ export function useVeteranConversation(user: User | null, conversationIdParam: s
       const notesJson = currentNotes ? currentNotes.map(n => ({ category: n.category, value: n.value })) : null;
       const quickRepliesJson = message.quickReplies || null;
 
-      await supabase.from('veteran_chat_messages').insert({
+      await (supabase as any).from('veteran_chat_messages').insert({
         conversation_id: conversationId,
         role: message.role,
         content: message.content,
@@ -249,7 +257,7 @@ export function useVeteranConversation(user: User | null, conversationIdParam: s
         notes: (currentNotes || notes).map(n => ({ category: n.category, value: n.value })),
       };
 
-      await supabase
+      await (supabase as any)
         .from('veteran_conversations')
         .update({
           last_message_at: new Date().toISOString(),
@@ -289,7 +297,7 @@ export function useVeteranConversation(user: User | null, conversationIdParam: s
         notes: finalNotes.map(n => ({ category: n.category, value: n.value })),
       };
 
-      await supabase
+      await (supabase as any)
         .from('veteran_conversations')
         .update({
           context_json: contextJson,

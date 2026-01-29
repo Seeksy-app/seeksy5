@@ -39,7 +39,7 @@ export function useTenantQuery<T = unknown[]>({
       }
 
       // Build query manually to avoid type recursion
-      const baseQuery = supabase.from(table as 'tenants').select(selectColumns);
+      const baseQuery = (supabase as any).from(table).select(selectColumns);
 
       // We'll collect filter conditions
       let finalQuery = baseQuery;

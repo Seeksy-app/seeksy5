@@ -112,7 +112,7 @@ export function useStudioRecorder(options?: RecorderOptions) {
       const roomName = `recording-${Date.now()}`;
       const dailyRoomUrl = `https://seeksy.daily.co/${roomName}`;
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("studio_sessions")
         .insert([{
           user_id: userId,
@@ -125,10 +125,10 @@ export function useStudioRecorder(options?: RecorderOptions) {
         .select()
         .single();
 
-      if (error) throw error;
+      if (result.error) throw result.error;
       
-      setSessionId(data.id);
-      return data.id;
+      setSessionId(result.data.id);
+      return result.data.id;
     } catch (err) {
       handleError(err as Error, "createSession");
       throw err;
@@ -313,7 +313,7 @@ export function useStudioRecorder(options?: RecorderOptions) {
             }
 
             // Update session with final data
-            const { error: updateError } = await supabase
+            const { error: updateError } = await (supabase as any)
               .from("studio_sessions")
               .update({
                 duration_seconds: finalDuration,
@@ -367,7 +367,7 @@ export function useStudioRecorder(options?: RecorderOptions) {
     if (!sessionId) return;
 
     try {
-      const { error } = await supabase.from("clip_markers").insert([{
+      const { error } = await (supabase as any).from("clip_markers").insert([{
         session_id: sessionId,
         timestamp_seconds: duration,
         description: description || null,
@@ -386,7 +386,7 @@ export function useStudioRecorder(options?: RecorderOptions) {
     if (!sessionId) return;
 
     try {
-      const { error } = await supabase.from("ad_markers").insert([{
+      const { error } = await (supabase as any).from("ad_markers").insert([{
         session_id: sessionId,
         timestamp_seconds: duration,
         slot_type: slotType,

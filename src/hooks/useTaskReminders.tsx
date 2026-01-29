@@ -14,12 +14,13 @@ export const useTaskReminders = () => {
         if (!user) return;
 
         // Get user preferences
-        const { data: prefs } = await supabase
+        const result = await (supabase as any)
           .from("user_preferences")
           .select("*")
           .eq("user_id", user.id)
           .single();
 
+        const prefs = result.data as any;
         if (!prefs?.task_reminder_enabled) return;
 
         // Check last shown time from localStorage
