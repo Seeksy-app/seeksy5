@@ -36,13 +36,14 @@ const Blog = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("profiles")
         .select("username, auto_publish_rss, blog_rss_url, blog_name")
         .eq("id", user.id)
         .single();
 
-      if (error) throw error;
+      if (result.error) throw result.error;
+      const data = result.data as any;
       
       // Set local RSS URL state when profile loads
       if (data?.blog_rss_url) {
@@ -93,14 +94,14 @@ const Blog = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("blog_posts")
         .select("*")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any[];
     },
   });
 
@@ -169,7 +170,7 @@ const Blog = () => {
   };
 
   const handlePublishToMaster = async (postId: string) => {
-    const { error } = await supabase
+    const result = await (supabase as any)
       .from("blog_posts")
       .update({ 
         publish_to_master: true,
@@ -177,7 +178,7 @@ const Blog = () => {
       })
       .eq("id", postId);
 
-    if (error) {
+    if (result.error) {
       toast.error("Failed to publish to master blog");
       return;
     }
@@ -365,12 +366,12 @@ const Blog = () => {
                     const { data: { user } } = await supabase.auth.getUser();
                     if (!user) return;
                     
-                    const { error } = await supabase
+                    const result = await (supabase as any)
                       .from("profiles")
                       .update({ blog_rss_url: rssUrl.trim() || null })
                       .eq("id", user.id);
                     
-                    if (error) {
+                    if (result.error) {
                       toast.error("Failed to update RSS feed");
                     } else {
                       toast.success("RSS feed updated!");
@@ -390,12 +391,12 @@ const Blog = () => {
                       const { data: { user } } = await supabase.auth.getUser();
                       if (!user) return;
                       
-                      const { error } = await supabase
+                      const result = await (supabase as any)
                         .from("profiles")
                         .update({ blog_rss_url: null })
                         .eq("id", user.id);
                       
-                      if (error) {
+                      if (result.error) {
                         toast.error("Failed to remove RSS feed");
                       } else {
                         setRssUrl("");
@@ -423,12 +424,12 @@ const Blog = () => {
                   const { data: { user } } = await supabase.auth.getUser();
                   if (!user) return;
                   
-                  const { error } = await supabase
+                  const result = await (supabase as any)
                     .from("profiles")
                     .update({ auto_publish_rss: checked })
                     .eq("id", user.id);
                   
-                  if (error) {
+                  if (result.error) {
                     toast.error("Failed to update settings");
                   } else {
                     toast.success(`Auto-publish ${checked ? "enabled" : "disabled"}`);

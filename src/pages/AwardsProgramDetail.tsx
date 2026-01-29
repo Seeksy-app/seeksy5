@@ -19,6 +19,17 @@ import { AwardsFinancialDashboard } from "@/components/awards/AwardsFinancialDas
 import { useToast } from "@/hooks/use-toast";
 import { BackButton } from "@/components/navigation/BackButton";
 
+interface AwardsProgram {
+  id: string;
+  title: string;
+  description?: string;
+  status: string;
+  cover_image_url?: string;
+  ceremony_date?: string;
+  sponsorship_flyer_url?: string;
+  award_categories?: any[];
+}
+
 export default function AwardsProgramDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -27,7 +38,7 @@ export default function AwardsProgramDetail() {
   const { data: program, isLoading, refetch } = useQuery({
     queryKey: ["awards-program", id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("awards_programs")
         .select(`
           *,
@@ -39,8 +50,8 @@ export default function AwardsProgramDetail() {
         .eq("id", id)
         .single();
       
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as AwardsProgram;
     },
   });
 

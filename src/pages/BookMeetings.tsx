@@ -41,25 +41,39 @@ const BookMeetings = () => {
   const loadProfileAndMeetingTypes = async () => {
     try {
       // Load profile
-      const { data: profileData, error: profileError } = await supabase
+      const profileResult = await (supabase as any)
         .from("profiles")
         .select("*")
         .eq("username", username)
         .single();
 
-      if (profileError) throw profileError;
-      setProfile(profileData);
+      if (profileResult.error) throw profileResult.error;
+      const profileData = profileResult.data as any;
+      setProfile({
+        username: profileData.username,
+        full_name: profileData.full_name,
+        bio: profileData.bio || "",
+        avatar_url: profileData.avatar_url,
+        theme_color: profileData.theme_color || "#3b82f6",
+      });
 
       // Load active meeting types
-      const { data: typesData, error: typesError } = await supabase
+      const typesResult = await (supabase as any)
         .from("meeting_types")
         .select("*")
         .eq("user_id", profileData.id)
         .eq("is_active", true)
         .order("created_at", { ascending: true });
 
-      if (typesError) throw typesError;
-      setMeetingTypes(typesData || []);
+      if (typesResult.error) throw typesResult.error;
+      const typesData = typesResult.data as any[];
+      setMeetingTypes(typesData?.map(t => ({
+        id: t.id,
+        name: t.name,
+        description: t.description,
+        duration: t.duration,
+        location_type: t.location_type,
+      })) || []);
     } catch (error: any) {
       toast({
         title: "Error loading booking page",

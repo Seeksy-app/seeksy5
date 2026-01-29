@@ -36,7 +36,7 @@ export default function AwardsJudgesPortal() {
       if (!user) return null;
 
       // Get judge record
-      const { data: judge, error: judgeError } = await supabase
+      const result = await (supabase as any)
         .from("award_judges")
         .select(`
           *,
@@ -54,12 +54,12 @@ export default function AwardsJudgesPortal() {
         .eq("status", "active")
         .single();
 
-      if (judgeError) {
-        console.error("Judge lookup error:", judgeError);
+      if (result.error) {
+        console.error("Judge lookup error:", result.error);
         return null;
       }
 
-      return judge;
+      return result.data as any;
     },
     enabled: !!user,
   });
@@ -70,11 +70,17 @@ export default function AwardsJudgesPortal() {
     queryFn: async () => {
       if (!user || !judgeData) return {};
 
-      const { data } = await supabase
+      const result = await (supabase as any)
         .from("award_judge_scores")
         .select("*")
         .eq("judge_id", judgeData.id);
 
+      if (result.error) {
+        console.error("Scores lookup error:", result.error);
+        return {};
+      }
+
+      const data = result.data as any[];
       const scoreMap: Record<string, { score: number; notes: string }> = {};
       data?.forEach(s => {
         scoreMap[s.nominee_id] = { score: s.score, notes: s.comments || "" };
@@ -95,7 +101,7 @@ export default function AwardsJudgesPortal() {
     mutationFn: async ({ nomineeId, score, notes }: { nomineeId: string; score: number; notes: string }) => {
       if (!judgeData) throw new Error("No judge record");
 
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("award_judge_scores")
         .upsert({
           judge_id: judgeData.id,
@@ -108,7 +114,7 @@ export default function AwardsJudgesPortal() {
           onConflict: "judge_id,nominee_id",
         });
 
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       toast({ title: "Score saved!" });
