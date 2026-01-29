@@ -118,11 +118,12 @@ const Auth = () => {
         }
         
         // Check if onboarding is completed
-        const { data: prefs } = await supabase
+        const prefsResult = await (supabase as any)
           .from('user_preferences')
           .select('onboarding_completed, default_landing_route')
           .eq('user_id', session.user.id)
           .maybeSingle();
+        const prefs = prefsResult.data as { onboarding_completed?: boolean; default_landing_route?: string } | null;
         
         // Redirect to onboarding if not completed (for existing users who haven't onboarded)
         if (prefs && !prefs.onboarding_completed) {
@@ -140,7 +141,7 @@ const Auth = () => {
           .eq('user_id', session.user.id);
         
         const isAdmin = roles?.some(r => r.role === 'admin' || r.role === 'super_admin') || false;
-        const isBoardMember = roles?.some(r => r.role === 'board_member') || false;
+        const isBoardMember = roles?.some(r => (r.role as string) === 'board_member') || false;
         const isAdvertiser = roles?.some(r => r.role === 'advertiser') || false;
         
         // Check for signup intent and redirect
@@ -229,15 +230,16 @@ const Auth = () => {
               }).eq('id', data.user.id);
               
               // Get the invitation to find the inviter
-              const { data: invitation } = await supabase
+              const inviteResult = await (supabase as any)
                 .from('team_invitations')
                 .select('inviter_id, invitee_name')
                 .eq('invitee_email', email)
                 .eq('status', 'pending')
                 .single();
+              const invitation = inviteResult.data as { inviter_id?: string; invitee_name?: string } | null;
               
               // Update any pending invitations to accepted
-              await supabase.from('team_invitations').update({
+              await (supabase as any).from('team_invitations').update({
                 status: 'accepted',
                 accepted_at: new Date().toISOString(),
               }).eq('invitee_email', email).eq('status', 'pending');

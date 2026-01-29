@@ -101,7 +101,7 @@ export default function AdvertiserSignup() {
       if (advertiserError) throw advertiserError;
 
       // Step 2: Create advertiser preferences
-      const { error: preferencesError } = await supabase
+      const prefResult = await (supabase as any)
         .from("advertiser_preferences")
         .insert({
           advertiser_id: advertiserData.id,
@@ -109,7 +109,7 @@ export default function AdvertiserSignup() {
           target_categories: formData.target_categories || [],
         });
 
-      if (preferencesError) throw preferencesError;
+      if (prefResult.error) throw prefResult.error;
 
       // Step 3: Add team members (only non-empty ones)
       if (formData.team_members && formData.team_members.length > 0) {
@@ -126,7 +126,7 @@ export default function AdvertiserSignup() {
             role: member.role,
           }));
 
-          const { error: teamError } = await supabase
+          const teamResult = await (supabase as any)
             .from("advertiser_team_members")
             .upsert(teamMemberInserts, {
               onConflict: "advertiser_id,email",
@@ -134,7 +134,7 @@ export default function AdvertiserSignup() {
             })
             .select();
 
-          if (teamError) throw teamError;
+          if (teamResult.error) throw teamResult.error;
         }
       }
 
@@ -149,7 +149,7 @@ export default function AdvertiserSignup() {
 
       // Step 5: Create lead in contacts
       try {
-        await supabase
+        await (supabase as any)
           .from("contacts")
           .insert({
             name: formData.contact_name,

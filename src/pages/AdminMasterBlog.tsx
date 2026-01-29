@@ -56,7 +56,7 @@ const AdminMasterBlog = () => {
   const { data: posts, isLoading } = useQuery({
     queryKey: ["master-blog-admin", filterType],
     queryFn: async () => {
-      let query = supabase
+      let query = (supabase as any)
         .from("blog_posts")
         .select("*")
         .eq("publish_to_master", true)
@@ -68,23 +68,24 @@ const AdminMasterBlog = () => {
         query = query.eq("is_ai_generated", false);
       }
 
-      const { data, error } = await query;
-      if (error) throw error;
+      const result = await query;
+      if (result.error) throw result.error;
+      const data = result.data as any[];
 
       // Fetch profiles separately
       const postsWithProfiles = await Promise.all(
-        (data || []).map(async (post) => {
-          const { data: profile } = await supabase
+        (data || []).map(async (post: any) => {
+          const profileResult = await (supabase as any)
             .from("profiles")
             .select("username, full_name, avatar_url")
             .eq("id", post.user_id)
             .single();
           
-          return { ...post, profile };
+          return { ...post, profile: profileResult.data };
         })
       );
 
-      return postsWithProfiles;
+      return postsWithProfiles as any[];
     },
   });
 
@@ -102,13 +103,14 @@ const AdminMasterBlog = () => {
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to remove this post from the Master Blog?")) return;
 
-    const { error } = await supabase
+    const result = await (supabase as any)
       .from("blog_posts")
       .update({ 
         publish_to_master: false,
         master_published_at: null
       })
       .eq("id", id);
+    const error = result.error;
 
     if (error) {
       toast.error("Failed to remove post");
@@ -120,13 +122,14 @@ const AdminMasterBlog = () => {
   };
 
   const handleUnpublish = async (postId: string) => {
-    const { error } = await supabase
+    const result = await (supabase as any)
       .from("blog_posts")
       .update({ 
         publish_to_master: false,
         master_published_at: null
       })
       .eq("id", postId);
+    const error = result.error;
 
     if (error) {
       toast.error("Failed to unpublish from master");

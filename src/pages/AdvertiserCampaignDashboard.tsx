@@ -13,7 +13,7 @@ const AdvertiserCampaignDashboard = () => {
   const { data: campaign, isLoading } = useQuery({
     queryKey: ['campaign-details', adId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('audio_ads')
         .select(`
           *,
@@ -22,8 +22,8 @@ const AdvertiserCampaignDashboard = () => {
         .eq('id', adId)
         .single();
 
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any;
     },
   });
 
@@ -31,14 +31,14 @@ const AdvertiserCampaignDashboard = () => {
   const { data: inquiries } = useQuery({
     queryKey: ['campaign-inquiries', adId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('ad_call_inquiries')
         .select('*')
         .eq('audio_ad_id', adId)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any[];
     },
   });
 

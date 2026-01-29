@@ -17,7 +17,7 @@ export default function Awards() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
       
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("awards_programs")
         .select(`
           *,
@@ -27,8 +27,8 @@ export default function Awards() {
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
       
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any[];
     },
   });
 

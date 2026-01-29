@@ -21,13 +21,14 @@ const AdminLegal = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("profiles")
         .select("legal_on_profile")
         .eq("id", user.id)
         .single();
 
-      if (error) throw error;
+      if (result.error) throw result.error;
+      const data = result.data as { legal_on_profile?: boolean } | null;
       setShowOnProfile(data?.legal_on_profile || false);
     } catch (error) {
       console.error("Error loading settings:", error);
@@ -41,12 +42,12 @@ const AdminLegal = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("profiles")
         .update({ legal_on_profile: checked })
         .eq("id", user.id);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
 
       setShowOnProfile(checked);
       toast({

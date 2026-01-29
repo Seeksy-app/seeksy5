@@ -139,7 +139,7 @@ export class ExternalAdStatsAnalytics {
   ): Promise<CombinedAdStats> {
     try {
       // Fetch on-Seeksy impressions
-      let onSeeksyQuery = supabase
+      let onSeeksyQuery = (supabase as any)
         .from('ad_impressions')
         .select('*')
         .eq('episode_id', episodeId)
@@ -152,7 +152,9 @@ export class ExternalAdStatsAnalytics {
         onSeeksyQuery = onSeeksyQuery.lte('played_at', endDate);
       }
 
-      const { data: onSeeksyData, error: onSeeksyError } = await onSeeksyQuery;
+      const result = await onSeeksyQuery;
+      const onSeeksyData = result.data as any[];
+      const onSeeksyError = result.error;
       
       if (onSeeksyError) throw onSeeksyError;
 

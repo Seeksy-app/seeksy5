@@ -68,17 +68,18 @@ export default function AdvertiserDashboard() {
     queryKey: ["advertiser-campaigns", advertiser?.id],
     queryFn: async () => {
       if (!advertiser) return [];
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("ad_campaigns")
         .select("*, audio_ads(ad_type)")
         .eq("advertiser_id", advertiser.id)
         .order("created_at", { ascending: false });
       
-      if (error) throw error;
+      if (result.error) throw result.error;
+      const data = result.data as any[];
       
       // Update campaign statuses based on dates and budget
       const now = new Date();
-      return data.map(campaign => {
+      return data.map((campaign: any) => {
         const startDate = new Date(campaign.start_date);
         const endDate = new Date(campaign.end_date);
         
@@ -533,7 +534,7 @@ export default function AdvertiserDashboard() {
                         ${Math.abs(Number(transaction.amount)).toFixed(2)}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        Balance: ${Number(transaction.balance_after).toFixed(2)}
+                        Balance: ${Number((transaction as any).balance_after || 0).toFixed(2)}
                       </p>
                     </div>
                   </div>

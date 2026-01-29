@@ -111,13 +111,14 @@ export default function AdvertiserAdLibrary() {
     queryKey: ["digital-ads", advertiser?.id],
     queryFn: async () => {
       if (!advertiser) return [];
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("digital_ads")
         .select("*")
         .eq("advertiser_id", advertiser.id)
         .order("created_at", { ascending: sortOrder === 'asc' });
       
-      if (error) throw error;
+      if (result.error) throw result.error;
+      const data = result.data as any[];
       return data.map((ad: any) => ({ ...ad, type: 'digital' }));
     },
     enabled: !!advertiser,
@@ -678,10 +679,11 @@ export default function AdvertiserAdLibrary() {
                   }
 
                   const tableName = renamingAd.type === 'audio' ? 'audio_ads' : 'digital_ads';
-                  const { error } = await supabase
+                  const result = await (supabase as any)
                     .from(tableName)
                     .update({ campaign_name: newName })
                     .eq('id', renamingAd.id);
+                  const error = result.error;
 
                   if (error) {
                     toast({
