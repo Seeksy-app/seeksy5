@@ -13,7 +13,7 @@ export default function BrowseAwards() {
   const { data: programs, isLoading } = useQuery({
     queryKey: ["public-awards-programs"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("awards_programs")
         .select(`
           *,
@@ -23,8 +23,8 @@ export default function BrowseAwards() {
         .in("status", ["nominations_open", "voting_open"])
         .order("created_at", { ascending: false });
       
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any[];
     },
   });
 

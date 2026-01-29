@@ -16,6 +16,17 @@ import { BackButton } from "@/components/navigation/BackButton";
 
 const VOTED_STORAGE_KEY = "seeksy_awards_voted";
 
+interface AwardsVotingProgram {
+  id: string;
+  title: string;
+  description?: string;
+  status: string;
+  ceremony_date?: string;
+  show_live_results?: boolean;
+  award_categories?: any[];
+  award_sponsorships?: any[];
+}
+
 function getVotedPrograms(): string[] {
   try {
     const stored = localStorage.getItem(VOTED_STORAGE_KEY);
@@ -54,7 +65,7 @@ export default function AwardsVoting() {
   const { data: program, isLoading } = useQuery({
     queryKey: ["awards-voting", id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("awards_programs")
         .select(`
           *,
@@ -70,8 +81,8 @@ export default function AwardsVoting() {
         .eq("id", id)
         .single();
       
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as AwardsVotingProgram;
     },
   });
 
@@ -90,11 +101,11 @@ export default function AwardsVoting() {
         vote_weight: 1,
       }));
 
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("award_votes")
         .insert(votesToSubmit);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       toast({

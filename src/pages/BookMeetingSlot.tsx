@@ -68,17 +68,23 @@ const BookMeetingSlot = () => {
   const loadData = async () => {
     try {
       // Load profile
-      const { data: profileData, error: profileError } = await supabase
+      const profileResult = await (supabase as any)
         .from("profiles")
         .select("*")
         .eq("username", username)
         .single();
 
-      if (profileError) throw profileError;
-      setProfile(profileData);
+      if (profileResult.error) throw profileResult.error;
+      const profileData = profileResult.data as any;
+      setProfile({
+        id: profileData.id,
+        username: profileData.username,
+        full_name: profileData.full_name,
+        theme_color: profileData.theme_color || "#3b82f6",
+      });
 
       // Load meeting type
-      const { data: typeData, error: typeError } = await supabase
+      const typeResult = await (supabase as any)
         .from("meeting_types")
         .select("*")
         .eq("id", meetingTypeId)
@@ -86,8 +92,8 @@ const BookMeetingSlot = () => {
         .eq("is_active", true)
         .single();
 
-      if (typeError) throw typeError;
-      setMeetingType(typeData);
+      if (typeResult.error) throw typeResult.error;
+      setMeetingType(typeResult.data as MeetingType);
     } catch (error: any) {
       toast({
         title: "Error loading meeting type",
@@ -204,7 +210,7 @@ const BookMeetingSlot = () => {
 
       // Store SMS consent if phone provided and consent given
       if (attendeePhone && smsConsent) {
-        await supabase.from('sms_consent_records').insert({
+        await (supabase as any).from('sms_consent_records').insert({
           user_id: null, // Public booking, no auth user
           phone_number: attendeePhone,
           consent_given: true,
@@ -243,7 +249,7 @@ const BookMeetingSlot = () => {
       const meetingId = meetingData.id;
 
       // Insert attendee record
-      const { error: attendeeError } = await supabase
+      const attendeeResult = await (supabase as any)
         .from("meeting_attendees")
         .insert({
           meeting_id: meetingId,
@@ -253,7 +259,7 @@ const BookMeetingSlot = () => {
           rsvp_status: 'awaiting',
         });
 
-      if (attendeeError) throw attendeeError;
+      if (attendeeResult.error) throw attendeeResult.error;
 
       console.log('Meeting inserted successfully! ID:', meetingId);
       console.log('=== BOOKING DEBUG END ===');

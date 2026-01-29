@@ -8,6 +8,13 @@ import { Trophy, Award, Crown, Loader2, ExternalLink } from "lucide-react";
 import { format } from "date-fns";
 import { BackButton } from "@/components/navigation/BackButton";
 
+interface AwardsWinnersProgram {
+  id: string;
+  title: string;
+  ceremony_date?: string;
+  award_winners?: any[];
+}
+
 export default function AwardsWinners() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -15,7 +22,7 @@ export default function AwardsWinners() {
   const { data: program, isLoading } = useQuery({
     queryKey: ["awards-winners", id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("awards_programs")
         .select(`
           *,
@@ -28,8 +35,8 @@ export default function AwardsWinners() {
         .eq("id", id)
         .single();
 
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as AwardsWinnersProgram;
     },
   });
 
