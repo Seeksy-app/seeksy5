@@ -19,14 +19,14 @@ export function useStudioTheme() {
         return;
       }
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("user_preferences")
         .select("studio_theme")
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
 
-      if (!error && data?.studio_theme) {
-        setStudioTheme(data.studio_theme as StudioTheme);
+      if (!result.error && result.data?.studio_theme) {
+        setStudioTheme(result.data.studio_theme as StudioTheme);
       }
     } catch (error) {
       console.error("Error loading studio theme:", error);
@@ -43,7 +43,7 @@ export function useStudioTheme() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      await supabase
+      await (supabase as any)
         .from("user_preferences")
         .upsert({
           user_id: user.id,

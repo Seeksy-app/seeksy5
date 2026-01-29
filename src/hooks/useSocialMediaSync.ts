@@ -71,17 +71,17 @@ export function useSocialProfiles() {
   return useQuery({
     queryKey: ['social-profiles'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('social_media_profiles')
         .select('*')
         .order('connected_at', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching social profiles:', error);
-        throw error;
+      if (result.error) {
+        console.error('Error fetching social profiles:', result.error);
+        throw result.error;
       }
-      console.log('Fetched social profiles:', data?.length || 0, 'profiles');
-      return data as unknown as SocialProfile[];
+      console.log('Fetched social profiles:', result.data?.length || 0, 'profiles');
+      return result.data as SocialProfile[];
     },
   });
 }
@@ -92,14 +92,14 @@ export function useSocialPosts(profileId: string | null) {
     queryFn: async () => {
       if (!profileId) return [];
       
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('social_media_posts')
         .select('*')
         .eq('profile_id', profileId)
         .order('timestamp', { ascending: false });
 
-      if (error) throw error;
-      return data as unknown as SocialPost[];
+      if (result.error) throw result.error;
+      return result.data as SocialPost[];
     },
     enabled: !!profileId,
   });
@@ -111,15 +111,15 @@ export function useSocialInsights(profileId: string | null) {
     queryFn: async () => {
       if (!profileId) return [];
       
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('social_insights_snapshots')
         .select('*')
         .eq('profile_id', profileId)
         .order('snapshot_date', { ascending: false })
         .limit(30);
 
-      if (error) throw error;
-      return data as unknown as SocialInsight[];
+      if (result.error) throw result.error;
+      return result.data as SocialInsight[];
     },
     enabled: !!profileId,
   });
@@ -131,14 +131,14 @@ export function useSocialComments(postId: string | null) {
     queryFn: async () => {
       if (!postId) return [];
       
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('social_media_comments')
         .select('*')
         .eq('post_id', postId)
         .order('timestamp', { ascending: false });
 
-      if (error) throw error;
-      return data as unknown as SocialComment[];
+      if (result.error) throw result.error;
+      return result.data as SocialComment[];
     },
     enabled: !!postId,
   });
@@ -190,16 +190,16 @@ export function useLatestInsights(profileId: string | null) {
     queryFn: async () => {
       if (!profileId) return null;
       
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('social_insights_snapshots')
         .select('*')
         .eq('profile_id', profileId)
         .order('snapshot_date', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') throw error;
-      return data as unknown as SocialInsight | null;
+      if (result.error && result.error.code !== 'PGRST116') throw result.error;
+      return result.data as SocialInsight | null;
     },
     enabled: !!profileId,
   });
@@ -211,15 +211,15 @@ export function useTopPosts(profileId: string | null, limit = 5) {
     queryFn: async () => {
       if (!profileId) return [];
       
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('social_media_posts')
         .select('*')
         .eq('profile_id', profileId)
         .order('engagement_rate', { ascending: false })
         .limit(limit);
 
-      if (error) throw error;
-      return data as unknown as SocialPost[];
+      if (result.error) throw result.error;
+      return result.data as SocialPost[];
     },
     enabled: !!profileId,
   });
