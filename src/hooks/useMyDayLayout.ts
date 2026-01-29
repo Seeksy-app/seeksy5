@@ -7,7 +7,6 @@ import {
   getAvailableWidgetsForCustomize,
   getAvailableSections,
   MY_DAY_WIDGETS,
-  MY_DAY_SECTIONS,
 } from "@/components/myday/myDayWidgets";
 import { toast } from "sonner";
 import { logMyDayFiltering } from "@/utils/onboardingDebug";
@@ -62,18 +61,20 @@ export function useMyDayLayout() {
           return;
         }
 
-        const { data, error } = await supabase
+        const result = await (supabase as any)
           .from("user_myday_layouts")
           .select("layout_json")
           .eq("user_id", user.id)
           .eq("workspace_id", currentWorkspace?.id ?? null)
           .maybeSingle();
 
-        if (error) {
-          console.error("Error loading layout:", error);
+        if (result.error) {
+          console.error("Error loading layout:", result.error);
           setLayout(getDefaultLayoutForWorkspace());
           return;
         }
+
+        const data = result.data as any;
 
         if (data?.layout_json) {
           const savedLayout = data.layout_json as unknown as LayoutConfig;
@@ -147,30 +148,32 @@ export function useMyDayLayout() {
       if (!user) return;
 
       // Check if layout exists
-      const { data: existing } = await supabase
+      const existingResult = await (supabase as any)
         .from("user_myday_layouts")
         .select("id")
         .eq("user_id", user.id)
         .maybeSingle();
 
+      const existing = existingResult.data as any;
+
       if (existing) {
-        const { error: updateError } = await supabase
+        const updateResult = await (supabase as any)
           .from("user_myday_layouts")
           .update({
             layout_json: JSON.parse(JSON.stringify(newLayout)),
             updated_at: new Date().toISOString(),
           })
           .eq("id", existing.id);
-        if (updateError) throw updateError;
+        if (updateResult.error) throw updateResult.error;
       } else {
-        const { error: insertError } = await supabase
+        const insertResult = await (supabase as any)
           .from("user_myday_layouts")
           .insert({
             user_id: user.id,
             workspace_id: currentWorkspace?.id,
             layout_json: JSON.parse(JSON.stringify(newLayout)),
           });
-        if (insertError) throw insertError;
+        if (insertResult.error) throw insertResult.error;
       }
 
       setLayout(newLayout);

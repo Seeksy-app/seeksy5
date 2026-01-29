@@ -18,7 +18,7 @@ export function useSaveInsightToRD() {
       // Insert as an RD feed item - generate a unique guid
       const itemGuid = `mi-${Date.now()}-${Math.random().toString(36).substring(7)}`;
       
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('rd_feed_items')
         .insert({
           item_guid: itemGuid,
@@ -34,11 +34,12 @@ export function useSaveInsightToRD() {
         .select()
         .single();
 
-      if (error) throw error;
+      if (result.error) throw result.error;
+      const data = result.data as any;
 
       // If we have tags, create an insight record
       if (data && params.tags?.length) {
-        await supabase
+        await (supabase as any)
           .from('rd_insights')
           .insert({
             feed_item_id: data.id,
@@ -67,12 +68,12 @@ export function useScheduleSourceRefresh() {
 
   return useMutation({
     mutationFn: async ({ sourceId, frequency }: { sourceId: string; frequency: 'hourly' | 'daily' | 'weekly' }) => {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('market_intelligence_sources')
         .update({ refresh_frequency: frequency })
         .eq('id', sourceId);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['market-intelligence-sources'] });

@@ -49,13 +49,13 @@ export function useMarketIntelligenceSources() {
   return useQuery({
     queryKey: ['market-intelligence-sources'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('market_intelligence_sources')
         .select('*')
         .order('category', { ascending: true });
 
-      if (error) throw error;
-      return data as MarketIntelligenceSource[];
+      if (result.error) throw result.error;
+      return result.data as MarketIntelligenceSource[];
     }
   });
 }
@@ -70,7 +70,7 @@ export function useMarketIntelligenceInsights(options?: {
   return useQuery({
     queryKey: ['market-intelligence-insights', options],
     queryFn: async () => {
-      let query = supabase
+      let query = (supabase as any)
         .from('market_intelligence_insights')
         .select('*')
         .eq('is_archived', false)
@@ -90,9 +90,9 @@ export function useMarketIntelligenceInsights(options?: {
         query = query.limit(options.limit);
       }
 
-      const { data, error } = await query;
-      if (error) throw error;
-      return data as MarketIntelligenceInsight[];
+      const result = await query;
+      if (result.error) throw result.error;
+      return result.data as MarketIntelligenceInsight[];
     }
   });
 }
@@ -102,14 +102,14 @@ export function useMarketIntelligenceJobs(limit = 10) {
   return useQuery({
     queryKey: ['market-intelligence-jobs', limit],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('market_intelligence_jobs')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(limit);
 
-      if (error) throw error;
-      return data as MarketIntelligenceJob[];
+      if (result.error) throw result.error;
+      return result.data as MarketIntelligenceJob[];
     }
   });
 }
@@ -179,11 +179,11 @@ export function useToggleInsightFeatured() {
 
   return useMutation({
     mutationFn: async ({ id, featured }: { id: string; featured: boolean }) => {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('market_intelligence_insights')
         .update({ is_featured: featured })
         .eq('id', id);
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['market-intelligence-insights'] });
@@ -197,11 +197,11 @@ export function useArchiveInsight() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('market_intelligence_insights')
         .update({ is_archived: true })
         .eq('id', id);
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['market-intelligence-insights'] });
@@ -215,13 +215,13 @@ export function useAddSource() {
 
   return useMutation({
     mutationFn: async (source: Omit<MarketIntelligenceSource, 'id' | 'created_at' | 'last_fetched_at'>) => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('market_intelligence_sources')
         .insert(source)
         .select()
         .single();
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['market-intelligence-sources'] });
@@ -235,11 +235,11 @@ export function useToggleSourceActive() {
 
   return useMutation({
     mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('market_intelligence_sources')
         .update({ is_active: isActive })
         .eq('id', id);
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['market-intelligence-sources'] });
@@ -253,11 +253,11 @@ export function useDeleteSource() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('market_intelligence_sources')
         .delete()
         .eq('id', id);
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['market-intelligence-sources'] });

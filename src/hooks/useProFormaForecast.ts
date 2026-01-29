@@ -92,14 +92,14 @@ export function useProFormaForecast() {
   const { data: scenarios, isLoading: scenariosLoading } = useQuery({
     queryKey: ['scenario-configs'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('scenario_configs')
         .select('*')
         .eq('is_active', true)
         .order('scenario_key');
       
-      if (error) throw error;
-      return data as ScenarioConfig[];
+      if (result.error) throw result.error;
+      return result.data as ScenarioConfig[];
     },
   });
 
@@ -107,13 +107,13 @@ export function useProFormaForecast() {
   const { data: benchmarks, isLoading: benchmarksLoading } = useQuery({
     queryKey: ['rd-benchmarks'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('rd_benchmarks')
         .select('metric_key, value, unit, confidence, source_notes')
         .order('metric_key');
       
-      if (error) throw error;
-      return data as Benchmark[];
+      if (result.error) throw result.error;
+      return result.data as Benchmark[];
     },
   });
 
@@ -179,18 +179,18 @@ export function useProFormaForecast() {
     queryKey: ['proforma-forecasts', selectedScenario],
     queryFn: async () => {
       console.log('[useProFormaForecast] Fetching stored forecasts for:', selectedScenario);
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('proforma_forecasts')
         .select('*')
         .eq('scenario_key', selectedScenario)
         .order('forecast_year');
       
-      if (error) {
-        console.error('[useProFormaForecast] Error fetching forecasts:', error);
-        throw error;
+      if (result.error) {
+        console.error('[useProFormaForecast] Error fetching forecasts:', result.error);
+        throw result.error;
       }
-      console.log('[useProFormaForecast] Fetched forecasts:', data?.length || 0, 'rows');
-      return data;
+      console.log('[useProFormaForecast] Fetched forecasts:', result.data?.length || 0, 'rows');
+      return result.data as any[];
     },
     staleTime: 0, // Always refetch
   });

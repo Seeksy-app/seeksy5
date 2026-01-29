@@ -161,7 +161,7 @@ export function useMilestones(includeDemo = true) {
   return useQuery({
     queryKey: ['milestones', includeDemo],
     queryFn: async () => {
-      let query = supabase
+      let query = (supabase as any)
         .from('milestones')
         .select('*')
         .order('display_order', { ascending: true });
@@ -170,23 +170,27 @@ export function useMilestones(includeDemo = true) {
         query = query.eq('is_demo', false);
       }
       
-      const { data, error } = await query;
+      const result = await query;
       
-      if (error) throw error;
+      if (result.error) throw result.error;
+      
+      const data = result.data as any[];
       
       // Fetch subtasks for all milestones
-      const milestoneIds = data?.map(m => m.id) || [];
-      const { data: subtasks } = await supabase
+      const milestoneIds = data?.map((m: any) => m.id) || [];
+      const subtasksResult = await (supabase as any)
         .from('milestone_subtasks')
         .select('*')
         .in('milestone_id', milestoneIds)
         .order('display_order', { ascending: true });
       
+      const subtasks = subtasksResult.data as any[] || [];
+      
       // Attach subtasks to milestones
-      return (data || []).map(m => ({
+      return (data || []).map((m: any) => ({
         ...m,
         dependencies: m.dependencies || [],
-        subtasks: subtasks?.filter(s => s.milestone_id === m.id) || [],
+        subtasks: subtasks?.filter((s: any) => s.milestone_id === m.id) || [],
       })) as Milestone[];
     },
   });
@@ -197,7 +201,7 @@ export function useCreateMilestone() {
   
   return useMutation({
     mutationFn: async (input: CreateMilestoneInput) => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('milestones')
         .insert({
           title: input.title,
@@ -217,14 +221,14 @@ export function useCreateMilestone() {
         .select()
         .single();
       
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['milestones'] });
       toast.success('Milestone created');
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast.error('Failed to create milestone: ' + error.message);
     },
   });
@@ -236,21 +240,21 @@ export function useUpdateMilestone() {
   return useMutation({
     mutationFn: async (input: UpdateMilestoneInput) => {
       const { id, ...updates } = input;
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('milestones')
         .update(updates)
         .eq('id', id)
         .select()
         .single();
       
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['milestones'] });
       toast.success('Milestone updated');
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast.error('Failed to update milestone: ' + error.message);
     },
   });
@@ -261,18 +265,18 @@ export function useDeleteMilestone() {
   
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('milestones')
         .delete()
         .eq('id', id);
       
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['milestones'] });
       toast.success('Milestone deleted');
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast.error('Failed to delete milestone: ' + error.message);
     },
   });
@@ -283,12 +287,12 @@ export function useUpdateSubtask() {
   
   return useMutation({
     mutationFn: async ({ id, is_completed }: { id: string; is_completed: boolean }) => {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('milestone_subtasks')
         .update({ is_completed })
         .eq('id', id);
       
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['milestones'] });
@@ -301,11 +305,11 @@ export function useCreateSubtask() {
   
   return useMutation({
     mutationFn: async ({ milestone_id, title }: { milestone_id: string; title: string }) => {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('milestone_subtasks')
         .insert({ milestone_id, title });
       
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['milestones'] });
@@ -319,12 +323,12 @@ export function useDeleteSubtask() {
   
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('milestone_subtasks')
         .delete()
         .eq('id', id);
       
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['milestones'] });

@@ -19,15 +19,15 @@ export function useLiveChannels() {
 
   const fetchLiveChannels = useCallback(async () => {
     try {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('live_channels')
         .select('*')
         .eq('status', 'live')
         .eq('is_active', true)
         .order('started_at', { ascending: false });
 
-      if (error) throw error;
-      setChannels(data || []);
+      if (result.error) throw result.error;
+      setChannels((result.data as LiveChannel[]) || []);
     } catch (err) {
       console.error('Error fetching live channels:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch channels');

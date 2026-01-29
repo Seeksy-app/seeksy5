@@ -55,17 +55,18 @@ export function usePermissions(): UsePermissionsReturn {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('role_permissions')
         .select('permission')
         .in('role', roles);
 
-      if (error) {
-        console.error('[usePermissions] Error:', error);
+      if (result.error) {
+        console.error('[usePermissions] Error:', result.error);
         return [];
       }
 
-      return [...new Set(data.map(p => p.permission))];
+      const data = result.data as any[];
+      return [...new Set(data.map((p: any) => p.permission))];
     },
     enabled: roles.length > 0,
     staleTime: 5 * 60 * 1000,
@@ -92,7 +93,7 @@ export function usePermissions(): UsePermissionsReturn {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      await supabase.from('access_denied_log').insert({
+      await (supabase as any).from('access_denied_log').insert({
         user_id: user.id,
         attempted_permission: permission,
         attempted_resource: resource,

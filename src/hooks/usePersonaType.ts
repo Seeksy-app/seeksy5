@@ -18,13 +18,16 @@ export function usePersonaType() {
         
         setUserId(user.id);
 
-        const { data: prefs } = await supabase
+        const result = await (supabase as any)
           .from("user_preferences")
-          .select("user_type")
+          .select("preferences")
           .eq("user_id", user.id)
           .maybeSingle();
 
-        if (prefs?.user_type) {
+        const data = result.data as any;
+        const prefs = data?.preferences as Record<string, any> || {};
+
+        if (prefs.user_type) {
           // Map old user_type values to new persona types
           const typeMapping: Record<string, PersonaType> = {
             creator: "influencer",

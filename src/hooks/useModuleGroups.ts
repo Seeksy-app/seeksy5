@@ -28,29 +28,31 @@ export function useModuleGroups() {
   return useQuery({
     queryKey: ["module-groups"],
     queryFn: async () => {
-      const { data: groups, error: groupsError } = await supabase
+      const groupsResult = await (supabase as any)
         .from("module_groups")
         .select("*")
         .order("sort_order");
 
-      if (groupsError) throw groupsError;
+      if (groupsResult.error) throw groupsResult.error;
+      const groups = groupsResult.data as any[];
 
-      const { data: assignments, error: assignmentsError } = await supabase
+      const assignmentsResult = await (supabase as any)
         .from("module_group_modules")
         .select("*")
         .order("sort_order");
 
-      if (assignmentsError) throw assignmentsError;
+      if (assignmentsResult.error) throw assignmentsResult.error;
+      const assignments = assignmentsResult.data as any[];
 
       // Combine groups with their modules
-      const groupsWithModules: GroupWithModules[] = (groups || []).map((group) => ({
+      const groupsWithModules: GroupWithModules[] = (groups || []).map((group: any) => ({
         ...group,
         primaryModules: (assignments || [])
-          .filter((a) => a.group_id === group.id && a.relationship_type === "primary")
-          .sort((a, b) => a.sort_order - b.sort_order),
+          .filter((a: any) => a.group_id === group.id && a.relationship_type === "primary")
+          .sort((a: any, b: any) => (a.sort_order || 0) - (b.sort_order || 0)),
         associatedModules: (assignments || [])
-          .filter((a) => a.group_id === group.id && a.relationship_type === "associated")
-          .sort((a, b) => a.sort_order - b.sort_order),
+          .filter((a: any) => a.group_id === group.id && a.relationship_type === "associated")
+          .sort((a: any, b: any) => (a.sort_order || 0) - (b.sort_order || 0)),
       }));
 
       return groupsWithModules;
@@ -63,13 +65,13 @@ export function useModuleGroupMutations() {
 
   const createGroup = useMutation({
     mutationFn: async (group: Omit<ModuleGroup, "id">) => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("module_groups")
         .insert(group)
         .select()
         .single();
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["module-groups"] });
@@ -78,14 +80,14 @@ export function useModuleGroupMutations() {
 
   const updateGroup = useMutation({
     mutationFn: async ({ id, ...updates }: Partial<ModuleGroup> & { id: string }) => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("module_groups")
         .update(updates)
         .eq("id", id)
         .select()
         .single();
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["module-groups"] });
@@ -94,8 +96,8 @@ export function useModuleGroupMutations() {
 
   const deleteGroup = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("module_groups").delete().eq("id", id);
-      if (error) throw error;
+      const result = await (supabase as any).from("module_groups").delete().eq("id", id);
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["module-groups"] });
@@ -105,11 +107,11 @@ export function useModuleGroupMutations() {
   const reorderGroups = useMutation({
     mutationFn: async (groups: { id: string; sort_order: number }[]) => {
       for (const group of groups) {
-        const { error } = await supabase
+        const result = await (supabase as any)
           .from("module_groups")
           .update({ sort_order: group.sort_order })
           .eq("id", group.id);
-        if (error) throw error;
+        if (result.error) throw result.error;
       }
     },
     onSuccess: () => {
@@ -129,7 +131,7 @@ export function useModuleGroupMutations() {
       relationshipType: "primary" | "associated";
       sortOrder: number;
     }) => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("module_group_modules")
         .upsert({
           group_id: groupId,
@@ -139,8 +141,8 @@ export function useModuleGroupMutations() {
         }, { onConflict: 'group_id,module_key,relationship_type' })
         .select()
         .single();
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["module-groups"] });
@@ -149,12 +151,12 @@ export function useModuleGroupMutations() {
 
   const removeModuleFromGroup = useMutation({
     mutationFn: async ({ groupId, moduleKey }: { groupId: string; moduleKey: string }) => {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("module_group_modules")
         .delete()
         .eq("group_id", groupId)
         .eq("module_key", moduleKey);
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["module-groups"] });
@@ -175,14 +177,14 @@ export function useModuleGroupMutations() {
       if (sortOrder !== undefined) updates.sort_order = sortOrder;
       if (relationshipType !== undefined) updates.relationship_type = relationshipType;
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("module_group_modules")
         .update(updates)
         .eq("id", id)
         .select()
         .single();
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["module-groups"] });
@@ -199,12 +201,12 @@ export function useModuleGroupMutations() {
       // Delete all existing assignments for groups being updated
       const groupIds = [...new Set(assignments.map(a => a.groupId))];
       for (const groupId of groupIds) {
-        await supabase.from("module_group_modules").delete().eq("group_id", groupId);
+        await (supabase as any).from("module_group_modules").delete().eq("group_id", groupId);
       }
       
       // Insert new assignments
       if (assignments.length > 0) {
-        const { error } = await supabase.from("module_group_modules").insert(
+        const result = await (supabase as any).from("module_group_modules").insert(
           assignments.map(a => ({
             group_id: a.groupId,
             module_key: a.moduleKey,
@@ -212,7 +214,7 @@ export function useModuleGroupMutations() {
             sort_order: a.sortOrder,
           }))
         );
-        if (error) throw error;
+        if (result.error) throw result.error;
       }
     },
     onSuccess: () => {

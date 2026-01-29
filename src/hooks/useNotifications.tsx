@@ -25,32 +25,33 @@ export const useNotifications = () => {
     console.log('🔔 Fetching notifications for user:', user?.id);
     if (!user) return;
 
-    const { data, error } = await supabase
+    const result = await (supabase as any)
       .from('notifications')
       .select('*')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .limit(50);
 
-    if (error) {
-      console.error('❌ Error fetching notifications:', error);
+    if (result.error) {
+      console.error('❌ Error fetching notifications:', result.error);
       return;
     }
 
+    const data = result.data as any[];
     console.log('✅ Fetched notifications:', data?.length || 0, data);
     setNotifications((data || []) as Notification[]);
-    setUnreadCount(data?.filter(n => !n.read).length || 0);
+    setUnreadCount(data?.filter((n: any) => !n.read && !n.is_read).length || 0);
   };
 
   // Mark notification as read
   const markAsRead = async (notificationId: string) => {
-    const { error } = await supabase
+    const result = await (supabase as any)
       .from('notifications')
-      .update({ read: true })
+      .update({ read: true, is_read: true })
       .eq('id', notificationId);
 
-    if (error) {
-      console.error('Error marking notification as read:', error);
+    if (result.error) {
+      console.error('Error marking notification as read:', result.error);
       return;
     }
 
@@ -66,14 +67,13 @@ export const useNotifications = () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { error } = await supabase
+    const result = await (supabase as any)
       .from('notifications')
-      .update({ read: true })
-      .eq('user_id', user.id)
-      .eq('read', false);
+      .update({ read: true, is_read: true })
+      .eq('user_id', user.id);
 
-    if (error) {
-      console.error('Error marking all as read:', error);
+    if (result.error) {
+      console.error('Error marking all as read:', result.error);
       return;
     }
 
@@ -83,13 +83,13 @@ export const useNotifications = () => {
 
   // Delete notification
   const deleteNotification = async (notificationId: string) => {
-    const { error } = await supabase
+    const result = await (supabase as any)
       .from('notifications')
       .delete()
       .eq('id', notificationId);
 
-    if (error) {
-      console.error('Error deleting notification:', error);
+    if (result.error) {
+      console.error('Error deleting notification:', result.error);
       return;
     }
 

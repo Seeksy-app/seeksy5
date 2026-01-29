@@ -2,7 +2,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { ForecastResult } from './useProFormaForecast';
-import { Json } from '@/integrations/supabase/types';
 
 export interface ProFormaVersion {
   id: string;
@@ -22,13 +21,13 @@ export function useProFormaVersions() {
   const { data: versions, isLoading } = useQuery({
     queryKey: ['proforma-versions'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('proforma_versions')
         .select('*')
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
-      return (data || []).map((row) => ({
+      if (result.error) throw result.error;
+      return (result.data || []).map((row: any) => ({
         ...row,
         forecast_payload: row.forecast_payload as unknown as ForecastResult,
         assumptions_snapshot: row.assumptions_snapshot as Record<string, number> | null,
@@ -57,7 +56,7 @@ export function useProFormaVersions() {
         throw new Error('You must be logged in to save a version');
       }
       
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('proforma_versions')
         .insert({
           scenario_key,
@@ -70,10 +69,10 @@ export function useProFormaVersions() {
         .select()
         .single();
       
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any;
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ['proforma-versions'] });
       toast.success(`Version saved as "${data.label}"`);
     },
@@ -85,12 +84,12 @@ export function useProFormaVersions() {
   // Delete a version
   const deleteVersion = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('proforma_versions')
         .delete()
         .eq('id', id);
       
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['proforma-versions'] });
