@@ -28,19 +28,20 @@ export function useSeoBaseline(seoPageId: string | undefined) {
     queryFn: async () => {
       if (!seoPageId) return { gsc: null, ga4: null } as BaselinesMap;
       
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('seo_metric_baselines')
         .select('*')
         .eq('seo_page_id', seoPageId);
       
-      if (error) throw error;
+      if (result.error) throw result.error;
       
-      const result: BaselinesMap = { gsc: null, ga4: null };
-      data?.forEach(b => {
-        if (b.source === 'gsc') result.gsc = b as SeoBaseline;
-        if (b.source === 'ga4') result.ga4 = b as SeoBaseline;
+      const data = result.data as SeoBaseline[];
+      const resultMap: BaselinesMap = { gsc: null, ga4: null };
+      data?.forEach((b: SeoBaseline) => {
+        if (b.source === 'gsc') resultMap.gsc = b;
+        if (b.source === 'ga4') resultMap.ga4 = b;
       });
-      return result;
+      return resultMap;
     },
     enabled: !!seoPageId,
     staleTime: 60000
@@ -53,29 +54,30 @@ export function useSeoBaselinesForList(seoPageIds: string[]) {
     queryFn: async () => {
       if (seoPageIds.length === 0) return new Map<string, BaselinesMap>();
       
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('seo_metric_baselines')
         .select('*')
         .in('seo_page_id', seoPageIds);
       
-      if (error) throw error;
+      if (result.error) throw result.error;
       
-      const result = new Map<string, BaselinesMap>();
+      const data = result.data as SeoBaseline[];
+      const resultMap = new Map<string, BaselinesMap>();
       
       // Initialize all pages
       seoPageIds.forEach(id => {
-        result.set(id, { gsc: null, ga4: null });
+        resultMap.set(id, { gsc: null, ga4: null });
       });
       
       // Fill in baselines
-      data?.forEach(b => {
-        const existing = result.get(b.seo_page_id) || { gsc: null, ga4: null };
-        if (b.source === 'gsc') existing.gsc = b as SeoBaseline;
-        if (b.source === 'ga4') existing.ga4 = b as SeoBaseline;
-        result.set(b.seo_page_id, existing);
+      data?.forEach((b: SeoBaseline) => {
+        const existing = resultMap.get(b.seo_page_id) || { gsc: null, ga4: null };
+        if (b.source === 'gsc') existing.gsc = b;
+        if (b.source === 'ga4') existing.ga4 = b;
+        resultMap.set(b.seo_page_id, existing);
       });
       
-      return result;
+      return resultMap;
     },
     enabled: seoPageIds.length > 0,
     staleTime: 60000
@@ -122,11 +124,11 @@ export function useResetBaseline() {
         reset_at: now
       };
       
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('seo_metric_baselines')
         .upsert(payload, { onConflict: 'seo_page_id,source' });
       
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['seo-baselines', variables.seoPageId] });
@@ -164,14 +166,14 @@ export function useCaptureBaseline() {
       };
     }) => {
       // Only insert if doesn't exist (never overwrite automatically)
-      const { data: existing } = await supabase
+      const existingResult = await (supabase as any)
         .from('seo_metric_baselines')
         .select('id')
         .eq('seo_page_id', seoPageId)
         .eq('source', source)
         .maybeSingle();
       
-      if (existing) {
+      if (existingResult.data) {
         // Baseline already exists, don't overwrite
         return null;
       }
@@ -188,11 +190,11 @@ export function useCaptureBaseline() {
         captured_at: new Date().toISOString()
       };
       
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('seo_metric_baselines')
         .insert(payload);
       
-      if (error) throw error;
+      if (result.error) throw result.error;
       return payload;
     },
     onSuccess: (_, variables) => {

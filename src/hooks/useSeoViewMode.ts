@@ -49,6 +49,11 @@ const ADMIN_CONFIG: SeoViewConfig = {
   showClientComparison: true
 };
 
+interface WorkspaceMembership {
+  role: string;
+  workspace: { type?: string } | null;
+}
+
 export function useSeoViewMode(): { config: SeoViewConfig; isLoading: boolean } {
   const { data: userRole, isLoading } = useQuery({
     queryKey: ['user-workspace-role'],
@@ -57,22 +62,24 @@ export function useSeoViewMode(): { config: SeoViewConfig; isLoading: boolean } 
       if (!user) return null;
 
       // Check if admin
-      const { data: roles } = await supabase
+      const rolesResult = await (supabase as any)
         .from('user_roles')
         .select('role')
         .eq('user_id', user.id);
 
+      const roles = rolesResult.data as any[] || [];
       const isAdmin = roles?.some(r => r.role === 'admin' || r.role === 'super_admin');
       if (isAdmin) return 'admin';
 
       // Check workspace membership for agency detection
-      const { data: memberships } = await supabase
+      const membershipsResult = await (supabase as any)
         .from('workspace_members')
         .select('role, workspace:workspace_id(type)')
         .eq('user_id', user.id);
 
+      const memberships = membershipsResult.data as WorkspaceMembership[] || [];
       const isAgency = memberships?.some(
-        m => (m.workspace as any)?.type === 'agency' || m.role === 'agency_admin'
+        m => m.workspace?.type === 'agency' || m.role === 'agency_admin'
       );
       if (isAgency) return 'agency';
 

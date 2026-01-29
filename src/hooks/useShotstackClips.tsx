@@ -31,6 +31,15 @@ interface RenderWithCaptionsParams {
   enableCertification?: boolean;
 }
 
+interface ClipStatus {
+  id: string;
+  status: string;
+  shotstack_status?: string;
+  vertical_url?: string;
+  thumbnail_url?: string;
+  error_message?: string;
+}
+
 export const useShotstackClips = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
@@ -143,15 +152,15 @@ export const useShotstackClips = () => {
     }
   };
 
-  const getClipStatus = async (clipId: string) => {
-    const { data, error } = await supabase
+  const getClipStatus = async (clipId: string): Promise<ClipStatus> => {
+    const result = await (supabase as any)
       .from("clips")
       .select("id, status, shotstack_status, vertical_url, thumbnail_url, error_message")
       .eq("id", clipId)
       .single();
 
-    if (error) throw error;
-    return data;
+    if (result.error) throw result.error;
+    return result.data as ClipStatus;
   };
 
   const pollClipStatus = async (
@@ -159,7 +168,7 @@ export const useShotstackClips = () => {
     onStatusChange?: (status: string) => void,
     maxAttempts: number = 60,
     intervalMs: number = 5000
-  ): Promise<any> => {
+  ): Promise<ClipStatus> => {
     let attempts = 0;
 
     return new Promise((resolve, reject) => {
