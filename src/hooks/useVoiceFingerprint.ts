@@ -12,6 +12,13 @@ interface AudioSignature {
   timestamp: string;
 }
 
+interface VoiceFingerprint {
+  id: string;
+  user_id: string;
+  audio_signature: any;
+  created_at: string;
+}
+
 export const useVoiceFingerprint = () => {
   const [isCapturing, setIsCapturing] = useState(false);
   const [fingerprint, setFingerprint] = useState<any>(null);
@@ -210,13 +217,15 @@ export const useVoiceFingerprint = () => {
       );
 
       // Compare with stored fingerprint
-      const { data: storedFingerprint } = await supabase
+      const result = await (supabase as any)
         .from('creator_voice_fingerprints')
         .select('audio_signature')
         .eq('id', expectedFingerprintId)
         .single();
 
-      if (!storedFingerprint) return false;
+      if (!result.data) return false;
+
+      const storedFingerprint = result.data as VoiceFingerprint;
 
       // Calculate similarity score
       const similarity = calculateSimilarity(

@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { WIPValue, WIPNeed, WIPRound, WIPAssessment, WIPNeedScore, WIPValueScore } from '@/types/wip';
+import { WIPValue, WIPNeed, WIPRound, WIPAssessment } from '@/types/wip';
 import { useWIPScoring } from './useWIPScoring';
 import { toast } from 'sonner';
 
@@ -20,12 +20,12 @@ export function useWIPAssessment(audiencePath: 'civilian' | 'military' | 'reentr
   const { data: values = [], isLoading: valuesLoading } = useQuery({
     queryKey: ['wip-values'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('wip_value')
         .select('*')
         .order('sort_order');
-      if (error) throw error;
-      return data as WIPValue[];
+      if (result.error) throw result.error;
+      return result.data as WIPValue[];
     },
   });
 
@@ -33,12 +33,12 @@ export function useWIPAssessment(audiencePath: 'civilian' | 'military' | 'reentr
   const { data: needs = [], isLoading: needsLoading } = useQuery({
     queryKey: ['wip-needs'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('wip_need')
         .select('*')
         .order('sort_order');
-      if (error) throw error;
-      return data as WIPNeed[];
+      if (result.error) throw result.error;
+      return result.data as WIPNeed[];
     },
   });
 
@@ -46,13 +46,13 @@ export function useWIPAssessment(audiencePath: 'civilian' | 'military' | 'reentr
   const { data: rounds = [], isLoading: roundsLoading } = useQuery({
     queryKey: ['wip-rounds'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('wip_round')
         .select('*')
         .eq('is_active', true)
         .order('round_index');
-      if (error) throw error;
-      return data as WIPRound[];
+      if (result.error) throw result.error;
+      return result.data as WIPRound[];
     },
   });
 
@@ -68,7 +68,7 @@ export function useWIPAssessment(audiencePath: 'civilian' | 'military' | 'reentr
   const createAssessmentMutation = useMutation({
     mutationFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('wip_assessment')
         .insert({
           user_id: user?.id || null,
@@ -77,8 +77,8 @@ export function useWIPAssessment(audiencePath: 'civilian' | 'military' | 'reentr
         })
         .select()
         .single();
-      if (error) throw error;
-      return data as WIPAssessment;
+      if (result.error) throw result.error;
+      return result.data as WIPAssessment;
     },
     onSuccess: (data) => {
       setAssessmentId(data.id);
@@ -89,7 +89,7 @@ export function useWIPAssessment(audiencePath: 'civilian' | 'military' | 'reentr
   const saveRoundResponseMutation = useMutation({
     mutationFn: async ({ roundIndex, rankedNeedIds }: RoundResponse) => {
       if (!assessmentId) throw new Error('No assessment started');
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('wip_round_response')
         .upsert({
           assessment_id: assessmentId,
@@ -98,7 +98,7 @@ export function useWIPAssessment(audiencePath: 'civilian' | 'military' | 'reentr
         }, {
           onConflict: 'assessment_id,round_index',
         });
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
   });
 
@@ -128,10 +128,10 @@ export function useWIPAssessment(audiencePath: 'civilian' | 'military' | 'reentr
         };
       });
 
-      const { error: needError } = await supabase
+      const needResult = await (supabase as any)
         .from('wip_need_score')
         .insert(needScoreInserts);
-      if (needError) throw needError;
+      if (needResult.error) throw needResult.error;
 
       // Save value scores (mean of underlying needs' standardized scores)
       const valueScoreInserts = scores.valueScores.map((vs) => ({
@@ -144,17 +144,17 @@ export function useWIPAssessment(audiencePath: 'civilian' | 'military' | 'reentr
         max_possible: 100,
       }));
 
-      const { error: valueError } = await supabase
+      const valueResult = await (supabase as any)
         .from('wip_value_score')
         .insert(valueScoreInserts);
-      if (valueError) throw valueError;
+      if (valueResult.error) throw valueResult.error;
 
       // Mark assessment as completed
-      const { error: updateError } = await supabase
+      const updateResult = await (supabase as any)
         .from('wip_assessment')
         .update({ completed_at: new Date().toISOString() })
         .eq('id', assessmentId);
-      if (updateError) throw updateError;
+      if (updateResult.error) throw updateResult.error;
 
       return scores;
     },
