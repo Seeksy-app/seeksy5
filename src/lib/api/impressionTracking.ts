@@ -64,7 +64,7 @@ export async function trackImpression(event: ImpressionEvent): Promise<boolean> 
  */
 export async function trackListen(event: ListenEvent): Promise<boolean> {
   try {
-    const { error } = await supabase
+    const result = await (supabase as any)
       .from('listen_events')
       .insert({
         episode_id: event.episode_id,
@@ -76,8 +76,8 @@ export async function trackListen(event: ListenEvent): Promise<boolean> {
         listened_at: event.timestamp,
       });
     
-    if (error) {
-      console.error('Listen tracking error:', error);
+    if (result.error) {
+      console.error('Listen tracking error:', result.error);
       return false;
     }
     
@@ -116,17 +116,17 @@ export async function getEpisodeImpressions(episodeId: string): Promise<number> 
  */
 export async function getEpisodeListens(episodeId: string): Promise<number> {
   try {
-    const { count, error } = await supabase
+    const result = await (supabase as any)
       .from('listen_events')
       .select('*', { count: 'exact', head: true })
       .eq('episode_id', episodeId);
     
-    if (error) {
-      console.error('Error fetching listen count:', error);
+    if (result.error) {
+      console.error('Error fetching listen count:', result.error);
       return 0;
     }
     
-    return count || 0;
+    return result.count || 0;
   } catch (error) {
     console.error('Error getting episode listens:', error);
     return 0;

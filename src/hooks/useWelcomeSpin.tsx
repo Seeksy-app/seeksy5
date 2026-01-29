@@ -11,13 +11,13 @@ export function useWelcomeSpin() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("spin_wheel_history")
         .select("id")
         .eq("user_id", user.id);
 
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any[];
     },
   });
 

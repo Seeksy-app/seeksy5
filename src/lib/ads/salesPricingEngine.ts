@@ -66,13 +66,14 @@ export async function getRateDeskView(options: {
   const { scenarioSlug = "base", months = 1 } = options;
 
   // Fetch the scenario
-  const { data: scenarios, error: scenarioError } = await supabase
+  const scenarioResult = await (supabase as any)
     .from("ad_financial_scenarios")
     .select("*")
     .eq("name", scenarioSlug.charAt(0).toUpperCase() + scenarioSlug.slice(1))
     .limit(1);
 
-  if (scenarioError) throw scenarioError;
+  if (scenarioResult.error) throw scenarioResult.error;
+  const scenarios = scenarioResult.data as any[] || [];
   
   const scenario = scenarios?.[0] || { 
     id: "default", 
@@ -81,27 +82,29 @@ export async function getRateDeskView(options: {
   };
 
   // Fetch assumptions for the scenario
-  const { data: assumptions, error: assumptionsError } = await supabase
+  const assumptionsResult = await (supabase as any)
     .from("ad_financial_assumptions")
     .select("*")
     .eq("scenario_id", scenario.id)
     .limit(1)
     .single();
 
-  if (assumptionsError) console.warn("No assumptions found, using defaults");
+  if (assumptionsResult.error) console.warn("No assumptions found, using defaults");
+  const assumptions = assumptionsResult.data as any;
 
   const baseCPM = assumptions?.cpm_midroll || 25.0;
   const creatorRevShare = assumptions?.creator_rev_share || 0.7;
   const platformShare = 1 - creatorRevShare;
 
   // Fetch all active inventory units
-  const { data: inventoryUnits, error: inventoryError } = await supabase
+  const inventoryResult = await (supabase as any)
     .from("ad_inventory_units")
     .select("*")
     .eq("is_active", true)
     .order("type", { ascending: true });
 
-  if (inventoryError) throw inventoryError;
+  if (inventoryResult.error) throw inventoryResult.error;
+  const inventoryUnits = inventoryResult.data as any[] || [];
 
   // Calculate pricing for each unit
   const scenarioMultiplier = SCENARIO_MULTIPLIERS[scenarioSlug as keyof typeof SCENARIO_MULTIPLIERS] || 1.0;

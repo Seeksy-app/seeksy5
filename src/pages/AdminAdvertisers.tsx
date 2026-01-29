@@ -182,7 +182,7 @@ export default function AdminAdvertisers() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                           <div className="flex items-center gap-2">
                             <Mail className="h-4 w-4 text-muted-foreground" />
-                            <span>{advertiser.contact_name} - {advertiser.contact_email}</span>
+                            <span>{(advertiser as any).contact_name || advertiser.company_name} - {advertiser.contact_email}</span>
                           </div>
                           {advertiser.contact_phone && (
                             <div className="flex items-center gap-2">

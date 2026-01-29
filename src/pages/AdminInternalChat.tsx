@@ -196,13 +196,15 @@ export default function AdminInternalChat() {
     if (!adminTeamId) return;
 
     // @ts-ignore - Type instantiation depth issue
-    const { data, error } = await supabase
+    const result = await (supabase as any)
       .from("team_messages")
       .select("*")
       .eq("team_id", adminTeamId)
       .eq("chat_type", "admin_internal")
       .order("created_at", { ascending: true })
       .limit(100);
+    
+    const { data, error } = result;
 
     if (error) {
       console.error("Error loading messages:", error);
@@ -210,7 +212,7 @@ export default function AdminInternalChat() {
     }
 
     if (data && data.length > 0) {
-      const userIds = [...new Set(data.map((m: any) => m.user_id))];
+      const userIds = [...new Set(data.map((m: any) => m.user_id))] as string[];
       const { data: profiles } = await supabase
         .from("profiles")
         .select("id, account_full_name, account_avatar_url")
@@ -231,12 +233,14 @@ export default function AdminInternalChat() {
     if (!adminTeamId) return;
 
     // @ts-ignore - Type instantiation depth issue
-    const { data, error } = await supabase
+    const result = await (supabase as any)
       .from("user_presence")
       .select("*")
       .eq("team_id", adminTeamId)
       .order("is_online", { ascending: false })
       .order("last_seen", { ascending: false });
+    
+    const { data, error } = result;
 
     if (error) {
       console.error("Error loading online users:", error);
@@ -267,14 +271,14 @@ export default function AdminInternalChat() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { error } = await supabase.from("team_messages").insert({
+    const result = await (supabase as any).from("team_messages").insert({
       user_id: user.id,
       team_id: adminTeamId,
       message: newMessage.trim(),
       chat_type: "admin_internal",
     });
 
-    if (error) {
+    if (result.error) {
       toast({
         title: "Error",
         description: "Failed to send message",

@@ -31,15 +31,17 @@ export class YouTubeAnalyticsService {
   async initialize(): Promise<boolean> {
     try {
       // Fetch active YouTube account credentials
-      const { data: account, error } = await supabase
+      const result = await (supabase as any)
         .from('external_platform_accounts')
         .select('*')
         .eq('platform', 'youtube')
         .eq('is_active', true)
         .single();
+      
+      const account = result.data as any;
 
-      if (error || !account) {
-        console.error('No active YouTube account found:', error);
+      if (result.error || !account) {
+        console.error('No active YouTube account found:', result.error);
         return false;
       }
 
@@ -79,7 +81,7 @@ export class YouTubeAnalyticsService {
       this.accessToken = data.access_token;
 
       // Update stored credentials
-      await supabase
+      await (supabase as any)
         .from('external_platform_accounts')
         .update({
           access_token: data.access_token,
@@ -169,12 +171,14 @@ export class YouTubeAnalyticsService {
 
     try {
       // Fetch content mapping to link video to internal campaign/episode
-      const { data: mapping } = await supabase
+      const mappingResult = await (supabase as any)
         .from('external_content_mapping')
         .select('*')
         .eq('platform', 'youtube')
         .eq('external_content_id', videoId)
         .single();
+      
+      const mapping = mappingResult.data as any;
 
       // Fetch metrics from YouTube API
       const metrics = await this.fetchVideoMetrics(videoId, startDate, endDate);
@@ -182,7 +186,7 @@ export class YouTubeAnalyticsService {
       // Insert/update stats for each day
       for (const metric of metrics) {
         try {
-          const { error } = await supabase
+          const insertResult = await (supabase as any)
             .from('external_platform_ad_stats')
             .upsert([{
               platform: 'youtube',
@@ -201,8 +205,8 @@ export class YouTubeAnalyticsService {
               raw_payload: JSON.parse(JSON.stringify(metric))
             }]);
 
-          if (error) {
-            errors.push(`Failed to insert stats for ${videoId} on ${metric.date}: ${error.message}`);
+          if (insertResult.error) {
+            errors.push(`Failed to insert stats for ${videoId} on ${metric.date}: ${insertResult.error.message}`);
           } else {
             rowsInserted++;
           }

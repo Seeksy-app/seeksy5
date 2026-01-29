@@ -60,7 +60,7 @@ export default function AdminAudioAds() {
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <CardTitle className="text-lg">
-                          {ad.advertiser?.company_name || "Unknown Advertiser"}
+                          {(ad as any).advertiser?.company_name || "Unknown Advertiser"}
                         </CardTitle>
                         <Badge className={getAdTypeBadge(ad.ad_type)}>
                           {ad.ad_type === "conversational" ? "Conversational AI" : "Standard Audio"}
@@ -73,9 +73,9 @@ export default function AdminAudioAds() {
                         Created {format(new Date(ad.created_at), "MMM d, yyyy 'at' h:mm a")}
                       </CardDescription>
                     </div>
-                    {ad.campaign && (
+                    {(ad as any).campaign && (
                       <Badge variant="outline">
-                        Campaign: {ad.campaign.name}
+                        Campaign: {(ad as any).campaign.name}
                       </Badge>
                     )}
                   </div>
