@@ -129,53 +129,56 @@ const Availability = () => {
   const loadAvailability = async (userId: string) => {
     try {
       // Load timezone settings
-      const { data: settings } = await supabase
+      const settingsResult = await (supabase as any)
         .from("user_settings")
         .select("*")
         .eq("user_id", userId)
         .single();
+      const settings = settingsResult.data as any;
 
       if (settings) {
         setTimezone(settings.timezone);
       }
 
       // Load weekly schedule
-      const { data: scheduleData, error: scheduleError } = await supabase
+      const scheduleResult = await (supabase as any)
         .from("availability_schedules")
         .select("*")
         .eq("user_id", userId)
         .order("day_of_week", { ascending: true })
         .order("start_time", { ascending: true });
 
-      if (scheduleError) throw scheduleError;
+      if (scheduleResult.error) throw scheduleResult.error;
+      const scheduleData = scheduleResult.data as any[];
 
       // Group by day
       const grouped: Record<number, AvailabilitySlot[]> = {};
-      scheduleData?.forEach((slot) => {
+      scheduleData?.forEach((slot: any) => {
         if (!grouped[slot.day_of_week]) {
           grouped[slot.day_of_week] = [];
         }
-        grouped[slot.day_of_week].push(slot);
+        grouped[slot.day_of_week].push(slot as AvailabilitySlot);
       });
       setWeeklySchedule(grouped);
 
       // Load blocked times
-      const { data: blockedData, error: blockedError } = await supabase
+      const blockedResult = await (supabase as any)
         .from("blocked_times")
         .select("*")
         .eq("user_id", userId)
         .order("start_time", { ascending: true });
 
-      if (blockedError) throw blockedError;
-      setBlockedTimes(blockedData || []);
+      if (blockedResult.error) throw blockedResult.error;
+      setBlockedTimes((blockedResult.data as BlockedTime[]) || []);
 
       // Check calendar connection
-      const { data: calendarData } = await supabase
+      const calResult = await (supabase as any)
         .from("calendar_connections")
         .select("*")
         .eq("user_id", userId)
         .eq("provider", "google")
         .single();
+      const calendarData = calResult.data as any;
 
       if (calendarData) {
         setCalendarConnected(true);
@@ -183,11 +186,12 @@ const Availability = () => {
       }
 
       // Check Zoom connection
-      const { data: zoomData } = await supabase
+      const zoomResult = await (supabase as any)
         .from("zoom_connections")
         .select("*")
         .eq("user_id", userId)
         .single();
+      const zoomData = zoomResult.data as any;
 
       if (zoomData) {
         setZoomConnected(true);
@@ -236,13 +240,13 @@ const Availability = () => {
     if (!user) return;
     
     try {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("calendar_connections")
         .delete()
         .eq("user_id", user.id)
         .eq("provider", "google");
 
-      if (error) throw error;
+      if (result.error) throw result.error;
 
       setCalendarConnected(false);
       setCalendarEmail(null);
@@ -286,12 +290,12 @@ const Availability = () => {
     if (!user) return;
     
     try {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("zoom_connections")
         .delete()
         .eq("user_id", user.id);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
 
       setZoomConnected(false);
       setZoomEmail(null);
@@ -369,17 +373,17 @@ const Availability = () => {
 
     try {
       // Upsert timezone settings
-      const { error: settingsError } = await supabase
+      const settingsResult = await (supabase as any)
         .from("user_settings")
         .upsert({
           user_id: user.id,
           timezone,
         });
 
-      if (settingsError) throw settingsError;
+      if (settingsResult.error) throw settingsResult.error;
 
       // Delete existing availability schedules
-      await supabase
+      await (supabase as any)
         .from("availability_schedules")
         .delete()
         .eq("user_id", user.id);
@@ -395,15 +399,15 @@ const Availability = () => {
           is_available: slot.is_available,
         }));
 
-        const { error: slotsError } = await supabase
+        const slotsResult = await (supabase as any)
           .from("availability_schedules")
           .insert(slotsToInsert);
 
-        if (slotsError) throw slotsError;
+        if (slotsResult.error) throw slotsResult.error;
       }
 
       // Delete existing blocked times
-      await supabase
+      await (supabase as any)
         .from("blocked_times")
         .delete()
         .eq("user_id", user.id);
@@ -417,11 +421,11 @@ const Availability = () => {
           reason: blocked.reason,
         }));
 
-        const { error: blockedError } = await supabase
+        const blockedResult = await (supabase as any)
           .from("blocked_times")
           .insert(blockedToInsert);
 
-        if (blockedError) throw blockedError;
+        if (blockedResult.error) throw blockedResult.error;
       }
 
       toast({

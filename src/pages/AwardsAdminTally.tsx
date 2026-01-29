@@ -40,7 +40,7 @@ export default function AwardsAdminTally() {
   const { data: program, isLoading } = useQuery({
     queryKey: ["awards-tally", id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const programResult = await (supabase as any)
         .from("awards_programs")
         .select(`
           *,
@@ -53,27 +53,30 @@ export default function AwardsAdminTally() {
         .eq("id", id)
         .single();
 
-      if (error) throw error;
+      if (programResult.error) throw programResult.error;
+      const data = programResult.data as any;
 
       // Fetch vote counts for each nominee
-      const { data: votes } = await supabase
+      const votesResult = await (supabase as any)
         .from("award_votes")
         .select("nominee_id")
         .eq("program_id", id);
+      const votes = votesResult.data as any[] || [];
 
       // Count votes per nominee
       const voteCounts: Record<string, number> = {};
-      votes?.forEach(v => {
+      votes.forEach((v: any) => {
         voteCounts[v.nominee_id] = (voteCounts[v.nominee_id] || 0) + 1;
       });
 
       // Fetch judge scores
-      const { data: judgeScores } = await supabase
+      const scoresResult = await (supabase as any)
         .from("award_judge_scores")
         .select("nominee_id, score");
+      const judgeScores = scoresResult.data as any[] || [];
 
       const avgScores: Record<string, { total: number; count: number }> = {};
-      judgeScores?.forEach(s => {
+      judgeScores.forEach((s: any) => {
         if (!avgScores[s.nominee_id]) {
           avgScores[s.nominee_id] = { total: 0, count: 0 };
         }
@@ -114,7 +117,7 @@ export default function AwardsAdminTally() {
   const selectWinner = useMutation({
     mutationFn: async ({ categoryId, nomineeId }: { categoryId: string; nomineeId: string }) => {
       // Insert winner
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("award_winners")
         .insert([{
           category_id: categoryId,
@@ -123,7 +126,7 @@ export default function AwardsAdminTally() {
           program_id: id,
         }]);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       toast({ title: "Winner selected!", description: "The winner has been announced." });

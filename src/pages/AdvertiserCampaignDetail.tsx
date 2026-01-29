@@ -22,7 +22,7 @@ export default function AdvertiserCampaignDetail() {
   const { data: campaign, isLoading } = useQuery({
     queryKey: ["campaign-detail", campaignId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("ad_campaigns")
         .select(`
           *,
@@ -32,7 +32,8 @@ export default function AdvertiserCampaignDetail() {
         .eq("id", campaignId)
         .single();
       
-      if (error) throw error;
+      if (result.error) throw result.error;
+      const data = result.data as any;
       
       // Initialize edit fields
       setEditedStartDate(data.start_date);

@@ -65,11 +65,12 @@ export default function AppsRedesigned() {
         return;
       }
       
-      const { data } = await supabase
+      const result = await (supabase as any)
         .from('user_preferences')
         .select('onboarding_completed')
         .eq('user_id', user.id)
         .single();
+      const data = result.data as { onboarding_completed?: boolean } | null;
       
       setGlobalOnboardingCompleted(data?.onboarding_completed ?? false);
     };

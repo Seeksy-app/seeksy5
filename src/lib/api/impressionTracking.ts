@@ -93,11 +93,13 @@ export async function trackListen(event: ListenEvent): Promise<boolean> {
  */
 export async function getEpisodeImpressions(episodeId: string): Promise<number> {
   try {
-    const { count, error } = await supabase
+    const result = await (supabase as any)
       .from('ad_impressions')
       .select('*', { count: 'exact', head: true })
       .eq('episode_id', episodeId)
       .eq('is_valid', true);
+    const count = result.count;
+    const error = result.error;
     
     if (error) {
       console.error('Error fetching impression count:', error);
@@ -138,11 +140,13 @@ export async function getEpisodeListens(episodeId: string): Promise<number> {
  */
 export async function getPodcastImpressions(podcastId: string): Promise<number> {
   try {
-    const { count, error } = await supabase
+    const result = await (supabase as any)
       .from('ad_impressions')
       .select('*', { count: 'exact', head: true })
       .eq('podcast_id', podcastId)
       .eq('is_valid', true);
+    const count = result.count;
+    const error = result.error;
     
     if (error) {
       console.error('Error fetching podcast impressions:', error);
@@ -161,7 +165,7 @@ export async function getPodcastImpressions(podcastId: string): Promise<number> 
  */
 export async function getImpressionAnalytics(startDate?: string, endDate?: string) {
   try {
-    let query = supabase
+    let query = (supabase as any)
       .from('ad_impressions')
       .select('episode_id, podcast_id, creator_id, played_at, country, city')
       .eq('is_valid', true)
@@ -175,7 +179,9 @@ export async function getImpressionAnalytics(startDate?: string, endDate?: strin
       query = query.lte('played_at', endDate);
     }
     
-    const { data, error } = await query.limit(1000);
+    const result = await query.limit(1000);
+    const data = result.data as any[];
+    const error = result.error;
     
     if (error) {
       console.error('Error fetching impression analytics:', error);

@@ -52,7 +52,7 @@ export default function AdvertiserCampaigns() {
     queryKey: ["advertiser-campaigns", advertiser?.id],
     queryFn: async () => {
       if (!advertiser) return [];
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("ad_campaigns")
         .select(`
           *,
@@ -62,7 +62,8 @@ export default function AdvertiserCampaigns() {
         .eq("advertiser_id", advertiser.id)
         .order("created_at", { ascending: false });
       
-      if (error) throw error;
+      if (result.error) throw result.error;
+      const data = result.data as any[];
 
       // For quick campaigns, fetch matched creators data
       const campaignsWithMetrics = await Promise.all((data || []).map(async (campaign) => {
