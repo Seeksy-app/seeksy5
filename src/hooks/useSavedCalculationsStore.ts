@@ -42,15 +42,15 @@ export const useSavedCalculationsStore = create<SavedCalculationsState>((set, ge
 
     set({ loading: true });
     try {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('veteran_calculator_results')
         .select('*')
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
         .limit(20);
 
-      if (!error && data) {
-        set({ calculations: data as SavedCalculation[] });
+      if (!result.error && result.data) {
+        set({ calculations: result.data as SavedCalculation[] });
       }
     } catch (e) {
       console.error('Error loading saved calculations:', e);
@@ -82,11 +82,9 @@ export const useSavedCalculationsStore = create<SavedCalculationsState>((set, ge
   upsertCalculation: (calc, existingId) => {
     set((state) => {
       if (existingId) {
-        // Update existing
         const updated = state.calculations.map((c) =>
           c.id === existingId ? { ...c, ...calc, id: existingId } : c
         );
-        // Move to top
         const existing = updated.find((c) => c.id === existingId);
         if (existing) {
           return {
@@ -95,7 +93,6 @@ export const useSavedCalculationsStore = create<SavedCalculationsState>((set, ge
         }
         return { calculations: updated };
       }
-      // Add new
       return {
         calculations: [calc, ...state.calculations].slice(0, 20),
       };

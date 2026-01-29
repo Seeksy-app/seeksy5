@@ -16,14 +16,14 @@ export const usePageTitle = (pageTitle?: string) => {
     queryFn: async () => {
       if (!user) return 0;
       
-      // Get unread inbox messages instead of using non-existent read_at column
-      const { count } = await supabase
+      // Get unread inbox messages
+      const result = await (supabase as any)
         .from("inbox_messages")
         .select("*", { count: "exact", head: true })
         .eq("user_id", user.id)
         .eq("is_read", false);
       
-      return count || 0;
+      return result.count || 0;
     },
     enabled: !!user,
     refetchInterval: 30000, // Refresh every 30 seconds

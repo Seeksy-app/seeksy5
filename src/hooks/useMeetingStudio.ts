@@ -76,7 +76,7 @@ export const useMeetingStudio = (meetingId: string) => {
       // Record participant joining
       const { data: { user } } = await supabase.auth.getUser();
       
-      await supabase.from('meeting_participants').insert({
+      await (supabase as any).from('meeting_participants').insert({
         meeting_id: meetingId,
         user_id: user?.id,
         role: 'guest',
@@ -108,7 +108,7 @@ export const useMeetingStudio = (meetingId: string) => {
     // Update participant record
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-      await supabase
+      await (supabase as any)
         .from('meeting_participants')
         .update({ 
           status: 'left',
@@ -256,7 +256,7 @@ export const useMeetingStudio = (meetingId: string) => {
         .getPublicUrl(`${user?.id}/${filename}`);
 
       // Save recording record
-      await supabase.from('meeting_recordings').insert({
+      await (supabase as any).from('meeting_recordings').insert({
         meeting_id: meetingId,
         recording_url: publicUrl,
         storage_path: uploadData.path,

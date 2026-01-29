@@ -20,20 +20,20 @@ export function useModuleActivation() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('user_modules')
         .select('*')
         .eq('user_id', user.id);
 
-      if (error) {
-        console.error('Error fetching activated modules:', error);
+      if (result.error) {
+        console.error('Error fetching activated modules:', result.error);
         return [];
       }
 
       // Map to our interface since types may not be regenerated yet
-      return (data || []).map((row: any) => ({
-        module_id: row.module_id as string,
-        granted_at: row.granted_at as string,
+      return (result.data || []).map((row: any) => ({
+        module_id: row.module_id || row.module_name,
+        granted_at: row.granted_at || row.created_at,
       })) as ActivatedModule[];
     },
   });
@@ -66,18 +66,19 @@ export function useModuleActivation() {
       }
 
       // Batch insert all modules
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('user_modules')
         .upsert(
           newModules.map(id => ({
             user_id: user.id,
-            module_id: id,
-            granted_at: new Date().toISOString()
+            module_name: id,
+            is_enabled: true,
+            created_at: new Date().toISOString()
           })),
-          { onConflict: 'user_id,module_id' }
+          { onConflict: 'user_id,module_name' }
         );
 
-      if (error) throw error;
+      if (result.error) throw result.error;
       
       return { 
         moduleId, 
@@ -115,13 +116,13 @@ export function useModuleActivation() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('user_modules')
         .delete()
         .eq('user_id', user.id)
-        .eq('module_id', moduleId);
+        .eq('module_name', moduleId);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
       return moduleId;
     },
     onSuccess: (moduleId) => {

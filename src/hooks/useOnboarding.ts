@@ -51,22 +51,25 @@ export function useOnboarding(): UseOnboardingReturn {
         
         setUserId(user.id);
 
-        const { data, error } = await supabase
+        const result = await (supabase as any)
           .from('user_preferences')
-          .select('onboarding_progress, onboarding_completed')
+          .select('preferences')
           .eq('user_id', user.id)
           .single();
 
-        if (error && error.code !== 'PGRST116') {
-          console.error('Error fetching onboarding progress:', error);
+        if (result.error && result.error.code !== 'PGRST116') {
+          console.error('Error fetching onboarding progress:', result.error);
         }
 
-        if (data?.onboarding_progress) {
-          setOnboardingProgress(data.onboarding_progress as unknown as OnboardingProgress);
+        const data = result.data as any;
+        const prefs = data?.preferences as Record<string, any> || {};
+
+        if (prefs.onboarding_progress) {
+          setOnboardingProgress(prefs.onboarding_progress as OnboardingProgress);
         }
         
         // Check global onboarding_completed flag
-        setGlobalOnboardingCompleted(data?.onboarding_completed ?? false);
+        setGlobalOnboardingCompleted(prefs.onboarding_completed ?? false);
       } catch (error) {
         console.error('Error in fetchProgress:', error);
       } finally {
@@ -113,17 +116,28 @@ export function useOnboarding(): UseOnboardingReturn {
     setIsOnboardingActive(false);
 
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error } = await supabase
+      // First get existing preferences
+      const existingResult = await (supabase as any)
+        .from('user_preferences')
+        .select('preferences')
+        .eq('user_id', userId)
+        .single();
+
+      const existingPrefs = (existingResult.data as any)?.preferences || {};
+
+      const updateResult = await (supabase as any)
         .from('user_preferences')
         .update({
-          onboarding_progress: newProgress as any,
+          preferences: {
+            ...existingPrefs,
+            onboarding_progress: newProgress,
+          },
           updated_at: new Date().toISOString(),
         })
         .eq('user_id', userId);
 
-      if (error) {
-        console.error('Error saving onboarding progress:', error);
+      if (updateResult.error) {
+        console.error('Error saving onboarding progress:', updateResult.error);
       }
     } catch (error) {
       console.error('Error in completeOnboarding:', error);
@@ -153,17 +167,28 @@ export function useOnboarding(): UseOnboardingReturn {
     setOnboardingProgress(newProgress);
 
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error } = await supabase
+      // First get existing preferences
+      const existingResult = await (supabase as any)
+        .from('user_preferences')
+        .select('preferences')
+        .eq('user_id', userId)
+        .single();
+
+      const existingPrefs = (existingResult.data as any)?.preferences || {};
+
+      const updateResult = await (supabase as any)
         .from('user_preferences')
         .update({
-          onboarding_progress: newProgress as any,
+          preferences: {
+            ...existingPrefs,
+            onboarding_progress: newProgress,
+          },
           updated_at: new Date().toISOString(),
         })
         .eq('user_id', userId);
 
-      if (error) {
-        console.error('Error resetting onboarding progress:', error);
+      if (updateResult.error) {
+        console.error('Error resetting onboarding progress:', updateResult.error);
       }
     } catch (error) {
       console.error('Error in resetOnboarding:', error);

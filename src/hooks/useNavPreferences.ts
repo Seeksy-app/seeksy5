@@ -77,17 +77,6 @@ const DEFAULT_LANDING_ROUTE = '/my-day';
 
 /**
  * Creator navigation items - clean, consistent structure
- * Top-level items in order:
- * 1. My Workspaces
- * 2. Creator Hub
- * 3. My Day
- * 4. Dashboard
- * 5. Media & Content (with Studio Hub, AI Post-Production, AI Clip Generation, Media Library, Blog Posts, Podcasts)
- * 6. Seekies & Apps
- * 7. Email
- * 8. Marketing
- * 9. Settings
- * 10. Awards
  */
 export const NAV_ITEMS: NavItem[] = [
   // Core nav items (always visible, no module requirement)
@@ -208,27 +197,30 @@ export function useNavPreferences() {
       }
       setUserId(user.id);
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('user_preferences')
-        .select('nav_config, admin_nav_config, default_landing_route')
+        .select('preferences')
         .eq('user_id', user.id)
         .single();
 
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error loading nav preferences:', error);
+      if (result.error && result.error.code !== 'PGRST116') {
+        console.error('Error loading nav preferences:', result.error);
       }
 
-      if (data) {
-        const parsed = parseNavConfig(data.nav_config);
+      const data = result.data as any;
+
+      if (data?.preferences) {
+        const prefs = data.preferences as Record<string, any>;
+        const parsed = parseNavConfig(prefs.nav_config);
         if (parsed) {
           setNavConfig(parsed);
         }
-        const adminParsed = parseNavConfig(data.admin_nav_config);
+        const adminParsed = parseNavConfig(prefs.admin_nav_config);
         if (adminParsed) {
           setAdminNavConfig(adminParsed);
         }
-        if (data.default_landing_route) {
-          setDefaultLandingRoute(data.default_landing_route);
+        if (prefs.default_landing_route) {
+          setDefaultLandingRoute(prefs.default_landing_route);
         }
       }
     } catch (err) {
@@ -243,40 +235,46 @@ export function useNavPreferences() {
 
     try {
       // First check if record exists
-      const { data: existing } = await supabase
+      const existingResult = await (supabase as any)
         .from('user_preferences')
-        .select('id')
+        .select('id, preferences')
         .eq('user_id', userId)
         .single();
 
-      const updateData = isAdmin
+      const existing = existingResult.data as any;
+      const currentPrefs = existing?.preferences || {};
+
+      const newPrefs = isAdmin
         ? {
-            admin_nav_config: config as unknown as Json,
+            ...currentPrefs,
+            admin_nav_config: config,
             default_landing_route: landingRoute,
-            updated_at: new Date().toISOString()
           }
         : {
-            nav_config: config as unknown as Json,
+            ...currentPrefs,
+            nav_config: config,
             default_landing_route: landingRoute,
-            updated_at: new Date().toISOString()
           };
 
       if (existing) {
         // Update existing
-        const { error } = await supabase
+        const updateResult = await (supabase as any)
           .from('user_preferences')
-          .update(updateData)
+          .update({
+            preferences: newPrefs as unknown as Json,
+            updated_at: new Date().toISOString()
+          })
           .eq('user_id', userId);
-        if (error) throw error;
+        if (updateResult.error) throw updateResult.error;
       } else {
         // Insert new
-        const { error } = await supabase
+        const insertResult = await (supabase as any)
           .from('user_preferences')
           .insert({
             user_id: userId,
-            ...updateData,
+            preferences: newPrefs as unknown as Json,
           });
-        if (error) throw error;
+        if (insertResult.error) throw insertResult.error;
       }
 
       if (isAdmin) {
