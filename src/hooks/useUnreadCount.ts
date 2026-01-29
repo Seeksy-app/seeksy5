@@ -24,21 +24,23 @@ export const useUnreadCount = () => {
       if (!user) return 0;
 
       // Get all delivered emails
-      const { data: delivered } = await supabase
+      const deliveredResult = await (supabase as any)
         .from("email_events")
         .select("resend_email_id")
         .eq("user_id", user.id)
         .eq("event_type", "email.delivered");
 
+      const delivered = deliveredResult.data as any[] | null;
       if (!delivered || delivered.length === 0) return 0;
 
       // Get all opened emails
-      const { data: opened } = await supabase
+      const openedResult = await (supabase as any)
         .from("email_events")
         .select("resend_email_id")
         .eq("user_id", user.id)
         .eq("event_type", "email.opened");
 
+      const opened = openedResult.data as any[] | null;
       const openedIds = new Set(opened?.map((e) => e.resend_email_id) || []);
       const unread = delivered.filter((e) => !openedIds.has(e.resend_email_id));
 

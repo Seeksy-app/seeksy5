@@ -11,19 +11,21 @@ export function useUnreadUpdates(visibilityFilter?: string) {
       if (!user) return 0;
 
       // Get all updates for this visibility
-      let query = supabase.from('platform_updates').select('id');
+      let query = (supabase as any).from('platform_updates').select('id');
       if (visibilityFilter) {
         query = query.contains('visibility', [visibilityFilter]);
       }
-      const { data: updates } = await query;
+      const updatesResult = await query;
+      const updates = updatesResult.data as any[] | null;
       if (!updates?.length) return 0;
 
       // Get read updates
-      const { data: reads } = await supabase
+      const readsResult = await (supabase as any)
         .from('user_update_reads')
         .select('update_id')
         .eq('user_id', user.id);
 
+      const reads = readsResult.data as any[] | null;
       const readIds = new Set(reads?.map(r => r.update_id) || []);
       return updates.filter(u => !readIds.has(u.id)).length;
     }
@@ -34,7 +36,7 @@ export function useUnreadUpdates(visibilityFilter?: string) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      await supabase.from('user_update_reads').upsert({
+      await (supabase as any).from('user_update_reads').upsert({
         user_id: user.id,
         update_id: updateId
       }, { onConflict: 'user_id,update_id' });
@@ -54,7 +56,7 @@ export function useUnreadUpdates(visibilityFilter?: string) {
         update_id
       }));
 
-      await supabase.from('user_update_reads').upsert(inserts, { onConflict: 'user_id,update_id' });
+      await (supabase as any).from('user_update_reads').upsert(inserts, { onConflict: 'user_id,update_id' });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['unread-updates'] });

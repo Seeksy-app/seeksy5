@@ -54,7 +54,7 @@ export function useVeteranCalculatorResults(calculatorId: string): UseVeteranCal
       
       if (userId) {
         // Load from Supabase
-        const { data, error } = await supabase
+        const result = await (supabase as any)
           .from('veteran_calculator_results')
           .select('*')
           .eq('calculator_id', calculatorId)
@@ -62,8 +62,8 @@ export function useVeteranCalculatorResults(calculatorId: string): UseVeteranCal
           .order('created_at', { ascending: false })
           .limit(10);
 
-        if (!error && data) {
-          setResults(data as SavedResult[]);
+        if (!result.error && result.data) {
+          setResults(result.data as SavedResult[]);
         }
       } else {
         // Load from localStorage
@@ -122,7 +122,7 @@ export function useVeteranCalculatorResults(calculatorId: string): UseVeteranCal
       
       if (existingResult) {
         // Update existing record
-        const { error, data } = await supabase
+        const updateResult = await (supabase as any)
           .from('veteran_calculator_results')
           .update({
             input_json: inputs,
@@ -135,10 +135,10 @@ export function useVeteranCalculatorResults(calculatorId: string): UseVeteranCal
           .select()
           .single();
 
-        if (error) {
+        if (updateResult.error) {
           toast({
             title: "Error saving results",
-            description: error.message,
+            description: updateResult.error.message,
             variant: "destructive",
           });
           return false;
@@ -158,7 +158,7 @@ export function useVeteranCalculatorResults(calculatorId: string): UseVeteranCal
         upsertCalculation(updatedCalc, existingResult.id);
       } else {
         // Insert new record
-        const { error, data } = await supabase
+        const insertResult = await (supabase as any)
           .from('veteran_calculator_results')
           .insert({
             user_id: userId,
@@ -170,14 +170,16 @@ export function useVeteranCalculatorResults(calculatorId: string): UseVeteranCal
           .select()
           .single();
 
-        if (error) {
+        if (insertResult.error) {
           toast({
             title: "Error saving results",
-            description: error.message,
+            description: insertResult.error.message,
             variant: "destructive",
           });
           return false;
         }
+
+        const data = insertResult.data as any;
 
         // Optimistic update with real ID from DB
         const savedCalc: SavedCalculation = {
@@ -231,7 +233,7 @@ export function useVeteranCalculatorResults(calculatorId: string): UseVeteranCal
 
   const deleteResult = async (id: string): Promise<boolean> => {
     if (userId) {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('veteran_calculator_results')
         .delete()
         .eq('id', id)
