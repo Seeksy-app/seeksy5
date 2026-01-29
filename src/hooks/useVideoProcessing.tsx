@@ -9,6 +9,31 @@ interface AdSlot {
   adDuration: number;
 }
 
+interface MediaProcessingJob {
+  id: string;
+  user_id: string | null;
+  job_type: string;
+  status: string | null;
+  input_data: any;
+  output_data: any;
+  error_message: string | null;
+  started_at: string | null;
+  completed_at: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+}
+
+interface MediaVersion {
+  id: string;
+  original_media_id: string;
+  version_type: string;
+  file_url: string;
+  file_size: number | null;
+  duration_seconds: number | null;
+  metadata: any;
+  created_at: string | null;
+}
+
 export const useVideoProcessing = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
@@ -54,25 +79,25 @@ export const useVideoProcessing = () => {
   };
 
   const getProcessingStatus = async (jobId: string) => {
-    const { data, error } = await supabase
+    const result = await (supabase as any)
       .from("media_processing_jobs")
       .select("*")
       .eq("id", jobId)
       .single();
 
-    if (error) throw error;
-    return data;
+    if (result.error) throw result.error;
+    return result.data as MediaProcessingJob;
   };
 
   const getMediaVersions = async (mediaFileId: string) => {
-    const { data, error } = await supabase
+    const result = await (supabase as any)
       .from("media_versions")
       .select("*")
       .eq("original_media_id", mediaFileId)
       .order("created_at", { ascending: false });
 
-    if (error) throw error;
-    return data;
+    if (result.error) throw result.error;
+    return result.data as MediaVersion[];
   };
 
   return {

@@ -21,15 +21,15 @@ export function useVideoProgress(videoId: string) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('video_progress')
         .select('*')
         .eq('user_id', user.id)
         .eq('video_id', videoId)
         .maybeSingle();
 
-      if (error) throw error;
-      return data as VideoProgress | null;
+      if (result.error) throw result.error;
+      return result.data as VideoProgress | null;
     },
   });
 
@@ -40,7 +40,7 @@ export function useVideoProgress(videoId: string) {
 
       const completed = secondsWatched >= UNLOCK_THRESHOLD_SECONDS;
 
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('video_progress')
         .upsert({
           user_id: user.id,
@@ -51,7 +51,7 @@ export function useVideoProgress(videoId: string) {
           onConflict: 'user_id,video_id'
         });
 
-      if (error) throw error;
+      if (result.error) throw result.error;
       return { secondsWatched, completed };
     },
     onSuccess: () => {
@@ -79,13 +79,13 @@ export function useAllVideoProgress() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('video_progress')
         .select('*')
         .eq('user_id', user.id);
 
-      if (error) throw error;
-      return data as VideoProgress[];
+      if (result.error) throw result.error;
+      return result.data as VideoProgress[];
     },
   });
 
