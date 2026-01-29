@@ -26,8 +26,7 @@ export function useStudioSession() {
 
       const sessionTitle = `Studio Session – ${format(new Date(), "MMM d, yyyy h:mm a")}`;
 
-      // @ts-ignore - studio_sessions table exists
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("studio_sessions")
         .insert({
           user_id: user.id,
@@ -35,12 +34,13 @@ export function useStudioSession() {
           daily_room_url: "",
           status: "active",
           identity_verified: false,
-        } as any)
+        })
         .select()
         .single();
 
-      if (error) throw error;
+      if (result.error) throw result.error;
 
+      const data = result.data as StudioSession;
       setSession(data);
       return data;
     } catch (error) {
@@ -55,8 +55,7 @@ export function useStudioSession() {
     if (!session?.id) return null;
 
     try {
-      // @ts-ignore
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("studio_sessions")
         .update({
           ...updates,
@@ -66,8 +65,9 @@ export function useStudioSession() {
         .select()
         .single();
 
-      if (error) throw error;
+      if (result.error) throw result.error;
 
+      const data = result.data as StudioSession;
       setSession(data);
       return data;
     } catch (error) {
@@ -80,8 +80,7 @@ export function useStudioSession() {
     if (!session?.id) return;
 
     try {
-      // @ts-ignore
-      await supabase
+      await (supabase as any)
         .from("studio_sessions")
         .update({
           status: "ended",
