@@ -36,7 +36,7 @@ const CRM = () => {
     queryKey: ["contacts"],
     queryFn: async () => {
       if (!user) return [];
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("contacts")
         .select(`
           *,
@@ -48,8 +48,8 @@ const CRM = () => {
         .or(`user_id.eq.${user.id},user_id.is.null`)
         .order("created_at", { ascending: false });
       
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any[];
     },
     enabled: !!user,
   });
@@ -58,7 +58,7 @@ const CRM = () => {
     queryKey: ["contact_lists"],
     queryFn: async () => {
       if (!user) return [];
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("contact_lists")
         .select(`
           *,
@@ -67,8 +67,8 @@ const CRM = () => {
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
       
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any[];
     },
     enabled: !!user,
   });
@@ -77,14 +77,14 @@ const CRM = () => {
     queryKey: ["contact_tags"],
     queryFn: async () => {
       if (!user) return [];
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("contact_tags")
         .select("*")
         .eq("user_id", user.id)
         .order("name");
       
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any[];
     },
     enabled: !!user,
   });
@@ -93,12 +93,13 @@ const CRM = () => {
     queryKey: ["contact_list_members", selectedList],
     queryFn: async () => {
       if (!selectedList || selectedList === "all") return null;
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("contact_list_members")
         .select("contact_id")
         .eq("list_id", selectedList);
       
-      if (error) throw error;
+      if (result.error) throw result.error;
+      const data = result.data as { contact_id: string }[] | null;
       return data?.map(m => m.contact_id) || [];
     },
     enabled: !!selectedList && selectedList !== "all",

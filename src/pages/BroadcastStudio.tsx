@@ -113,7 +113,7 @@ export default function BroadcastStudio() {
       
       if (!uuidRegex.test(sessionId)) {
         // Invalid UUID - create a new session with required daily_room_url
-        const { data: newSession, error: sessionError } = await supabase
+        const sessionResult = await (supabase as any)
           .from('studio_sessions')
           .insert({
             user_id: user.id,
@@ -123,6 +123,9 @@ export default function BroadcastStudio() {
           })
           .select()
           .single();
+
+        const sessionError = sessionResult.error;
+        const newSession = sessionResult.data as any;
 
         if (sessionError || !newSession) {
           console.error('Error creating session:', sessionError);
@@ -140,22 +143,24 @@ export default function BroadcastStudio() {
       }
 
       // Load existing session
-      const { data: session } = await supabase
+      const sessionResult = await (supabase as any)
         .from('studio_sessions')
         .select('*')
         .eq('id', sessionId)
         .maybeSingle();
+      const session = sessionResult.data as any;
 
       if (session) {
         setBroadcastTitle(session.room_name || 'Untitled Broadcast');
 
         // Check for existing broadcast
-        const { data: broadcast } = await supabase
+        const broadcastResult = await (supabase as any)
           .from('studio_broadcasts')
           .select('*')
           .eq('session_id', sessionId)
           .eq('is_live', true)
           .maybeSingle();
+        const broadcast = broadcastResult.data as any;
 
         if (broadcast) {
           setBroadcastId(broadcast.id);
@@ -176,37 +181,40 @@ export default function BroadcastStudio() {
   const loadBroadcastContent = async (broadcastId: string) => {
     try {
       // Load markers
-      const { data: markersData } = await supabase
+      const markersResult = await (supabase as any)
         .from('studio_timeline_markers')
         .select('*')
         .eq('broadcast_id', broadcastId)
         .order('timestamp_seconds');
-      
+      const markersData = markersResult.data as any[];
       if (markersData) setMarkers(markersData);
 
       // Load ad slots
-      const { data: adSlotsData } = await supabase
+      const adSlotsResult = await (supabase as any)
         .from('studio_ad_slots')
         .select('*, assigned_campaign:ad_campaigns(*)')
         .eq('broadcast_id', broadcastId);
+      const adSlotsData = adSlotsResult.data as any[];
       
       if (adSlotsData) setAdSlots(adSlotsData);
 
       // Load transcriptions
-      const { data: transcriptData } = await supabase
+      const transcriptResult = await (supabase as any)
         .from('studio_ai_transcriptions')
         .select('*')
         .eq('broadcast_id', broadcastId)
         .order('timestamp_seconds');
+      const transcriptData = transcriptResult.data as any[];
       
       if (transcriptData) setTranscriptions(transcriptData);
 
       // Load clip suggestions
-      const { data: clipsData } = await supabase
+      const clipsResult = await (supabase as any)
         .from('studio_clip_suggestions')
         .select('*')
         .eq('broadcast_id', broadcastId)
         .eq('accepted', false);
+      const clipsData = clipsResult.data as any[];
       
       if (clipsData) setClipSuggestions(clipsData);
 
@@ -339,7 +347,7 @@ export default function BroadcastStudio() {
       }
 
       // Create broadcast record
-      const { data: newBroadcast, error: broadcastError } = await supabase
+      const broadcastResult = await (supabase as any)
         .from('studio_broadcasts')
         .insert({
           session_id: sessionId,
@@ -354,6 +362,8 @@ export default function BroadcastStudio() {
         })
         .select()
         .single();
+      const broadcastError = broadcastResult.error;
+      const newBroadcast = broadcastResult.data as any;
 
       if (broadcastError) {
         console.error('Broadcast creation error:', broadcastError);
@@ -371,13 +381,13 @@ export default function BroadcastStudio() {
 
       // Update profile to show live on My Page
       if (platforms.myPage.enabled) {
-        await supabase
+        await (supabase as any)
           .from('profiles')
           .update({
             is_live_on_profile: true,
             live_stream_title: broadcastTitle || 'Untitled Broadcast',
             live_video_url: 'live' // Placeholder - in production this would be actual stream URL
-          })
+          } as any)
           .eq('id', user.id);
       }
 
@@ -436,22 +446,22 @@ export default function BroadcastStudio() {
       if (!user) return;
 
       // Stop the broadcast
-      await supabase
+      await (supabase as any)
         .from('studio_broadcasts')
         .update({
           is_live: false,
           ended_at: new Date().toISOString()
-        })
+        } as any)
         .eq('id', broadcastId);
 
       // Update profile to remove live status
-      await supabase
+      await (supabase as any)
         .from('profiles')
         .update({
           is_live_on_profile: false,
           live_stream_title: null,
           live_video_url: null
-        })
+        } as any)
         .eq('id', user.id);
 
       setIsLive(false);
@@ -479,7 +489,7 @@ export default function BroadcastStudio() {
           .getPublicUrl(filePath);
 
         // Create media file record with broadcast metadata
-        const { data: mediaFile, error: mediaError } = await supabase
+        const mediaResult = await (supabase as any)
           .from('media_files')
           .insert({
             user_id: user.id,
@@ -496,9 +506,11 @@ export default function BroadcastStudio() {
               transcriptions: transcriptions,
               clip_suggestions: clipSuggestions
             }
-          })
+          } as any)
           .select()
           .single();
+        const mediaError = mediaResult.error;
+        const mediaFile = mediaResult.data as any;
 
         if (mediaError) throw mediaError;
 
@@ -508,11 +520,12 @@ export default function BroadcastStudio() {
         }
 
         // Auto-transcription (if enabled)
-        const { data: preferences } = await supabase
+        const prefResult = await (supabase as any)
           .from('user_preferences')
           .select('auto_transcribe_enabled')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
+        const preferences = prefResult.data as { auto_transcribe_enabled?: boolean } | null;
 
         if (preferences?.auto_transcribe_enabled) {
           supabase.functions.invoke('transcribe-audio', {
@@ -586,7 +599,7 @@ export default function BroadcastStudio() {
         const transcriptText = clipTranscripts.map(t => t.text).join(' ');
 
         // Create clip record with text overlay
-        await supabase
+        await (supabase as any)
           .from('media_clips')
           .insert({
             user_id: user.id,
@@ -602,7 +615,7 @@ export default function BroadcastStudio() {
               engagement_score: suggestion.engagement_score,
               has_captions: true
             }
-          });
+          } as any);
       }
 
       console.log(`Generated ${suggestions.length} clips with text overlays`);
@@ -641,7 +654,7 @@ export default function BroadcastStudio() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data, error } = await supabase
+      const markerResult = await (supabase as any)
         .from('studio_timeline_markers')
         .insert({
           broadcast_id: broadcastId,
@@ -650,9 +663,11 @@ export default function BroadcastStudio() {
           timestamp_seconds: Math.floor(timestamp),
           triggered: false,
           completed: false
-        })
+        } as any)
         .select()
         .single();
+      const error = markerResult.error;
+      const data = markerResult.data as any;
 
       if (error) throw error;
       if (data) setMarkers(prev => [...prev, data]);

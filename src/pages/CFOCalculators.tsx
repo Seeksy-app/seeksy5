@@ -113,14 +113,14 @@ export default function CFOCalculators() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('saved_proformas')
         .select('*')
         .eq('user_id', user.id)
         .order('updated_at', { ascending: false });
 
-      if (error) throw error;
-      setSavedProformas(data || []);
+      if (result.error) throw result.error;
+      setSavedProformas((result.data as SavedProforma[]) || []);
     } catch (error) {
       console.error('Error loading saved proformas:', error);
     }
@@ -156,15 +156,15 @@ export default function CFOCalculators() {
         proforma: calculateTotalProforma(),
       };
 
-      const { error } = await supabase
+      const insertResult = await (supabase as any)
         .from('saved_proformas')
         .insert({
           user_id: user.id,
           proforma_name: proformaName,
           proforma_data: proformaData,
-        } as any);
+        });
 
-      if (error) throw error;
+      if (insertResult.error) throw insertResult.error;
 
       toast.success('Proforma saved successfully!');
       setShowSaveDialog(false);
@@ -235,12 +235,12 @@ export default function CFOCalculators() {
 
   const handleDeleteProforma = async (id: string) => {
     try {
-      const { error } = await supabase
+      const deleteResult = await (supabase as any)
         .from('saved_proformas')
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
+      if (deleteResult.error) throw deleteResult.error;
 
       toast.success('Proforma deleted');
       loadSavedProformas();
