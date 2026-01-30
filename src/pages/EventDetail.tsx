@@ -83,14 +83,14 @@ const EventDetail = () => {
 
   const loadEvent = async () => {
     try {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("events")
         .select("*")
         .eq("id", id)
         .single();
 
-      if (error) throw error;
-      setEvent(data);
+      if (result.error) throw result.error;
+      setEvent(result.data as any);
     } catch (error: any) {
       toast({
         title: "Error loading event",
@@ -105,14 +105,14 @@ const EventDetail = () => {
 
   const loadRegistrations = async () => {
     try {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("event_registrations")
         .select("*")
         .eq("event_id", id)
         .order("registered_at", { ascending: false });
 
-      if (error) throw error;
-      setRegistrations(data || []);
+      if (result.error) throw result.error;
+      setRegistrations((result.data as any[]) || []);
     } catch (error: any) {
       console.error("Error loading registrations:", error);
     }
@@ -466,14 +466,14 @@ function PublicRegistrationCard({ event }: { event: Event }) {
     e.preventDefault();
     setLoading(true);
     try {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("event_registrations")
         .insert({
           event_id: event.id,
           attendee_name: name,
           attendee_email: email,
         });
-      if (error) throw error;
+      if (result.error) throw result.error;
       toast({ title: "Registration successful!" });
       setName("");
       setEmail("");
