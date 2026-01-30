@@ -75,47 +75,47 @@ const CreateMeeting = () => {
 
   const loadMeetingTypes = async (userId: string) => {
     try {
-      const { data, error } = await supabase
+      const typesResult = await (supabase as any)
         .from("meeting_types")
         .select("*")
         .eq("user_id", userId)
         .eq("is_active", true);
 
-      if (error) throw error;
-      setMeetingTypes(data || []);
+      if (typesResult.error) throw typesResult.error;
+      setMeetingTypes((typesResult.data as MeetingType[]) || []);
 
       // Check calendar connection
-      const { data: calendarData } = await supabase
+      const calendarResult = await (supabase as any)
         .from("calendar_connections")
         .select("*")
         .eq("user_id", userId)
         .eq("provider", "google")
-        .single();
+        .maybeSingle();
 
-      if (calendarData) {
+      if (calendarResult.data) {
         setCalendarConnected(true);
         setCreateCalendarEvent(true); // Default to creating calendar event if connected
       }
 
       // Check Zoom connection
-      const { data: zoomData } = await supabase
+      const zoomResult = await (supabase as any)
         .from("zoom_connections")
         .select("*")
         .eq("user_id", userId)
-        .single();
+        .maybeSingle();
 
-      if (zoomData) {
+      if (zoomResult.data) {
         setZoomConnected(true);
       }
 
       // Check Microsoft connection
-      const { data: microsoftData } = await supabase
+      const microsoftResult = await (supabase as any)
         .from("microsoft_connections")
         .select("*")
         .eq("user_id", userId)
-        .single();
+        .maybeSingle();
 
-      if (microsoftData) {
+      if (microsoftResult.data) {
         setMicrosoftConnected(true);
       }
     } catch (error: any) {
@@ -251,7 +251,7 @@ const CreateMeeting = () => {
         if (error) throw error;
 
         // Insert attendee record
-        const { error: attendeeError } = await supabase
+        const attendeeResult = await (supabase as any)
           .from("meeting_attendees")
           .insert({
             meeting_id: meetingData.id,
@@ -261,13 +261,13 @@ const CreateMeeting = () => {
             rsvp_status: 'awaiting',
           });
 
-        if (attendeeError) throw attendeeError;
+        if (attendeeResult.error) throw attendeeResult.error;
 
         // Store SMS consent if phone provided (contacts from DB already have implicit consent)
         if (attendee.phone) {
           const isFromContactList = selectedContacts.some(c => c.email === attendee.email);
           try {
-            await supabase.from("sms_consent_records").insert({
+            await (supabase as any).from("sms_consent_records").insert({
               phone_number: attendee.phone,
               consent_given: true,
               consent_text: isFromContactList 

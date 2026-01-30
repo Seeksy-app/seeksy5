@@ -119,7 +119,7 @@ export default function CreateDigitalAd() {
           .getPublicUrl(fileName);
 
         // Create digital ad record
-        const { error: insertError } = await supabase
+        const insertResult = await (supabase as any)
           .from("digital_ads")
           .insert({
             advertiser_id: advertiser.id,
@@ -133,12 +133,12 @@ export default function CreateDigitalAd() {
             cta_url: formData.ctaUrl,
             cta_text: formData.ctaText,
             caption: formData.caption || null,
-            hashtags: formData.hashtags ? formData.hashtags.split(",").map(h => h.trim()) : null,
-            mentions: formData.mentions ? formData.mentions.split(",").map(m => m.trim()) : null,
+            hashtags: formData.hashtags ? formData.hashtags.split(",").map((h: string) => h.trim()) : null,
+            mentions: formData.mentions ? formData.mentions.split(",").map((m: string) => m.trim()) : null,
             status: "ready",
           });
 
-        if (insertError) throw insertError;
+        if (insertResult.error) throw insertResult.error;
 
         toast({
           title: "Success!",

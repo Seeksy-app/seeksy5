@@ -23,24 +23,25 @@ export default function CreatorCampaignResponses() {
       if (!user) throw new Error("Not authenticated");
 
       // Fetch alerts with related campaign and property data
-      const { data: alertsData, error: alertsError } = await supabase
+      const alertsResult = await (supabase as any)
         .from("creator_campaign_alerts")
         .select("*")
         .eq("creator_id", user.id)
         .order("created_at", { ascending: false });
 
-      if (alertsError) throw alertsError;
+      if (alertsResult.error) throw alertsResult.error;
+      const alertsData = alertsResult.data as any[] || [];
 
       // Fetch related campaign properties and campaigns
       const enrichedAlerts = await Promise.all(
-        alertsData.map(async (alert) => {
-          const { data: property } = await supabase
+        alertsData.map(async (alert: any) => {
+          const propertyResult = await (supabase as any)
             .from("campaign_properties")
             .select("*")
             .eq("id", alert.property_id)
             .single();
 
-          const { data: campaign } = await supabase
+          const campaignResult = await (supabase as any)
             .from("multi_channel_campaigns")
             .select("*")
             .eq("id", alert.multi_channel_campaign_id)
@@ -48,8 +49,8 @@ export default function CreatorCampaignResponses() {
 
           return {
             ...alert,
-            property,
-            campaign,
+            property: propertyResult.data as any,
+            campaign: campaignResult.data as any,
           };
         })
       );
@@ -79,7 +80,7 @@ export default function CreatorCampaignResponses() {
       reason?: string 
     }) => {
       // Update campaign property status
-      const { error: propertyError } = await supabase
+      const propertyUpdateResult = await (supabase as any)
         .from("campaign_properties")
         .update({
           status,
@@ -88,15 +89,15 @@ export default function CreatorCampaignResponses() {
         })
         .eq("id", propertyId);
 
-      if (propertyError) throw propertyError;
+      if (propertyUpdateResult.error) throw propertyUpdateResult.error;
 
       // Mark alert as responded
-      const { error: alertError } = await supabase
+      const alertUpdateResult = await (supabase as any)
         .from("creator_campaign_alerts")
         .update({ responded_at: new Date().toISOString() })
         .eq("id", alertId);
 
-      if (alertError) throw alertError;
+      if (alertUpdateResult.error) throw alertUpdateResult.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["creator-campaign-alerts"] });

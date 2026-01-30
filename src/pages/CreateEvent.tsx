@@ -145,12 +145,12 @@ const CreateEvent = () => {
           benefits: tier.benefits,
         }));
 
-        const { error: tiersError } = await supabase
+        const tiersResult = await (supabase as any)
           .from("event_ticket_tiers")
           .insert(tiersToInsert);
 
-        if (tiersError) {
-          console.error("Error creating ticket tiers:", tiersError);
+        if (tiersResult.error) {
+          console.error("Error creating ticket tiers:", tiersResult.error);
         }
       }
 

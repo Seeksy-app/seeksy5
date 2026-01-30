@@ -60,34 +60,35 @@ export default function DailyBriefPage() {
     setIsLoading(true);
     try {
       // Fetch briefs
-      const { data: briefsData, error: briefsError } = await supabase
+      const briefsResult = await (supabase as any)
         .from('daily_briefs')
         .select('*')
         .order('brief_date', { ascending: false })
         .limit(30);
 
-      if (briefsError) throw briefsError;
-      setBriefs((briefsData || []) as unknown as Brief[]);
+      if (briefsResult.error) throw briefsResult.error;
+      setBriefs((briefsResult.data || []) as Brief[]);
 
       // Fetch competitors
-      const { data: competitorsData, error: competitorsError } = await supabase
+      const competitorsResult = await (supabase as any)
         .from('competitor_profiles')
         .select('*')
         .order('name');
 
-      if (competitorsError) throw competitorsError;
-      setCompetitors(competitorsData || []);
+      if (competitorsResult.error) throw competitorsResult.error;
+      setCompetitors((competitorsResult.data || []) as Competitor[]);
 
       // Check subscription status
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        const { data: subData } = await supabase
+        const subResult = await (supabase as any)
           .from('brief_subscriptions')
           .select('*')
           .eq('user_id', user.id)
           .eq('audience_type', selectedAudience)
           .maybeSingle();
 
+        const subData = subResult.data as any;
         setIsSubscribed(subData?.is_active || false);
       }
     } catch (error: any) {
@@ -133,22 +134,24 @@ export default function DailyBriefPage() {
       }
 
       // Toggle the subscription (opt-out system - default enabled)
-      const { data: existing } = await supabase
+      const existingResult = await (supabase as any)
         .from('brief_subscriptions')
         .select('id, is_active')
         .eq('user_id', user.id)
         .eq('audience_type', selectedAudience)
         .maybeSingle();
 
+      const existing = existingResult.data as any;
+
       if (existing) {
-        await supabase
+        await (supabase as any)
           .from('brief_subscriptions')
           .update({ is_active: !existing.is_active })
           .eq('id', existing.id);
         setIsSubscribed(!existing.is_active);
       } else {
         // First time - create subscription (enabled by default for opt-out)
-        await supabase
+        await (supabase as any)
           .from('brief_subscriptions')
           .insert({
             user_id: user.id,

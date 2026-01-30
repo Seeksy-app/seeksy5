@@ -170,7 +170,7 @@ export default function CreateLead() {
             .getPublicUrl(fileName);
 
           // Save photo record
-          await supabase.from("lead_photos").insert({
+          await (supabase as any).from("lead_photos").insert({
             ticket_id: ticket.id,
             photo_url: publicUrl,
           });
