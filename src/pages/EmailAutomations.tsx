@@ -23,12 +23,12 @@ export default function EmailAutomations() {
     queryKey: ["automations", user?.id],
     queryFn: async () => {
       if (!user) return [];
-      const { data } = await supabase
+      const result = await (supabase as any)
         .from("automations")
         .select("*, automation_actions(*)")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
-      return data || [];
+      return (result.data as any[]) || [];
     },
     enabled: !!user,
   });
@@ -60,7 +60,7 @@ export default function EmailAutomations() {
           {/* Left: Automation List */}
           <div>
             <AutomationList
-              automations={automations || []}
+              automations={(automations as any[]) || []}
               selectedId={selectedAutomationId}
               onSelect={setSelectedAutomationId}
               onRefresh={refetch}

@@ -27,26 +27,26 @@ export default function EmailCampaignAnalytics() {
   const { data: campaign } = useQuery({
     queryKey: ["email-campaign", id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("email_campaigns")
         .select("*")
         .eq("id", id)
         .single();
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any;
     },
   });
 
   const { data: events } = useQuery({
     queryKey: ["campaign-events", id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("email_events")
         .select("*")
         .eq("campaign_id", id)
         .order("occurred_at", { ascending: true });
-      if (error) throw error;
-      return data || [];
+      if (result.error) throw result.error;
+      return (result.data as any[]) || [];
     },
     enabled: !!id,
   });
