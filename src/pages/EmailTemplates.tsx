@@ -34,7 +34,7 @@ export default function EmailTemplates() {
   const { data: templates, isLoading } = useQuery({
     queryKey: ["email-templates", searchQuery],
     queryFn: async () => {
-      let query = supabase
+      let query = (supabase as any)
         .from("email_templates")
         .select("*")
         .order("created_at", { ascending: false });
@@ -43,23 +43,22 @@ export default function EmailTemplates() {
         query = query.ilike("name", `%${searchQuery}%`);
       }
 
-      const { data, error } = await query;
-      if (error) throw error;
-      return data || [];
+      const result = await query;
+      if (result.error) throw result.error;
+      return (result.data as any[]) || [];
     },
   });
 
   const duplicateTemplate = useMutation({
     mutationFn: async (template: any) => {
-      const { error } = await supabase.from("email_templates").insert({
-        template_key: `${template.template_key}_copy`,
-        template_name: `${template.template_name} (Copy)`,
-        category: template.category,
-        default_preheader: template.default_preheader,
-        thumbnail_url: template.thumbnail_url,
+      const result = await (supabase as any).from("email_templates").insert({
+        name: `${template.name || template.template_name} (Copy)`,
+        subject: template.subject || "",
+        html_content: template.html_content || "",
+        user_id: template.user_id,
       });
 
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["email-templates"] });
@@ -72,12 +71,12 @@ export default function EmailTemplates() {
 
   const deleteTemplate = useMutation({
     mutationFn: async (templateId: string) => {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("email_templates")
         .delete()
         .eq("id", templateId);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["email-templates"] });

@@ -64,7 +64,7 @@ export default function EmailSettings() {
     queryKey: ["email-accounts", user?.id],
     queryFn: async () => {
       if (!user) return [];
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("email_accounts")
         .select("*")
         .eq("user_id", user.id)
@@ -72,8 +72,8 @@ export default function EmailSettings() {
         .order("is_default", { ascending: false })
         .order("created_at", { ascending: false });
       
-      if (error) throw error;
-      return data || [];
+      if (result.error) throw result.error;
+      return (result.data as any[]) || [];
     },
     enabled: !!user,
   });
@@ -84,13 +84,13 @@ export default function EmailSettings() {
     queryFn: async () => {
       if (!user) return [];
       
-      const { data } = await supabase
+      const result = await (supabase as any)
         .from("email_signatures")
         .select("*")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
       
-      return data || [];
+      return (result.data as any[]) || [];
     },
     enabled: !!user,
   });
@@ -144,18 +144,18 @@ export default function EmailSettings() {
       if (!user) throw new Error("Not authenticated");
       
       // Unset all defaults first
-      await supabase
+      await (supabase as any)
         .from("email_accounts")
         .update({ is_default: false })
         .eq("user_id", user.id);
       
       // Set new default
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("email_accounts")
         .update({ is_default: true })
         .eq("id", accountId);
       
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["email-accounts"] });
@@ -168,12 +168,12 @@ export default function EmailSettings() {
 
   const disconnectAccount = useMutation({
     mutationFn: async (accountId: string) => {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("email_accounts")
         .delete()
         .eq("id", accountId);
       
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["email-accounts"] });
@@ -223,19 +223,19 @@ export default function EmailSettings() {
       if (!user) throw new Error("Not authenticated");
       
       // Deactivate all signatures first
-      await supabase
+      await (supabase as any)
         .from("email_signatures")
         .update({ is_active: false })
         .eq("user_id", user.id);
       
       // Activate the selected one if not "none"
       if (signatureId !== "none") {
-        const { error } = await supabase
+        const result = await (supabase as any)
           .from("email_signatures")
           .update({ is_active: true })
           .eq("id", signatureId);
         
-        if (error) throw error;
+        if (result.error) throw result.error;
       }
     },
     onSuccess: () => {

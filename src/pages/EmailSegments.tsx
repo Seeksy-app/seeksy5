@@ -23,12 +23,12 @@ export default function EmailSegments() {
     queryKey: ["segments", user?.id],
     queryFn: async () => {
       if (!user) return [];
-      const { data } = await supabase
+      const result = await (supabase as any)
         .from("segments")
         .select("*, segment_filters(*)")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
-      return data || [];
+      return (result.data as any[]) || [];
     },
     enabled: !!user,
   });
@@ -60,7 +60,7 @@ export default function EmailSegments() {
           {/* Left: Segment List */}
           <div>
             <SegmentList
-              segments={segments || []}
+              segments={(segments as any[]) || []}
               selectedId={selectedSegmentId}
               onSelect={setSelectedSegmentId}
             />
