@@ -78,13 +78,14 @@ const EditEvent = () => {
   const loadEvent = async () => {
     try {
       // Load event
-      const { data: eventData, error: eventError } = await supabase
+      const result = await (supabase as any)
         .from("events")
         .select("*")
         .eq("id", id)
         .single();
 
-      if (eventError) throw eventError;
+      if (result.error) throw result.error;
+      const eventData = result.data as any;
 
       // Check ownership
       if (eventData.user_id !== user?.id) {
@@ -100,25 +101,26 @@ const EditEvent = () => {
       // Populate form
       setTitle(eventData.title);
       setDescription(eventData.description || "");
-      setEventDate(eventData.event_date?.slice(0, 16) || "");
+      setEventDate(eventData.event_date?.slice(0, 16) || eventData.start_date?.slice(0, 16) || "");
       setEndDate(eventData.end_date?.slice(0, 16) || "");
       setCapacity(eventData.capacity?.toString() || "");
       setImageUrl(eventData.image_url || "");
-      setIsPublished(eventData.is_published);
+      setIsPublished(eventData.is_published ?? false);
       setEventType(eventData.event_type || "live");
       setVirtualUrl(eventData.virtual_url || "");
       setVenueAddress(eventData.venue_address || eventData.location || "");
       setPricingMode(eventData.pricing_mode || "free");
 
       // Load ticket tiers
-      const { data: tiersData } = await supabase
+      const tiersResult = await (supabase as any)
         .from("event_ticket_tiers")
         .select("*")
         .eq("event_id", id)
         .order("tier_order", { ascending: true });
 
-      if (tiersData && tiersData.length > 0) {
-        setTicketTiers(tiersData.map(t => ({
+      const tiersData = tiersResult.data as any[] || [];
+      if (tiersData.length > 0) {
+        setTicketTiers(tiersData.map((t: any) => ({
           id: t.id,
           name: t.name,
           description: t.description || "",
@@ -170,7 +172,7 @@ const EditEvent = () => {
       if (eventError) throw eventError;
 
       // Delete existing tiers and recreate
-      await supabase.from("event_ticket_tiers").delete().eq("event_id", id);
+      await (supabase as any).from("event_ticket_tiers").delete().eq("event_id", id);
 
       if (ticketTiers.length > 0) {
         const tiersToInsert = ticketTiers.map((tier, index) => ({
@@ -186,7 +188,7 @@ const EditEvent = () => {
           benefits: tier.benefits,
         }));
 
-        await supabase.from("event_ticket_tiers").insert(tiersToInsert);
+        await (supabase as any).from("event_ticket_tiers").insert(tiersToInsert);
       }
 
       toast({

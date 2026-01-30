@@ -53,7 +53,7 @@ export default function EditCampaign() {
   const { data: campaign, isLoading: campaignLoading } = useQuery({
     queryKey: ["campaign", campaignId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("ad_campaigns")
         .select(`
           *,
@@ -63,8 +63,8 @@ export default function EditCampaign() {
         .eq("id", campaignId)
         .single();
       
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any;
     },
     enabled: !!campaignId,
   });
@@ -117,19 +117,19 @@ export default function EditCampaign() {
     queryKey: ["video-ads", advertiser?.id],
     queryFn: async () => {
       if (!advertiser) return [];
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("ad_videos")
         .select("*")
         .eq("created_by_user_id", advertiser.owner_profile_id)
         .eq("is_active", true)
         .order("created_at", { ascending: false });
       
-      if (error) {
-        console.error("Error fetching video ads:", error);
+      if (result.error) {
+        console.error("Error fetching video ads:", result.error);
         return [];
       }
       
-      return data || [];
+      return result.data as any[] || [];
     },
     enabled: !!advertiser,
   });
@@ -185,11 +185,10 @@ export default function EditCampaign() {
           const selectedAd = audioAds?.find(ad => ad.id === selectedAudioAd);
           if (selectedAd) {
             // Update ad creative
-            await supabase
+            await (supabase as any)
               .from("ad_creatives")
               .update({
-                audio_url: selectedAd.audio_url,
-                duration_seconds: selectedAd.duration_seconds || 30,
+                audio_ad_id: selectedAd.id,
               })
               .eq("campaign_id", campaignId);
 
