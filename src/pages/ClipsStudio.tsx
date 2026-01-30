@@ -100,14 +100,15 @@ export default function ClipsStudio() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      const { data: media, error } = await supabase
+      const result = await (supabase as any)
         .from("media_files")
         .select("*")
         .eq("id", mediaId)
         .eq("user_id", user.id)
         .single();
 
-      if (error) throw error;
+      if (result.error) throw result.error;
+      const media = result.data as any;
       if (media) {
         const mappedMedia: SourceMedia = {
           id: media.id,
@@ -118,26 +119,27 @@ export default function ClipsStudio() {
           cloudflare_uid: media.cloudflare_uid || undefined,
           cloudflare_download_url: media.cloudflare_download_url || undefined,
           created_at: media.created_at,
-          source: (media as any).source,
+          source: media.source,
           edit_transcript: media.edit_transcript,
           thumbnail_url: media.thumbnail_url,
         };
         setSourceMedia(mappedMedia);
         
         // Check if clips already exist for this media
-        const { data: existingClips } = await supabase
+        const clipsResult = await (supabase as any)
           .from("clips")
           .select("*")
           .eq("source_media_id", mediaId)
           .is("deleted_at", null)
           .order("virality_score", { ascending: false });
+        const existingClips = clipsResult.data as any[] | null;
 
         if (existingClips && existingClips.length > 0) {
           // Add mock platforms and scenes for demo
-          const enhancedClips = existingClips.map(clip => ({
+          const enhancedClips = existingClips.map((clip: any) => ({
             ...clip,
             platforms: ['tiktok', 'reels', 'shorts'],
-            scenes: generateMockScenes(clip.start_seconds, clip.end_seconds),
+            scenes: generateMockScenes(clip.start_seconds || 0, clip.end_seconds || 0),
           })) as ClipData[];
           setClips(enhancedClips);
           setStep('edit');
@@ -173,18 +175,19 @@ export default function ClipsStudio() {
     setStep('analyze');
     
     // Check for existing clips first
-    const { data: existingClips } = await supabase
+    const clipsResult = await (supabase as any)
       .from("clips")
       .select("*")
       .eq("source_media_id", media.id)
       .is("deleted_at", null)
       .order("virality_score", { ascending: false });
+    const existingClips = clipsResult.data as any[] | null;
 
     if (existingClips && existingClips.length > 0) {
-      const enhancedClips = existingClips.map(clip => ({
+      const enhancedClips = existingClips.map((clip: any) => ({
         ...clip,
         platforms: ['tiktok', 'reels', 'shorts'],
-        scenes: generateMockScenes(clip.start_seconds, clip.end_seconds),
+        scenes: generateMockScenes(clip.start_seconds || 0, clip.end_seconds || 0),
       })) as ClipData[];
       setClips(enhancedClips);
       setStep('edit');
@@ -236,19 +239,20 @@ export default function ClipsStudio() {
       if (error) throw error;
 
       // Fetch the created clips from database
-      const { data: createdClips, error: fetchError } = await supabase
+      const fetchResult = await (supabase as any)
         .from("clips")
         .select("*")
         .eq("source_media_id", media.id)
         .is("deleted_at", null)
         .order("virality_score", { ascending: false });
 
-      if (fetchError) throw fetchError;
+      if (fetchResult.error) throw fetchResult.error;
+      const createdClips = fetchResult.data as any[] | null;
 
-      const enhancedClips = (createdClips || []).map(clip => ({
+      const enhancedClips = (createdClips || []).map((clip: any) => ({
         ...clip,
         platforms: ['tiktok', 'reels', 'shorts'],
-        scenes: generateMockScenes(clip.start_seconds, clip.end_seconds),
+        scenes: generateMockScenes(clip.start_seconds || 0, clip.end_seconds || 0),
       })) as ClipData[];
 
       setClips(enhancedClips);

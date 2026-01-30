@@ -363,7 +363,7 @@ const Contacts = () => {
                       </td>
                       <td className="p-4">{contact.email}</td>
                       <td className="p-4">{contact.phone || "-"}</td>
-                      <td className="p-4">{contact.title || "-"}</td>
+                      <td className="p-4">{(contact as any).title || "-"}</td>
                       <td className="p-4">{contact.company || "-"}</td>
                       <td className="p-4">
                         <div className="flex justify-end gap-2">

@@ -47,7 +47,7 @@ export default function CreateAwardsProgram() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("awards_programs")
         .insert({
           ...formData,
@@ -59,7 +59,8 @@ export default function CreateAwardsProgram() {
         .select()
         .single();
 
-      if (error) throw error;
+      if (result.error) throw result.error;
+      const data = result.data as any;
 
       toast.success(publish ? "Awards program published!" : "Awards program created as draft!");
       navigate(`/awards/${data.id}`);

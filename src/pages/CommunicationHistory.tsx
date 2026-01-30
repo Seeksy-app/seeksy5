@@ -181,11 +181,12 @@ const CommunicationHistory = () => {
 
   const handleResend = async (emailLog: CommunicationLog) => {
     try {
-      const { data: account } = await supabase
+      const accountResult = await (supabase as any)
         .from("email_accounts")
         .select("*")
         .eq("is_active", true)
         .single();
+      const account = accountResult.data as any;
 
       if (!account) {
         toast.error("No active email account found");

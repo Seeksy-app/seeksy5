@@ -161,17 +161,18 @@ const typeSpecificChecklist: Record<string, ChecklistItem[]> = {
       description: "Create an ad campaign",
       route: "/advertiser/campaigns/create",
       checkFn: async (userId) => {
-        const { data: advertiser } = await supabase
+        const advResult = await (supabase as any)
           .from("advertisers")
           .select("id")
           .eq("owner_profile_id", userId)
           .single();
+        const advertiser = advResult.data as { id: string } | null;
         if (!advertiser) return false;
-        const { count } = await supabase
+        const campaignResult = await (supabase as any)
           .from("ad_campaigns")
           .select("*", { count: "exact", head: true })
           .eq("advertiser_id", advertiser.id);
-        return (count || 0) > 0;
+        return (campaignResult.count || 0) > 0;
       },
     },
   ],

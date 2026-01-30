@@ -63,7 +63,7 @@ export default function ClientTickets() {
     queryFn: async () => {
       if (!user) return [];
       
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("client_tickets")
         .select(`
           *,
@@ -76,8 +76,8 @@ export default function ClientTickets() {
         `)
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any[];
     },
     enabled: !!user,
   });
@@ -101,7 +101,7 @@ export default function ClientTickets() {
     mutationFn: async (ticketData: typeof formData) => {
       if (!user) throw new Error("Not authenticated");
       
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("client_tickets")
         .insert({
           user_id: user.id,
@@ -116,6 +116,7 @@ export default function ClientTickets() {
         })
         .select()
         .single();
+      const { data, error } = result;
 
       if (error) throw error;
       return data;
@@ -147,11 +148,11 @@ export default function ClientTickets() {
 
   const updateTicketStatusMutation = useMutation({
     mutationFn: async ({ ticketId, status }: { ticketId: string; status: string }) => {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("client_tickets")
         .update({ status, updated_at: new Date().toISOString() })
         .eq("id", ticketId);
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       toast({
