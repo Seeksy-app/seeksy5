@@ -14,12 +14,12 @@ export default function EmailAccountHealth() {
   const { data: account } = useQuery({
     queryKey: ["email-account", id],
     queryFn: async () => {
-      const { data } = await supabase
+      const result = await (supabase as any)
         .from("email_accounts")
         .select("*")
         .eq("id", id)
         .single();
-      return data;
+      return result.data as any;
     },
     enabled: !!id,
   });
@@ -27,13 +27,13 @@ export default function EmailAccountHealth() {
   const { data: healthData } = useQuery({
     queryKey: ["email-account-health", id],
     queryFn: async () => {
-      const { data } = await supabase
+      const result = await (supabase as any)
         .from("email_account_health")
         .select("*")
         .eq("account_id", id)
         .order("date", { ascending: false })
         .limit(30);
-      return data || [];
+      return (result.data as any[]) || [];
     },
     enabled: !!id,
   });
