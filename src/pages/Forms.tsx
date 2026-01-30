@@ -13,13 +13,13 @@ export default function Forms() {
   const { data: forms, isLoading } = useQuery({
     queryKey: ["forms"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("forms")
         .select("*")
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return (result.data as any[]) || [];
     },
   });
 
@@ -57,12 +57,12 @@ export default function Forms() {
           </div>
         ) : forms && forms.length > 0 ? (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {forms.map((form) => (
+            {forms.map((form: any) => (
               <Card key={form.id} className="hover:shadow-lg transition-shadow">
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <CardTitle className="text-xl">{form.form_name}</CardTitle>
+                      <CardTitle className="text-xl">{form.form_name || form.name || "Untitled"}</CardTitle>
                       <CardDescription className="mt-1">
                         {form.description || "No description"}
                       </CardDescription>
@@ -75,7 +75,7 @@ export default function Forms() {
                 <CardContent className="space-y-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <span className="font-medium">Type:</span>
-                    <span className="capitalize">{form.form_type.replace('_', ' ')}</span>
+                    <span className="capitalize">{(form.form_type || "form").replace('_', ' ')}</span>
                   </div>
                   
                   <div className="flex gap-2">
@@ -90,14 +90,14 @@ export default function Forms() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => copyFormLink(form.form_slug)}
+                      onClick={() => copyFormLink(form.form_slug || form.slug || form.id)}
                     >
                       <Copy className="w-4 h-4" />
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => window.open(`/f/${form.form_slug}`, '_blank')}
+                      onClick={() => window.open(`/f/${form.form_slug || form.slug || form.id}`, '_blank')}
                     >
                       <ExternalLink className="w-4 h-4" />
                     </Button>
