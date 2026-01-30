@@ -63,13 +63,13 @@ export default function CreateProposal() {
     queryKey: ["legal-documents", user?.id],
     queryFn: async () => {
       if (!user) return [];
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("legal_documents")
         .select("*")
         .eq("user_id", user.id)
         .order("title", { ascending: true });
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any[] || [];
     },
     enabled: !!user,
   });
@@ -112,7 +112,7 @@ export default function CreateProposal() {
       // Generate proposal number
       const proposalNumber = `PROP-${Date.now()}`;
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("proposals")
         .insert({
           user_id: user.id,
@@ -120,19 +120,19 @@ export default function CreateProposal() {
           proposal_number: proposalNumber,
           title,
           description,
-          items: items as any,
+          items: items,
           total_amount: totalAmount,
           notes,
           valid_until: validUntil || null,
           privacy_policy_id: privacyPolicyId || null,
           terms_conditions_id: termsConditionsId || null,
           status: 'draft',
-        } as any)
+        })
         .select()
         .single();
 
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["proposals"] });

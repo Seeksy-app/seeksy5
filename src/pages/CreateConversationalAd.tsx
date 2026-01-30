@@ -44,7 +44,7 @@ const CreateConversationalAd = () => {
     }) => {
       if (!advertiser) throw new Error('Advertiser not found');
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('audio_ads')
         .insert({
           advertiser_id: advertiser.id,
@@ -65,7 +65,8 @@ const CreateConversationalAd = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (result.error) throw result.error;
+      const data = result.data as any;
 
       // Charge agent setup fee
       await supabase.functions.invoke('charge-conversational-ad-fees', {

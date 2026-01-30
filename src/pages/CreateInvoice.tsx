@@ -61,14 +61,14 @@ export default function CreateInvoice() {
     queryKey: ["proposals", user?.id],
     queryFn: async () => {
       if (!user) return [];
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("proposals")
         .select("*")
         .eq("user_id", user.id)
         .eq("status", "accepted")
         .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any[] || [];
     },
     enabled: !!user,
   });
@@ -77,13 +77,13 @@ export default function CreateInvoice() {
     queryKey: ["legal-documents", user?.id],
     queryFn: async () => {
       if (!user) return [];
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("legal_documents")
         .select("*")
         .eq("user_id", user.id)
         .order("title", { ascending: true });
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any[] || [];
     },
     enabled: !!user,
   });
@@ -126,7 +126,7 @@ export default function CreateInvoice() {
       // Generate invoice number
       const invoiceNumber = `INV-${Date.now()}`;
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("invoices")
         .insert({
           user_id: user.id,
@@ -134,7 +134,7 @@ export default function CreateInvoice() {
           proposal_id: proposalId || null,
           invoice_number: invoiceNumber,
           title,
-          items: items as any,
+          items: items,
           total_amount: totalAmount,
           amount_paid: 0,
           notes,
@@ -142,12 +142,12 @@ export default function CreateInvoice() {
           privacy_policy_id: privacyPolicyId || null,
           terms_conditions_id: termsConditionsId || null,
           status: 'draft',
-        } as any)
+        })
         .select()
         .single();
 
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["invoices"] });

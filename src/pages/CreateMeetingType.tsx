@@ -50,24 +50,24 @@ const CreateMeetingType = () => {
 
   const checkCalendarConnection = async (userId: string) => {
     try {
-      const { data } = await supabase
+      const calendarResult = await (supabase as any)
         .from("calendar_connections")
         .select("*")
         .eq("user_id", userId)
         .eq("provider", "google")
-        .single();
+        .maybeSingle();
 
-      if (data) {
+      if (calendarResult.data) {
         setCalendarConnected(true);
       }
 
-      const { data: microsoftData } = await supabase
+      const microsoftResult = await (supabase as any)
         .from("microsoft_connections")
         .select("*")
         .eq("user_id", userId)
-        .single();
+        .maybeSingle();
 
-      if (microsoftData) {
+      if (microsoftResult.data) {
         setMicrosoftConnected(true);
       }
     } catch (error) {
@@ -101,19 +101,19 @@ const CreateMeetingType = () => {
         .filter((q) => q.question.trim())
         .map((q) => ({ question: q.question, required: q.required }));
 
-      const { error } = await supabase.from("meeting_types").insert([
+      const result = await (supabase as any).from("meeting_types").insert([
         {
           user_id: user?.id,
           name,
           description,
           duration: parseInt(duration),
-          location_type: locationType as "phone" | "zoom" | "teams" | "meet" | "in-person" | "custom" | "seeksy_studio",
+          location_type: locationType,
           custom_location_url: locationType === "custom" ? customLocationUrl : null,
-          pre_meeting_questions: filteredQuestions as any,
+          pre_meeting_questions: filteredQuestions,
         },
       ]);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
 
       toast({
         title: "Meeting type created!",

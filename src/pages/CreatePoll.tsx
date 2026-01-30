@@ -74,7 +74,7 @@ const CreatePoll = () => {
       }
 
       // Create poll
-      const { data: poll, error: pollError } = await supabase
+      const pollResult = await (supabase as any)
         .from("polls")
         .insert({
           user_id: user.id,
@@ -89,7 +89,8 @@ const CreatePoll = () => {
         .select()
         .single();
 
-      if (pollError) throw pollError;
+      if (pollResult.error) throw pollResult.error;
+      const poll = pollResult.data as any;
 
       // Create poll options
       const optionsData = validOptions.map((opt) => ({
@@ -99,11 +100,11 @@ const CreatePoll = () => {
         end_time: opt.endTime || null,
       }));
 
-      const { error: optionsError } = await supabase
+      const optionsResult = await (supabase as any)
         .from("poll_options")
         .insert(optionsData);
 
-      if (optionsError) throw optionsError;
+      if (optionsResult.error) throw optionsResult.error;
 
       toast({
         title: publish ? "Poll published!" : "Poll saved as draft",

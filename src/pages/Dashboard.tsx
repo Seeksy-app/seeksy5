@@ -255,11 +255,13 @@ const Dashboard = () => {
       const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
       // First get profile data (account-level for dashboard)
-      const { data: profileData } = await supabase
+      const profileResult = await (supabase as any)
         .from("profiles")
-        .select("id, username, account_full_name, account_avatar_url, bio, account_phone, is_live_on_profile, live_stream_title")
+        .select("id, username, account_full_name, account_avatar_url, bio, is_live_on_profile, live_stream_title")
         .eq("id", user.id)
         .single();
+      
+      const profileData = profileResult.data as any;
       
       // Set live streaming status
       setIsLiveStreaming(profileData?.is_live_on_profile || false);
@@ -281,14 +283,16 @@ const Dashboard = () => {
       // For demo account, set dummy phone to bypass profile completion
       const displayPhone = profileData?.username === 'DemoInfluencer' 
         ? '+1234567890' 
-        : (profileData?.account_phone || "");
+        : "";
 
       // Load my_page_visited from user_preferences
-      const { data: userPrefs } = await supabase
+      const userPrefsResult = await (supabase as any)
         .from("user_preferences")
         .select("my_page_visited")
         .eq("user_id", user.id)
         .maybeSingle();
+      
+      const userPrefs = userPrefsResult.data as any;
 
       setProfileData({
         full_name: profileData?.account_full_name || "",
@@ -302,14 +306,14 @@ const Dashboard = () => {
         { count: publishedEvents },
         { count: totalMeetings },
         { count: upcomingMeetings },
-        { count: totalSignupSheets },
-        { count: totalPolls },
-        { count: publishedPolls },
+        totalSignupSheetsResult,
+        totalPollsResult,
+        publishedPollsResult,
         { count: totalEmailsSent },
-        { count: profileViews },
-        { count: linkClicks },
-        { count: profileViewsThisWeek },
-        { count: linkClicksThisWeek },
+        profileViewsResult,
+        linkClicksResult,
+        profileViewsThisWeekResult,
+        linkClicksThisWeekResult,
         { count: totalPodcasts },
         { count: totalEpisodes },
         { count: mediaFiles },
@@ -318,14 +322,14 @@ const Dashboard = () => {
         supabase.from("events").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("is_published", true),
         supabase.from("meetings").select("*", { count: "exact", head: true }).eq("user_id", user.id),
         supabase.from("meetings").select("*", { count: "exact", head: true }).eq("user_id", user.id).gte("start_time", now.toISOString()),
-        supabase.from("signup_sheets").select("*", { count: "exact", head: true }).eq("user_id", user.id),
-        supabase.from("polls").select("*", { count: "exact", head: true }).eq("user_id", user.id),
-        supabase.from("polls").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("is_published", true),
+        (supabase as any).from("signup_sheets").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+        (supabase as any).from("polls").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+        (supabase as any).from("polls").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("is_published", true),
         supabase.from("email_logs").select("*", { count: "exact", head: true }).eq("user_id", user.id),
-        supabase.from("profile_views").select("*", { count: "exact", head: true }).eq("profile_id", profileId),
-        supabase.from("link_clicks").select("*", { count: "exact", head: true }).eq("profile_id", profileId),
-        supabase.from("profile_views").select("*", { count: "exact", head: true }).eq("profile_id", profileId).gte("viewed_at", weekAgo.toISOString()),
-        supabase.from("link_clicks").select("*", { count: "exact", head: true }).eq("profile_id", profileId).gte("clicked_at", weekAgo.toISOString()),
+        (supabase as any).from("profile_views").select("*", { count: "exact", head: true }).eq("profile_id", profileId),
+        (supabase as any).from("link_clicks").select("*", { count: "exact", head: true }).eq("profile_id", profileId),
+        (supabase as any).from("profile_views").select("*", { count: "exact", head: true }).eq("profile_id", profileId).gte("viewed_at", weekAgo.toISOString()),
+        (supabase as any).from("link_clicks").select("*", { count: "exact", head: true }).eq("profile_id", profileId).gte("clicked_at", weekAgo.toISOString()),
         supabase.from("podcasts").select("*", { count: "exact", head: true }).eq("user_id", user.id),
         supabase.from("episodes").select("podcast_id", { count: "exact", head: true }).in("podcast_id", 
           (await supabase.from("podcasts").select("id").eq("user_id", user.id)).data?.map(p => p.id) || []
@@ -333,14 +337,23 @@ const Dashboard = () => {
         supabase.from("media_files").select("*", { count: "exact", head: true }).eq("user_id", user.id),
       ]);
 
+      const totalSignupSheets = totalSignupSheetsResult.count || 0;
+      const totalPolls = totalPollsResult.count || 0;
+      const publishedPolls = publishedPollsResult.count || 0;
+      const profileViews = profileViewsResult.count || 0;
+      const linkClicks = linkClicksResult.count || 0;
+      const profileViewsThisWeek = profileViewsThisWeekResult.count || 0;
+      const linkClicksThisWeek = linkClicksThisWeekResult.count || 0;
+
       // Get ad revenue
-      const { data: earnings } = await supabase
+      const earningsResult = await (supabase as any)
         .from("creator_earnings")
         .select("creator_share, total_impressions")
         .eq("user_id", user.id);
       
-      const totalRevenue = earnings?.reduce((sum, e) => sum + (e.creator_share || 0), 0) || 0;
-      const totalImpressions = earnings?.reduce((sum, e) => sum + (e.total_impressions || 0), 0) || 0;
+      const earnings = earningsResult.data as any[] || [];
+      const totalRevenue = earnings.reduce((sum: number, e: any) => sum + (e.creator_share || 0), 0);
+      const totalImpressions = earnings.reduce((sum: number, e: any) => sum + (e.total_impressions || 0), 0);
 
       const engagementRate = profileViews && profileViews > 0 
         ? ((linkClicks || 0) / profileViews) * 100 
@@ -368,13 +381,14 @@ const Dashboard = () => {
       });
 
       // Get click breakdown by type
-      const { data: breakdown } = await supabase
+      const breakdownResult = await (supabase as any)
         .from("link_clicks")
         .select("link_type, link_url")
         .eq("profile_id", profileId);
 
-      if (breakdown) {
-        const typeCounts = breakdown.reduce((acc: Record<string, number>, click) => {
+      const breakdown = breakdownResult.data as any[] || [];
+      if (breakdown.length > 0) {
+        const typeCounts = breakdown.reduce((acc: Record<string, number>, click: any) => {
           // Skip custom_link type in the main breakdown
           if (click.link_type !== 'custom_link') {
             acc[click.link_type] = (acc[click.link_type] || 0) + 1;
@@ -383,24 +397,26 @@ const Dashboard = () => {
         }, {});
 
         // Get custom links breakdown separately with titles
-        const customClicks = breakdown.filter(c => c.link_type === 'custom_link');
-        const customUrlCounts = customClicks.reduce((acc: Record<string, number>, click) => {
+        const customClicks = breakdown.filter((c: any) => c.link_type === 'custom_link');
+        const customUrlCounts = customClicks.reduce((acc: Record<string, number>, click: any) => {
           acc[click.link_url] = (acc[click.link_url] || 0) + 1;
           return acc;
         }, {});
 
         // Fetch custom link titles
-        const { data: customLinks } = await supabase
+        const customLinksResult = await (supabase as any)
           .from('custom_links')
           .select('url, title')
           .eq('profile_id', profileId);
+        
+        const customLinks = customLinksResult.data as any[] || [];
 
         // Combine regular breakdown with custom links (each with their title)
         const regularBreakdown = Object.entries(typeCounts)
           .map(([link_type, count]) => ({ link_type, count: count as number }));
 
         const customBreakdown = Object.entries(customUrlCounts).map(([url, count]) => {
-          const link = customLinks?.find(l => l.url === url);
+          const link = customLinks?.find((l: any) => l.url === url);
           return {
             link_type: 'custom_link',
             title: link?.title || url,
@@ -414,13 +430,14 @@ const Dashboard = () => {
       }
 
       // Get top clicked links
-      const { data: links } = await supabase
+      const linksResult = await (supabase as any)
         .from("link_clicks")
         .select("link_url, link_type")
         .eq("profile_id", profileId);
 
-      if (links) {
-        const linkCounts = links.reduce((acc: Record<string, { type: string; count: number }>, click) => {
+      const links = linksResult.data as any[] || [];
+      if (links.length > 0) {
+        const linkCounts = links.reduce((acc: Record<string, { type: string; count: number }>, click: any) => {
           const key = click.link_url;
           if (!acc[key]) {
             acc[key] = { type: click.link_type, count: 0 };

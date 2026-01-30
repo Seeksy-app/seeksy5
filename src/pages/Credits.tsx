@@ -37,14 +37,14 @@ export default function Credits() {
   const { data: packages, isLoading: packagesLoading } = useQuery({
     queryKey: ["credit-packages"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("credit_packages")
         .select("*")
         .eq("is_active", true)
         .order("display_order");
 
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any[] || [];
     },
   });
 

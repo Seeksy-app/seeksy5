@@ -142,7 +142,7 @@ const CreateSignupSheet = () => {
       );
 
       // Create the sheet
-      const { data: sheet, error: sheetError } = await supabase
+      const sheetResult = await (supabase as any)
         .from("signup_sheets")
         .insert([
           {
@@ -159,7 +159,8 @@ const CreateSignupSheet = () => {
         .select()
         .single();
 
-      if (sheetError) throw sheetError;
+      if (sheetResult.error) throw sheetResult.error;
+      const sheet = sheetResult.data as any;
 
       // Insert slots
       const slotsToInsert = manualSlots.map(slot => ({
@@ -169,11 +170,11 @@ const CreateSignupSheet = () => {
         is_filled: false,
       }));
 
-      const { error: slotsError } = await supabase
+      const slotsResult = await (supabase as any)
         .from("signup_slots")
         .insert(slotsToInsert);
 
-      if (slotsError) throw slotsError;
+      if (slotsResult.error) throw slotsResult.error;
 
       toast({
         title: "Sign-up sheet created!",

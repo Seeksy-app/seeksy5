@@ -82,20 +82,20 @@ export default function CreateMultiChannelCampaign() {
   const { data: events } = useQuery({
     queryKey: ["events-for-campaigns"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("events")
         .select("id, title, user_id, event_date")
         .eq("is_published", true)
         .order("event_date", { ascending: true });
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any[] || [];
     },
   });
 
   const createCampaignMutation = useMutation({
     mutationFn: async () => {
       // Insert campaign
-      const { data: campaign, error: campaignError } = await supabase
+      const campaignResult = await (supabase as any)
         .from("multi_channel_campaigns")
         .insert({
           campaign_name: campaignName,
@@ -109,7 +109,8 @@ export default function CreateMultiChannelCampaign() {
         .select()
         .single();
 
-      if (campaignError) throw campaignError;
+      if (campaignResult.error) throw campaignResult.error;
+      const campaign = campaignResult.data as any;
 
       // Insert property allocations
       const propertyInserts = properties.map((prop) => ({
@@ -124,11 +125,11 @@ export default function CreateMultiChannelCampaign() {
         status: "pending",
       }));
 
-      const { error: propertiesError } = await supabase
+      const propertiesResult = await (supabase as any)
         .from("campaign_properties")
         .insert(propertyInserts);
 
-      if (propertiesError) throw propertiesError;
+      if (propertiesResult.error) throw propertiesResult.error;
 
       // Create alerts for creators
       const alertInserts = properties
@@ -142,11 +143,11 @@ export default function CreateMultiChannelCampaign() {
         }));
 
       if (alertInserts.length > 0) {
-        const { error: alertsError } = await supabase
+        const alertsResult = await (supabase as any)
           .from("creator_campaign_alerts")
           .insert(alertInserts);
 
-        if (alertsError) throw alertsError;
+        if (alertsResult.error) throw alertsResult.error;
       }
 
       return campaign;
