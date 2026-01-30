@@ -20,7 +20,7 @@ const IdentityCertificateDetail = () => {
     queryFn: async () => {
       if (!id) throw new Error("No certificate ID provided");
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("identity_assets")
         .select(`
           *,
@@ -34,8 +34,8 @@ const IdentityCertificateDetail = () => {
         .eq("id", id)
         .single();
 
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any;
     },
     enabled: !!id,
   });
