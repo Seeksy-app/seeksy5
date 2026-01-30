@@ -262,7 +262,7 @@ export default function ContentHub() {
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {podcasts.map((podcast) => (
+                  {podcasts.map((podcast: any) => (
                     <Card key={podcast.id} className="overflow-hidden hover:border-primary transition-colors">
                       <div className="aspect-square bg-muted relative">
                         {podcast.cover_image_url ? (

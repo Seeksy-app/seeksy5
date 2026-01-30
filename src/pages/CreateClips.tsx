@@ -44,16 +44,15 @@ export default function CreateClips() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("media_files")
         .select("id, file_url, file_type, file_name, duration_seconds, created_at, edit_transcript")
         .eq("user_id", user.id)
         .ilike("file_type", "video%")
-        .in("source", ["upload", "studio"])
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
-      setMediaFiles(data || []);
+      if (result.error) throw result.error;
+      setMediaFiles((result.data as any[]) || []);
     } catch (error) {
       console.error("Error fetching media:", error);
       toast({
@@ -184,12 +183,12 @@ export default function CreateClips() {
       
       const checkStatus = setInterval(async () => {
         attempts++;
-        const { data: clipStatus } = await supabase
+        const statusResult = await (supabase as any)
           .from('clips')
           .select('status, vertical_url, thumbnail_url, error_message')
           .eq('id', clipId)
           .single();
-        
+        const clipStatus = statusResult.data as { status?: string; vertical_url?: string; thumbnail_url?: string; error_message?: string } | null;
         if (clipStatus?.status === 'ready') {
           clearInterval(checkStatus);
           toast({

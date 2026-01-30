@@ -102,7 +102,7 @@ export default function CreateCampaign() {
         ? { categories: targetingCategories }
         : {};
 
-      const { data: campaign, error: campaignError } = await supabase
+      const campaignResult = await (supabase as any)
         .from("ad_campaigns")
         .insert({
           advertiser_id: advertiser.id,
@@ -113,23 +113,27 @@ export default function CreateCampaign() {
           end_date: endDate,
           targeting_rules: targetingRules,
           status: "pending",
+          user_id: user.id,
         })
         .select()
         .single();
+      const campaignError = campaignResult.error;
+      const campaign = campaignResult.data as any;
 
       if (campaignError) throw campaignError;
 
       // Create ad creative
-      const { error: creativeError } = await supabase
+      const creativeResult = await (supabase as any)
         .from("ad_creatives")
         .insert({
           campaign_id: campaign.id,
-          advertiser_id: campaign.advertiser_id,
+          advertiser_id: advertiser.id,
           name: "Audio Creative",
           format: "audio",
           status: "ready",
           duration_seconds: duration,
         });
+      const creativeError = creativeResult.error;
 
       if (creativeError) throw creativeError;
 

@@ -19,7 +19,7 @@ export default function Certificate() {
     queryFn: async () => {
       if (!clipId) throw new Error("Clip ID required");
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("clips")
         .select(`
           id,
@@ -37,14 +37,16 @@ export default function Certificate() {
         .eq("id", clipId)
         .single();
 
-      if (error) throw error;
+      if (result.error) throw result.error;
+      const data = result.data as any;
 
       // Get creator name
-      const { data: profile } = await supabase
+      const profileResult = await (supabase as any)
         .from("profiles")
         .select("username, full_name")
         .eq("id", data.user_id)
         .single();
+      const profile = profileResult.data as { username?: string; full_name?: string } | null;
 
       return { ...data, creator: profile };
     },

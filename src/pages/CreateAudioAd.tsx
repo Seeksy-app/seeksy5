@@ -89,7 +89,7 @@ const CreateAudioAd = () => {
       }
 
       // Create audio_ads record
-      const { data: audioAd, error: insertError } = await supabase
+      const insertResult = await (supabase as any)
         .from('audio_ads')
         .insert({
           advertiser_id: advertiser.id,
@@ -101,7 +101,8 @@ const CreateAudioAd = () => {
         .select()
         .single();
 
-      if (insertError) throw insertError;
+      if (insertResult.error) throw insertResult.error;
+      const audioAd = insertResult.data as any;
 
       // Call edge function to generate audio
       const { data, error } = await supabase.functions.invoke('elevenlabs-generate-audio', {
