@@ -318,8 +318,8 @@ const Dashboard = () => {
         { count: totalEpisodes },
         { count: mediaFiles },
       ] = await Promise.all([
-        supabase.from("events").select("*", { count: "exact", head: true }).eq("user_id", user.id),
-        supabase.from("events").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("is_published", true),
+        (supabase as any).from("events").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+        (supabase as any).from("events").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("is_published", true),
         supabase.from("meetings").select("*", { count: "exact", head: true }).eq("user_id", user.id),
         supabase.from("meetings").select("*", { count: "exact", head: true }).eq("user_id", user.id).gte("start_time", now.toISOString()),
         (supabase as any).from("signup_sheets").select("*", { count: "exact", head: true }).eq("user_id", user.id),
@@ -448,7 +448,7 @@ const Dashboard = () => {
 
         setTopLinks(
           Object.entries(linkCounts)
-            .map(([link_url, data]) => ({ link_url, link_type: data.type, count: data.count }))
+            .map(([link_url, data]) => ({ link_url, link_type: (data as any).type, count: (data as any).count }))
             .sort((a, b) => b.count - a.count)
             .slice(0, 5)
         );
