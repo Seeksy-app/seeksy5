@@ -20,15 +20,15 @@ const EditPodcast = () => {
   const { data: podcast, isLoading } = useQuery({
     queryKey: ["podcast", podcastId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("podcasts")
         .select("*")
         .eq("id", podcastId)
         .maybeSingle();
       
-      if (error) throw error;
-      if (!data) throw new Error("Podcast not found");
-      return data;
+      if (result.error) throw result.error;
+      if (!result.data) throw new Error("Podcast not found");
+      return result.data as any;
     },
   });
 
@@ -49,19 +49,20 @@ const EditPodcast = () => {
   // Initialize form when podcast data loads
   useEffect(() => {
     if (podcast) {
-      setTitle(podcast.title || "");
-      setDescription(podcast.description || "");
-      setCoverImageUrl(podcast.cover_image_url || "");
-      setAuthorName(podcast.author_name || "");
-      setAuthorEmail(podcast.author_email || "");
-      setWebsiteUrl(podcast.website_url || "");
-      setCategory(podcast.category || "");
-      setIsExplicit(podcast.is_explicit || false);
-      setIsPublished(podcast.is_published || false);
-      setShowOnProfile(podcast.show_on_profile !== false);
-      setVerificationEmail(podcast.verification_email || "");
-      setVerificationEmailPermanent(podcast.verification_email_permanent || false);
-      setVerificationEmailExpiresAt(podcast.verification_email_expires_at || null);
+      const p = podcast as any;
+      setTitle(p.title || "");
+      setDescription(p.description || "");
+      setCoverImageUrl(p.cover_image_url || "");
+      setAuthorName(p.author_name || "");
+      setAuthorEmail(p.author_email || "");
+      setWebsiteUrl(p.website_url || "");
+      setCategory(p.category || "");
+      setIsExplicit(p.is_explicit || false);
+      setIsPublished(p.is_published || false);
+      setShowOnProfile(p.show_on_profile !== false);
+      setVerificationEmail(p.verification_email || "");
+      setVerificationEmailPermanent(p.verification_email_permanent || false);
+      setVerificationEmailExpiresAt(p.verification_email_expires_at || null);
     }
   }, [podcast]);
 
@@ -80,7 +81,7 @@ const EditPodcast = () => {
         expiresAt = verificationEmailExpiresAt; // Keep existing expiration
       }
 
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("podcasts")
         .update({
           title,
@@ -99,7 +100,7 @@ const EditPodcast = () => {
         })
         .eq("id", podcastId);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["podcast", podcastId] });
