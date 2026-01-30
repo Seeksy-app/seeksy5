@@ -17,19 +17,19 @@ const IdentityCertificate = () => {
       if (!id) throw new Error("No certificate ID provided");
 
       console.log("[IdentityCertificate] Fetching asset with ID:", id);
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("identity_assets")
         .select("*")
         .eq("id", id)
         .maybeSingle();
 
-      if (error) {
-        console.error("[IdentityCertificate] Query error:", error);
-        throw error;
+      if (result.error) {
+        console.error("[IdentityCertificate] Query error:", result.error);
+        throw result.error;
       }
       
-      console.log("[IdentityCertificate] Asset data:", data);
-      return data;
+      console.log("[IdentityCertificate] Asset data:", result.data);
+      return result.data as any;
     },
     enabled: !!id,
   });
