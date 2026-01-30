@@ -66,14 +66,28 @@ export default function InfluenceHubMedia() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      const { data: files, error } = await supabase
+      const result = await (supabase as any)
         .from("media_files")
         .select("*")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
-      setMediaFiles(files || []);
+      if (result.error) throw result.error;
+      
+      // Map data to MediaFile interface with defaults
+      const mappedFiles: MediaFile[] = ((result.data as any[]) || []).map((item: any) => ({
+        id: item.id,
+        file_url: item.file_url,
+        file_type: item.file_type || 'unknown',
+        file_name: item.file_name || 'Untitled',
+        duration_seconds: item.duration_seconds || null,
+        file_size_bytes: item.file_size_bytes || item.file_size || null,
+        edit_status: item.edit_status || 'unprocessed',
+        created_at: item.created_at,
+        edit_transcript: item.edit_transcript,
+      }));
+      
+      setMediaFiles(mappedFiles);
     } catch (error) {
       console.error("Error fetching media:", error);
       toast({

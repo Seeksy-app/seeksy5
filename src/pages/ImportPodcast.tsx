@@ -53,14 +53,14 @@ const ImportPodcast = () => {
       if (!user || !parsedData) throw new Error("Missing data");
 
       // Check if podcast with this RSS URL already exists
-      const { data: existingPodcast } = await supabase
+      const existingResult = await (supabase as any)
         .from("podcasts")
         .select("id, title")
         .eq("source_url", rssUrl)
         .maybeSingle();
 
-      if (existingPodcast) {
-        throw new Error(`This RSS feed has already been imported as "${existingPodcast.title}"`);
+      if (existingResult.data) {
+        throw new Error(`This RSS feed has already been imported as "${existingResult.data.title}"`);
       }
 
       // Generate unique slug
@@ -74,19 +74,19 @@ const ImportPodcast = () => {
       
       // Check if slug exists and append number if needed
       while (true) {
-        const { data: existing } = await supabase
+        const slugResult = await (supabase as any)
           .from("podcasts")
           .select("id")
           .eq("slug", slug)
           .maybeSingle();
         
-        if (!existing) break;
+        if (!slugResult.data) break;
         slug = `${baseSlug}-${counter}`;
         counter++;
       }
 
       // Create podcast
-      const { data: podcast, error: podcastError } = await supabase
+      const podcastResult = await (supabase as any)
         .from("podcasts")
         .insert({
           user_id: user.id,
@@ -109,7 +109,8 @@ const ImportPodcast = () => {
         .select()
         .single();
 
-      if (podcastError) throw podcastError;
+      if (podcastResult.error) throw podcastResult.error;
+      const podcast = podcastResult.data as any;
 
       // Create episodes (limited to selected number of most recent episodes)
       // Filter out episodes without audio URLs first
@@ -140,18 +141,18 @@ const ImportPodcast = () => {
 
       // Wrap episode insertion in try-catch for rollback
       try {
-        const { error: episodesError } = await supabase
+        const episodesResult = await (supabase as any)
           .from("episodes")
           .upsert(episodesData, { 
             onConflict: 'guid',
             ignoreDuplicates: false 
           });
 
-        if (episodesError) throw episodesError;
+        if (episodesResult.error) throw episodesResult.error;
       } catch (episodeError: any) {
         // Rollback: Delete the podcast if episode creation fails
         console.error("Episode creation failed, rolling back podcast:", episodeError);
-        await supabase.from("podcasts").delete().eq("id", podcast.id);
+        await (supabase as any).from("podcasts").delete().eq("id", podcast.id);
         throw new Error(episodeError.message || "Failed to import episodes");
       }
 
