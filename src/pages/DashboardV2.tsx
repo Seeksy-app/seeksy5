@@ -49,14 +49,15 @@ export default function DashboardV2() {
     queryKey: ["dashboard-layout", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("user_dashboard_layouts")
         .select("*")
         .eq("user_id", user.id)
         .eq("is_active", true)
         .maybeSingle();
 
-      if (error) throw error;
+      if (result.error) throw result.error;
+      const data = result.data as any;
 
       // If no layout exists, create default with first 4 widgets
       if (!data) {
@@ -67,7 +68,7 @@ export default function DashboardV2() {
           enabled: true,
         }));
 
-        const { data: newLayout } = await supabase
+        const insertResult = await (supabase as any)
           .from("user_dashboard_layouts")
           .insert({
             user_id: user.id,
@@ -77,7 +78,7 @@ export default function DashboardV2() {
           .select()
           .single();
 
-        return newLayout;
+        return insertResult.data as any;
       }
 
       return data;
@@ -87,7 +88,7 @@ export default function DashboardV2() {
   // Save layout mutation
   const saveLayoutMutation = useMutation({
     mutationFn: async (widgetConfig: any[]) => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("user_dashboard_layouts")
         .update({
           widget_config: widgetConfig,
@@ -98,8 +99,8 @@ export default function DashboardV2() {
         .select()
         .single();
 
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["dashboard-layout", user?.id] });

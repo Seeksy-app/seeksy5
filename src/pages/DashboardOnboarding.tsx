@@ -63,7 +63,7 @@ export default function DashboardOnboarding() {
         };
       });
 
-      await supabase.from("user_dashboard_layouts").insert({
+      await (supabase as any).from("user_dashboard_layouts").insert({
         user_id: user.id,
         layout_name: "default",
         widget_config: widgetConfig,
