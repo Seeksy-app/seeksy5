@@ -69,14 +69,14 @@ export default function EditMeeting() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("meeting_types")
         .select("*")
         .eq("user_id", user.id)
         .order("name");
 
-      if (error) throw error;
-      setMeetingTypes(data || []);
+      if (result.error) throw result.error;
+      setMeetingTypes((result.data as any[]) || []);
     } catch (error) {
       console.error("Error loading meeting types:", error);
     }
@@ -84,7 +84,7 @@ export default function EditMeeting() {
 
   const loadMeeting = async () => {
     try {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("meetings")
         .select(`
           *,
@@ -98,7 +98,8 @@ export default function EditMeeting() {
         .eq("id", id)
         .single();
 
-      if (error) throw error;
+      if (result.error) throw result.error;
+      const data = result.data as any;
 
       // Populate form fields
       setTitle(data.title);
@@ -122,16 +123,17 @@ export default function EditMeeting() {
       setSelectedMeetingTypeId(data.meeting_type_id || "");
 
       // Load attendees from meeting_attendees table
-      if (data.meeting_attendees && data.meeting_attendees.length > 0) {
-        const primaryAttendee = data.meeting_attendees[0];
+      const attendees = data.meeting_attendees as any[];
+      if (attendees && attendees.length > 0) {
+        const primaryAttendee = attendees[0];
         setAttendeeName(primaryAttendee.attendee_name);
         setAttendeeEmail(primaryAttendee.attendee_email);
         setAttendeePhone(primaryAttendee.attendee_phone || "");
         setOriginalAttendeeEmail(primaryAttendee.attendee_email);
 
         // Load additional attendees as selected contacts
-        if (data.meeting_attendees.length > 1) {
-          const additionalAttendees = data.meeting_attendees.slice(1).map((att: any) => ({
+        if (attendees.length > 1) {
+          const additionalAttendees = attendees.slice(1).map((att: any) => ({
             id: att.id,
             name: att.attendee_name,
             email: att.attendee_email,
@@ -186,7 +188,7 @@ export default function EditMeeting() {
       if (error) throw error;
 
       // Delete all existing attendees for this meeting
-      await supabase
+      await (supabase as any)
         .from("meeting_attendees")
         .delete()
         .eq("meeting_id", id);
@@ -208,11 +210,11 @@ export default function EditMeeting() {
         }))
       ];
 
-      const { error: attendeesError } = await supabase
+      const attendeesResult = await (supabase as any)
         .from("meeting_attendees")
         .insert(allAttendees);
 
-      if (attendeesError) throw attendeesError;
+      if (attendeesResult.error) throw attendeesResult.error;
 
       toast.success("Meeting updated successfully");
       navigate("/meetings");

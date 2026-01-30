@@ -48,18 +48,19 @@ const EditMeetingType = () => {
 
   const loadMeetingType = async () => {
     try {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("meeting_types")
         .select("*")
         .eq("id", id)
         .single();
 
-      if (error) throw error;
+      if (result.error) throw result.error;
+      const data = result.data as any;
 
       setName(data.name);
       setDescription(data.description || "");
-      setDuration(data.duration.toString());
-      setLocationType(data.location_type);
+      setDuration(data.duration?.toString() || "30");
+      setLocationType(data.location_type || "zoom");
       setCustomLocationUrl(data.custom_location_url || "");
       setIsActive(data.is_active ?? true);
       
@@ -110,20 +111,20 @@ const EditMeetingType = () => {
         .filter((q) => q.question.trim())
         .map((q) => ({ question: q.question, required: q.required }));
 
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("meeting_types")
         .update({
           name,
           description,
           duration: parseInt(duration),
-          location_type: locationType as "phone" | "zoom" | "teams" | "meet" | "in-person" | "custom" | "seeksy_studio",
+          location_type: locationType,
           custom_location_url: locationType === "custom" ? customLocationUrl : null,
-          pre_meeting_questions: filteredQuestions as any,
+          pre_meeting_questions: filteredQuestions,
           is_active: isActive,
         })
         .eq("id", id);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
 
       toast({
         title: "Meeting type updated!",
