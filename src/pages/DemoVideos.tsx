@@ -100,14 +100,14 @@ export default function DemoVideos() {
   const { data: videos = [], isLoading } = useQuery({
     queryKey: ['demo-videos'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('demo_videos')
         .select('*')
         .order('order_index', { ascending: true })
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      return data as DemoVideo[];
+      if (result.error) throw result.error;
+      return result.data as DemoVideo[];
     },
   });
 
@@ -145,8 +145,8 @@ export default function DemoVideos() {
       const currentVideo = videos[currentIndex];
       const swapVideo = videos[swapIndex];
 
-      await supabase.from('demo_videos').update({ order_index: swapVideo.order_index }).eq('id', currentVideo.id);
-      await supabase.from('demo_videos').update({ order_index: currentVideo.order_index }).eq('id', swapVideo.id);
+      await (supabase as any).from('demo_videos').update({ order_index: swapVideo.order_index }).eq('id', currentVideo.id);
+      await (supabase as any).from('demo_videos').update({ order_index: currentVideo.order_index }).eq('id', swapVideo.id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['demo-videos'] });
@@ -158,7 +158,7 @@ export default function DemoVideos() {
   // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: async (videoId: string) => {
-      const { error } = await supabase.from('demo_videos').delete().eq('id', videoId);
+      const { error } = await (supabase as any).from('demo_videos').delete().eq('id', videoId);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -172,7 +172,7 @@ export default function DemoVideos() {
   // Update mutation
   const updateMutation = useMutation({
     mutationFn: async (data: { id: string; title: string; description: string; category: string; is_featured: boolean }) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('demo_videos')
         .update({
           title: data.title,
@@ -252,7 +252,7 @@ export default function DemoVideos() {
           .from('demo-videos')
           .getPublicUrl(fileName);
 
-        await supabase.from('demo_videos').update({ thumbnail_url: publicUrl }).eq('id', video.id);
+        await (supabase as any).from('demo_videos').update({ thumbnail_url: publicUrl }).eq('id', video.id);
         
         queryClient.invalidateQueries({ queryKey: ['demo-videos'] });
         queryClient.invalidateQueries({ queryKey: ['boardVideos'] });
@@ -283,7 +283,7 @@ export default function DemoVideos() {
         .from('demo-videos')
         .getPublicUrl(fileName);
 
-      await supabase.from('demo_videos').update({ thumbnail_url: publicUrl }).eq('id', editingVideo.id);
+      await (supabase as any).from('demo_videos').update({ thumbnail_url: publicUrl }).eq('id', editingVideo.id);
       
       // Update local state
       setEditingVideo({ ...editingVideo, thumbnail_url: publicUrl });
@@ -341,7 +341,7 @@ export default function DemoVideos() {
           .from('demo-videos')
           .getPublicUrl(fileName);
 
-        await supabase.from('demo_videos').update({ thumbnail_url: publicUrl }).eq('id', editingVideo.id);
+        await (supabase as any).from('demo_videos').update({ thumbnail_url: publicUrl }).eq('id', editingVideo.id);
         
         // Update local state
         setEditingVideo({ ...editingVideo, thumbnail_url: publicUrl });
