@@ -87,22 +87,23 @@ export default function EmailHome({ isAdmin = false }: EmailHomeProps) {
       
       // Drafts are stored in email_campaigns table
       if (selectedFolder === "drafts") {
-        const { data } = await supabase
+        const result = await (supabase as any)
           .from("email_campaigns")
           .select("*")
           .eq("user_id", user.id)
           .eq("is_draft", true)
           .order("updated_at", { ascending: false });
         
+        const data = (result.data as any[]) || [];
         // Transform drafts to match email event format
-        return (data || []).map(draft => ({
+        return data.map((draft: any) => ({
           id: draft.id,
-          to_email: (draft.draft_data as any)?.to || "Draft",
+          to_email: draft.draft_data?.to || "Draft",
           email_subject: draft.subject || "Untitled Draft",
           event_type: "draft",
           created_at: draft.created_at,
           from_email: "",
-          campaign_name: draft.campaign_name,
+          campaign_name: draft.campaign_name || draft.name,
           reply_count: 0,
           is_inbox: false,
         }));
@@ -110,21 +111,22 @@ export default function EmailHome({ isAdmin = false }: EmailHomeProps) {
 
       // Inbox shows received emails from inbox_messages
       if (selectedFolder === "inbox") {
-        const { data: inboxData } = await supabase
+        const inboxResult = await (supabase as any)
           .from("inbox_messages")
           .select("*")
           .eq("user_id", user.id)
           .is("deleted_at", null)
           .order("received_at", { ascending: false });
 
-        return (inboxData || []).map(msg => ({
+        const inboxData = (inboxResult.data as any[]) || [];
+        return inboxData.map((msg: any) => ({
           id: msg.id,
-          to_email: msg.to_address,
-          from_email: msg.from_address,
+          to_email: msg.to_address || msg.to_email,
+          from_email: msg.from_address || msg.from_email,
           from_name: msg.from_name,
-          email_subject: msg.subject,
+          email_subject: msg.subject || msg.email_subject,
           event_type: "received",
-          created_at: msg.received_at,
+          created_at: msg.received_at || msg.created_at,
           snippet: msg.snippet,
           body_html: msg.body_html,
           is_read: msg.is_read,
@@ -138,21 +140,22 @@ export default function EmailHome({ isAdmin = false }: EmailHomeProps) {
       // Trash folder: combine deleted emails from both tables
       if (selectedFolder === "trash") {
         // Get deleted inbox messages
-        const { data: deletedInbox } = await supabase
+        const deletedInboxResult = await (supabase as any)
           .from("inbox_messages")
           .select("*")
           .eq("user_id", user.id)
           .not("deleted_at", "is", null)
           .order("received_at", { ascending: false });
 
-        const inboxTrashed = (deletedInbox || []).map(msg => ({
+        const deletedInbox = (deletedInboxResult.data as any[]) || [];
+        const inboxTrashed = deletedInbox.map((msg: any) => ({
           id: msg.id,
-          to_email: msg.to_address,
-          from_email: msg.from_address,
+          to_email: msg.to_address || msg.to_email,
+          from_email: msg.from_address || msg.from_email,
           from_name: msg.from_name,
-          email_subject: msg.subject,
+          email_subject: msg.subject || msg.email_subject,
           event_type: "received",
-          created_at: msg.received_at,
+          created_at: msg.received_at || msg.created_at,
           snippet: msg.snippet,
           body_html: msg.body_html,
           is_read: msg.is_read,
@@ -164,14 +167,15 @@ export default function EmailHome({ isAdmin = false }: EmailHomeProps) {
         }));
 
         // Get deleted sent emails
-        const { data: deletedSent } = await supabase
+        const deletedSentResult = await (supabase as any)
           .from("email_events")
           .select("*, email_campaigns(campaign_name)")
           .eq("user_id", user.id)
           .not("deleted_at", "is", null)
           .order("created_at", { ascending: false });
 
-        const sentTrashed = (deletedSent || []).map(e => ({ ...e, is_inbox: false }));
+        const deletedSent = (deletedSentResult.data as any[]) || [];
+        const sentTrashed = deletedSent.map((e: any) => ({ ...e, is_inbox: false }));
 
         // Combine and sort by date
         const allTrashed = [...inboxTrashed, ...sentTrashed].sort((a, b) => 
@@ -182,7 +186,7 @@ export default function EmailHome({ isAdmin = false }: EmailHomeProps) {
       }
 
       // Sent and other folders use email_events table
-      let query = supabase
+      let query = (supabase as any)
         .from("email_events")
         .select("*, email_campaigns(campaign_name)")
         .eq("user_id", user.id)
@@ -204,31 +208,33 @@ export default function EmailHome({ isAdmin = false }: EmailHomeProps) {
         query = query.eq("event_type", filter);
       }
 
-      const { data: emailEvents } = await query;
+      const eventsResult = await query;
+      const emailEvents = (eventsResult.data as any[]) || [];
       
       // Fetch reply counts for all emails
       if (emailEvents && emailEvents.length > 0) {
-        const emailIds = emailEvents.map(e => e.id);
-        const { data: replyCounts } = await supabase
+        const emailIds = emailEvents.map((e: any) => e.id);
+        const replyResult = await (supabase as any)
           .from("email_replies")
           .select("email_event_id")
           .in("email_event_id", emailIds);
         
+        const replyCounts = (replyResult.data as any[]) || [];
         // Count replies per email
-        const replyCountMap = (replyCounts || []).reduce((acc: Record<string, number>, reply) => {
+        const replyCountMap = replyCounts.reduce((acc: Record<string, number>, reply: any) => {
           acc[reply.email_event_id] = (acc[reply.email_event_id] || 0) + 1;
           return acc;
         }, {});
         
         // Add reply counts to emails
-        return emailEvents.map(email => ({
+        return emailEvents.map((email: any) => ({
           ...email,
           reply_count: replyCountMap[email.id] || 0,
           is_inbox: false,
         }));
       }
       
-      return (emailEvents || []).map(e => ({ ...e, is_inbox: false }));
+      return emailEvents.map((e: any) => ({ ...e, is_inbox: false }));
     },
     enabled: !!user,
   });
@@ -259,13 +265,13 @@ export default function EmailHome({ isAdmin = false }: EmailHomeProps) {
     queryFn: async () => {
       if (!user) return [];
       
-      const { data } = await supabase
+      const result = await (supabase as any)
         .from("email_events")
         .select("*")
         .eq("user_id", user.id)
         .order("occurred_at", { ascending: true });
       
-      return data || [];
+      return (result.data as any[]) || [];
     },
     enabled: !!user,
   });
@@ -278,13 +284,13 @@ export default function EmailHome({ isAdmin = false }: EmailHomeProps) {
 
       const queries = await Promise.all([
         // Inbox: count from inbox_messages (received emails)
-        supabase.from("inbox_messages").select("*", { count: "exact", head: true }).eq("user_id", user.id).is("deleted_at", null),
-        supabase.from("email_events").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("event_type", "sent").is("deleted_at", null),
-        supabase.from("email_events").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("event_type", "bounced").is("deleted_at", null),
-        supabase.from("email_events").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("event_type", "unsubscribed").is("deleted_at", null),
-        supabase.from("email_campaigns").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("is_draft", true),
+        (supabase as any).from("inbox_messages").select("*", { count: "exact", head: true }).eq("user_id", user.id).is("deleted_at", null),
+        (supabase as any).from("email_events").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("event_type", "sent").is("deleted_at", null),
+        (supabase as any).from("email_events").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("event_type", "bounced").is("deleted_at", null),
+        (supabase as any).from("email_events").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("event_type", "unsubscribed").is("deleted_at", null),
+        (supabase as any).from("email_campaigns").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("is_draft", true),
         // Trash: emails with deleted_at set
-        supabase.from("email_events").select("*", { count: "exact", head: true }).eq("user_id", user.id).not("deleted_at", "is", null),
+        (supabase as any).from("email_events").select("*", { count: "exact", head: true }).eq("user_id", user.id).not("deleted_at", "is", null),
       ]);
 
       return {
@@ -309,32 +315,32 @@ export default function EmailHome({ isAdmin = false }: EmailHomeProps) {
     queryFn: async () => {
       if (!selectedEmailId) return null;
       
-      const { data } = await supabase
+      const result = await (supabase as any)
         .from("email_events")
         .select("*, email_campaigns(campaign_name, html_content)")
         .eq("id", selectedEmailId)
         .single();
       
-      return data;
+      return result.data as any;
     },
     enabled: !!selectedEmailId,
   });
 
   // Fetch all events for selected email
   const { data: emailEvents = [] } = useQuery({
-    queryKey: ["email-timeline", selectedEmail?.resend_email_id],
+    queryKey: ["email-timeline", (selectedEmail as any)?.resend_email_id],
     queryFn: async () => {
-      if (!selectedEmail?.resend_email_id) return [];
+      if (!(selectedEmail as any)?.resend_email_id) return [];
       
-      const { data } = await supabase
+      const result = await (supabase as any)
         .from("email_events")
         .select("*")
-        .eq("resend_email_id", selectedEmail.resend_email_id)
+        .eq("resend_email_id", (selectedEmail as any).resend_email_id)
         .order("occurred_at", { ascending: true });
       
-      return data || [];
+      return (result.data as any[]) || [];
     },
-    enabled: !!selectedEmail?.resend_email_id,
+    enabled: !!(selectedEmail as any)?.resend_email_id,
   });
 
   return (
@@ -412,11 +418,11 @@ export default function EmailHome({ isAdmin = false }: EmailHomeProps) {
                     html_content: selectedInboxMessage.body_html || selectedInboxMessage.snippet,
                     is_inbox: true,
                   }
-                : selectedEmail
+                : (selectedEmail as any)
                   ? {
-                      ...selectedEmail,
-                      campaign_name: selectedEmail.email_campaigns?.campaign_name,
-                      html_content: selectedEmail.email_campaigns?.html_content,
+                      ...(selectedEmail as any),
+                      campaign_name: (selectedEmail as any).email_campaigns?.campaign_name,
+                      html_content: (selectedEmail as any).email_campaigns?.html_content,
                     }
                   : null
             }

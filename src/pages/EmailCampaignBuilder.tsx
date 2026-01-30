@@ -50,12 +50,12 @@ export default function EmailCampaignBuilder() {
     queryKey: ["email-accounts", user?.id],
     queryFn: async () => {
       if (!user) return [];
-      const { data } = await supabase
+      const result = await (supabase as any)
         .from("email_accounts")
         .select("*")
         .eq("user_id", user.id)
         .eq("is_active", true);
-      return data || [];
+      return (result.data as any[]) || [];
     },
     enabled: !!user,
   });
@@ -64,11 +64,11 @@ export default function EmailCampaignBuilder() {
     queryKey: ["contact-lists", user?.id],
     queryFn: async () => {
       if (!user) return [];
-      const { data } = await supabase
+      const result = await (supabase as any)
         .from("contact_lists")
         .select("*, contact_list_members(count)")
         .eq("user_id", user.id);
-      return data || [];
+      return (result.data as any[]) || [];
     },
     enabled: !!user,
   });
@@ -124,8 +124,8 @@ export default function EmailCampaignBuilder() {
     },
   });
 
-  const selectedListData = lists?.find(l => l.id === selectedList);
-  const audienceSize = selectedListData?.contact_list_members?.[0]?.count || 0;
+  const selectedListData = (lists as any[])?.find((l: any) => l.id === selectedList);
+  const audienceSize = selectedListData?.contact_list_members?.[0]?.count || selectedListData?.member_count || 0;
 
   const getTomorrowDate = () => {
     const tomorrow = new Date();
@@ -187,9 +187,9 @@ export default function EmailCampaignBuilder() {
                       <SelectValue placeholder="Select email account" />
                     </SelectTrigger>
                     <SelectContent>
-                      {accounts?.map((account) => (
+                      {(accounts as any[])?.map((account: any) => (
                         <SelectItem key={account.id} value={account.id}>
-                          {account.email_address}
+                          {account.email_address || account.email || account.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -225,9 +225,9 @@ export default function EmailCampaignBuilder() {
                       <SelectValue placeholder="Select subscriber list" />
                     </SelectTrigger>
                     <SelectContent>
-                      {lists?.map((list) => (
+                      {(lists as any[])?.map((list: any) => (
                         <SelectItem key={list.id} value={list.id}>
-                          {list.name} ({list.contact_list_members?.[0]?.count || 0} contacts)
+                          {list.name} ({list.contact_list_members?.[0]?.count || list.member_count || 0} contacts)
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -249,9 +249,9 @@ export default function EmailCampaignBuilder() {
                   <SelectValue placeholder="Choose template" />
                 </SelectTrigger>
                 <SelectContent>
-                  {templates?.map((template) => (
+                  {(templates as any[])?.map((template: any) => (
                     <SelectItem key={template.id} value={template.id}>
-                      {template.template_name}
+                      {template.template_name || template.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -372,7 +372,7 @@ export default function EmailCampaignBuilder() {
                         "text-sm mb-2",
                         previewTheme === "dark" ? "text-gray-400" : "text-gray-600"
                       )}>
-                        From: {accounts?.find(a => a.id === selectedAccount)?.email_address || "sender@email.com"}
+                        From: {(accounts as any[])?.find((a: any) => a.id === selectedAccount)?.email_address || (accounts as any[])?.find((a: any) => a.id === selectedAccount)?.email || "sender@email.com"}
                       </div>
                       <div className={cn(
                         "text-lg font-semibold mb-1",

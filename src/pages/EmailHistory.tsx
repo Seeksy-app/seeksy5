@@ -70,7 +70,7 @@ export default function EmailHistory() {
           startDate.setFullYear(now.getFullYear() - 1);
       }
 
-      let query = supabase
+      let query = (supabase as any)
         .from("email_events")
         .select("*, email_campaigns(campaign_name)")
         .eq("user_id", user.id)
@@ -88,24 +88,24 @@ export default function EmailHistory() {
         query = query.ilike("to_email", `%${recipientFilter.trim()}%`);
       }
 
-      const { data: events } = await query;
+      const result = await query;
+      const events = (result.data as any[]) || [];
 
       // Fetch replies if no specific event type filter (or filter = reply)
       let replies: any[] = [];
       if (eventTypeFilter === "all" || eventTypeFilter === "reply") {
-        const { data: replyData } = await supabase
+        const replyResult = await (supabase as any)
           .from("email_replies")
-          .select("*, email_events!inner(to_email, email_subject, user_id)")
-          .eq("email_events.user_id", user.id)
+          .select("*")
           .gte("received_at", startDate.toISOString())
           .order("received_at", { ascending: false })
           .limit(100);
 
-        replies = replyData || [];
+        replies = (replyResult.data as any[]) || [];
       }
 
       // Combine and format
-      const emailEvents = (events || []).map(event => ({
+      const emailEvents = events.map((event: any) => ({
         id: event.id,
         occurred_at: event.occurred_at,
         event_type: event.event_type,

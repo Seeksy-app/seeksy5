@@ -22,12 +22,12 @@ export default function EmailCampaigns() {
     queryKey: ["email-campaigns", user?.id],
     queryFn: async () => {
       if (!user) return [];
-      const { data } = await supabase
+      const result = await (supabase as any)
         .from("email_campaigns")
-        .select("id, subject, status, created_at, total_sent, total_opened, total_clicked, total_bounced")
+        .select("*")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
-      return data || [];
+      return (result.data as any[]) || [];
     },
     enabled: !!user,
   });
@@ -59,9 +59,9 @@ export default function EmailCampaigns() {
             <CardContent>
               {campaigns && campaigns.length > 0 ? (
                 <div className="space-y-3">
-                  {campaigns.map((campaign) => {
-                    const openRate = calculateRate(campaign.total_opened || 0, campaign.total_sent || 0);
-                    const clickRate = calculateRate(campaign.total_clicked || 0, campaign.total_sent || 0);
+                  {(campaigns as any[]).map((campaign: any) => {
+                    const openRate = calculateRate(campaign.total_opened || campaign.opened_count || 0, campaign.total_sent || campaign.sent_count || 0);
+                    const clickRate = calculateRate(campaign.total_clicked || campaign.clicked_count || 0, campaign.total_sent || campaign.sent_count || 0);
                     
                     return (
                       <div
@@ -86,7 +86,7 @@ export default function EmailCampaigns() {
                             <div className="flex items-center justify-center gap-1 text-muted-foreground mb-1">
                               <Mail className="h-3 w-3" />
                             </div>
-                            <p className="text-lg font-semibold">{campaign.total_sent || 0}</p>
+                            <p className="text-lg font-semibold">{campaign.total_sent || campaign.sent_count || 0}</p>
                             <p className="text-xs text-muted-foreground">Sent</p>
                           </div>
                           
@@ -110,7 +110,7 @@ export default function EmailCampaigns() {
                             <div className="flex items-center justify-center gap-1 text-muted-foreground mb-1">
                               <AlertCircle className="h-3 w-3" />
                             </div>
-                            <p className="text-lg font-semibold">{campaign.total_bounced || 0}</p>
+                            <p className="text-lg font-semibold">{campaign.total_bounced || campaign.bounced_count || 0}</p>
                             <p className="text-xs text-muted-foreground">Bounced</p>
                           </div>
                         </div>
