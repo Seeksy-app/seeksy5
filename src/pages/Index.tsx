@@ -58,12 +58,13 @@ const Index = () => {
     
     // Creator users with completed onboarding - check for custom default landing route
     const fetchLandingRoute = async () => {
-      const { data: prefs } = await supabase
+      const result = await (supabase as any)
         .from('user_preferences')
         .select('default_landing_route')
         .eq('user_id', user.id)
         .maybeSingle();
 
+      const prefs = result.data as any;
       // Use user's preferred landing route, or fallback to My Day
       const landingRoute = prefs?.default_landing_route || DEFAULT_CREATOR_LANDING;
       navigate(landingRoute, { replace: true });

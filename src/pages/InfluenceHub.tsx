@@ -21,16 +21,16 @@ export default function InfluenceHub() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const [accounts, posts, creators] = await Promise.all([
-      supabase.from("social_accounts").select("id", { count: "exact" }).eq("user_id", user.id),
-      supabase.from("influencehub_posts").select("id", { count: "exact" }).eq("user_id", user.id).eq("status", "scheduled"),
-      supabase.from("influencehub_creators").select("id", { count: "exact" }).eq("agency_user_id", user.id),
+    const [accountsResult, postsResult, creatorsResult] = await Promise.all([
+      (supabase as any).from("social_accounts").select("id", { count: "exact" }).eq("user_id", user.id),
+      (supabase as any).from("influencehub_posts").select("id", { count: "exact" }).eq("user_id", user.id).eq("status", "scheduled"),
+      (supabase as any).from("influencehub_creators").select("id", { count: "exact" }).eq("agency_user_id", user.id),
     ]);
 
     setStats({
-      connectedAccounts: accounts.count || 0,
-      scheduledPosts: posts.count || 0,
-      managedCreators: creators.count || 0,
+      connectedAccounts: accountsResult.count || 0,
+      scheduledPosts: postsResult.count || 0,
+      managedCreators: creatorsResult.count || 0,
     });
   };
 

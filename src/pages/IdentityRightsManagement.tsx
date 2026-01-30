@@ -25,24 +25,28 @@ export default function IdentityRightsManagement() {
       if (!user) throw new Error("Not authenticated");
 
       // Fetch identity assets with permissions
-      const { data: assets } = await supabase
+      const assetsResult = await (supabase as any)
         .from('identity_assets')
         .select('*')
         .eq('user_id', user.id)
         .is('revoked_at', null);
 
+      const assets = (assetsResult.data as any[]) || [];
+
       // Fetch access requests
-      const { data: requests } = await supabase
+      const requestsResult = await (supabase as any)
         .from('identity_requests')
         .select('*')
         .eq('creator_id', user.id)
         .order('created_at', { ascending: false });
 
+      const requests = (requestsResult.data as any[]) || [];
+
       return {
-        assets: assets || [],
-        requests: requests || [],
-        faceAsset: assets?.find(a => a.type === 'face_identity'),
-        voiceAsset: assets?.find(a => a.type === 'voice_identity'),
+        assets,
+        requests,
+        faceAsset: assets.find((a: any) => a.type === 'face_identity'),
+        voiceAsset: assets.find((a: any) => a.type === 'voice_identity'),
       };
     },
   });
@@ -50,12 +54,12 @@ export default function IdentityRightsManagement() {
   // Update permissions mutation
   const updatePermissions = useMutation({
     mutationFn: async ({ assetId, permissions }: { assetId: string; permissions: any }) => {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from('identity_assets')
         .update({ permissions })
         .eq('id', assetId);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['identity-rights-settings'] });
@@ -64,7 +68,7 @@ export default function IdentityRightsManagement() {
         description: "Your identity rights have been saved.",
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "Update failed",
         description: error.message,
@@ -74,7 +78,7 @@ export default function IdentityRightsManagement() {
   });
 
   const handlePermissionToggle = (assetId: string, permissionKey: string, currentValue: boolean) => {
-    const asset = rightsSettings?.assets?.find(a => a.id === assetId);
+    const asset = rightsSettings?.assets?.find((a: any) => a.id === assetId);
     if (!asset) return;
 
     const updatedPermissions: any = {

@@ -28,13 +28,13 @@ export default function InfluenceHubConnect() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("social_accounts")
         .select("id, platform, account_name, account_username, is_active")
         .eq("user_id", user.id);
 
-      if (error) throw error;
-      setAccounts(data || []);
+      if (result.error) throw result.error;
+      setAccounts((result.data as SocialAccount[]) || []);
     } catch (error: any) {
       toast({
         title: "Error",
@@ -55,12 +55,12 @@ export default function InfluenceHubConnect() {
 
   const handleDisconnect = async (accountId: string) => {
     try {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("social_accounts")
         .delete()
         .eq("id", accountId);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
 
       toast({
         title: "Success",

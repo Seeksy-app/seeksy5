@@ -39,14 +39,25 @@ export default function InfluenceHubCreators() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("influencehub_creators")
         .select("*")
         .eq("agency_user_id", user.id)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
-      setCreators(data || []);
+      if (result.error) throw result.error;
+      
+      // Map data to Creator interface
+      const mappedCreators: Creator[] = ((result.data as any[]) || []).map((item: any) => ({
+        id: item.id,
+        creator_name: item.creator_name || item.name || 'Unknown',
+        creator_email: item.creator_email || item.email || null,
+        creator_bio: item.creator_bio || item.bio || null,
+        is_managed: item.is_managed ?? true,
+        created_at: item.created_at,
+      }));
+      
+      setCreators(mappedCreators);
     } catch (error: any) {
       toast({
         title: "Error",
@@ -65,14 +76,14 @@ export default function InfluenceHubCreators() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { error } = await supabase.from("influencehub_creators").insert({
+      const result = await (supabase as any).from("influencehub_creators").insert({
         agency_user_id: user.id,
         creator_name: formData.creator_name,
         creator_email: formData.creator_email || null,
         creator_bio: formData.creator_bio || null,
       });
 
-      if (error) throw error;
+      if (result.error) throw result.error;
 
       toast({
         title: "Success",
@@ -93,12 +104,12 @@ export default function InfluenceHubCreators() {
 
   const handleDeleteCreator = async (creatorId: string) => {
     try {
-      const { error } = await supabase
+      const result = await (supabase as any)
         .from("influencehub_creators")
         .delete()
         .eq("id", creatorId);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
 
       toast({
         title: "Success",
