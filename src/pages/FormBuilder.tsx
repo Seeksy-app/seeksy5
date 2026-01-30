@@ -64,27 +64,27 @@ export default function FormBuilder() {
     queryKey: ["form", id],
     queryFn: async () => {
       if (!id) return null;
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("forms")
         .select("*")
         .eq("id", id)
         .single();
       
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return result.data as any;
     },
     enabled: isEditing,
   });
 
   useEffect(() => {
     if (existingForm) {
-      setFormName(existingForm.form_name);
-      setFormSlug(existingForm.form_slug);
+      setFormName(existingForm.form_name || "");
+      setFormSlug(existingForm.form_slug || "");
       setDescription(existingForm.description || "");
-      setFormType(existingForm.form_type as keyof typeof FORM_TEMPLATES);
+      setFormType((existingForm.form_type as keyof typeof FORM_TEMPLATES) || "lead_form");
       setEnabledFields((existingForm.enabled_fields as string[]) || []);
       setCustomFields((existingForm.custom_fields as Array<{label: string; type: string; required: boolean}>) || []);
-      setIsActive(existingForm.is_active);
+      setIsActive(existingForm.is_active ?? true);
       const settings = existingForm.settings as { createTicket?: boolean } | null;
       setCreateTicket(settings?.createTicket !== false);
     } else {
@@ -149,16 +149,16 @@ export default function FormBuilder() {
       };
 
       if (isEditing) {
-        const { error } = await supabase
+        const result = await (supabase as any)
           .from("forms")
           .update(formData)
           .eq("id", id);
-        if (error) throw error;
+        if (result.error) throw result.error;
       } else {
-        const { error } = await supabase
+        const result = await (supabase as any)
           .from("forms")
           .insert(formData);
-        if (error) throw error;
+        if (result.error) throw result.error;
       }
     },
     onSuccess: () => {

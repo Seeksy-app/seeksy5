@@ -247,7 +247,7 @@ export default function FieldLeadCapture() {
 
       // Create ticket if requested
       if (createTicket) {
-        const { error: ticketError } = await supabase.from('client_tickets').insert({
+        const ticketResult = await (supabase as any).from('client_tickets').insert({
           title: `Field Lead: ${formData.name}`,
           description: formData.notes,
           client_contact_id: contactId,
@@ -258,7 +258,7 @@ export default function FieldLeadCapture() {
           source: 'field_capture',
         });
         
-        if (ticketError) throw ticketError;
+        if (ticketResult.error) throw ticketResult.error;
       }
 
       toast({

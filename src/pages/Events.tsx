@@ -17,27 +17,25 @@ const Events = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from("events")
-        .select(`
-          *,
-          event_registrations(count)
-        `)
+        .select("*")
         .eq("user_id", user.id)
-        .order("event_date", { ascending: true });
+        .order("start_date", { ascending: true });
 
-      if (error) throw error;
-      return data;
+      if (result.error) throw result.error;
+      return (result.data as any[]) || [];
     },
   });
 
   const now = new Date();
-  const upcomingEvents = events?.filter(e => new Date(e.event_date) >= now) || [];
-  const pastEvents = events?.filter(e => new Date(e.event_date) < now) || [];
+  const upcomingEvents = events?.filter((e: any) => new Date(e.start_date || e.event_date) >= now) || [];
+  const pastEvents = events?.filter((e: any) => new Date(e.start_date || e.event_date) < now) || [];
 
   const EventCard = ({ event }: { event: any }) => {
     const registrationCount = event.event_registrations?.[0]?.count || 0;
-    const isUpcoming = new Date(event.event_date) >= now;
+    const eventDate = event.start_date || event.event_date;
+    const isUpcoming = new Date(eventDate) >= now;
     
     return (
       <Card 
@@ -86,7 +84,7 @@ const Events = () => {
         <CardContent className="space-y-3">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <CalendarDays className="w-4 h-4" />
-            <span>{format(new Date(event.event_date), "EEEE, MMMM d, yyyy 'at' h:mm a")}</span>
+            <span>{format(new Date(eventDate), "EEEE, MMMM d, yyyy 'at' h:mm a")}</span>
           </div>
           {event.location && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
